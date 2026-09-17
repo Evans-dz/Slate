@@ -450,8 +450,14 @@ tr:hover .rowx{opacity:1}
   min-height:26px;max-height:240px;padding:0;
 }
 #capInput:focus{outline:none}
-#capFoot{display:flex;align-items:center;gap:9px;margin-top:7px}
+#capFoot{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
 #capHint{font-size:11.5px;color:var(--muted)}
+#capProj,#capSpace{
+  border:1px solid var(--note-edge);background:transparent;
+  border-radius:3px;padding:3px 6px;font-size:12px;font-family:var(--ui);
+  max-width:46%;
+}
+#capProj:focus,#capSpace:focus{border-color:var(--accent);outline:none}
 #capFoot .btn{margin-left:auto;padding:3px 10px;font-size:12.5px}
 #capThumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 #capThumbs:empty{margin:0}
@@ -729,6 +735,52 @@ tr:hover .rowx{opacity:1}
   padding-right:max(16px,env(safe-area-inset-right));
 }
 
+/* ---------- dashboard ---------- */
+.dash{
+  display:grid;gap:14px;align-items:start;
+  grid-template-columns:repeat(auto-fill,minmax(310px,1fr));
+  max-width:1080px;
+}
+.dcard{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);padding:13px 14px 12px;
+}
+.dcard h3{
+  margin:0 0 9px;font-size:12.5px;font-weight:500;color:var(--muted);
+  letter-spacing:.02em;text-transform:uppercase;
+  display:flex;align-items:center;gap:7px;
+}
+.dcard h3 .n{
+  font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;
+  background:var(--line-soft);border-radius:9px;padding:1px 7px;text-transform:none;
+}
+.dlist{display:flex;flex-direction:column;gap:2px}
+.dempty{font-size:13px;color:var(--muted);line-height:1.5;padding:2px 0 3px}
+
+.drow{display:flex;align-items:flex-start;gap:9px;border-radius:3px}
+.drow:hover{background:var(--line-soft)}
+.dtick{
+  flex:0 0 auto;width:19px;height:19px;margin-top:7px;border-radius:50%;
+  border:1.5px solid var(--line);color:transparent;
+  font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;
+}
+.dtick:hover{border-color:var(--accent)}
+.dtick.on{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.dmain{
+  flex:1;min-width:0;text-align:left;display:flex;flex-direction:column;gap:3px;
+  padding:6px 4px 6px 0;
+}
+.drow.dnote{
+  display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+  text-align:left;padding:7px 4px;width:100%;
+}
+.dt{font-size:13.5px;line-height:1.35;word-break:break-word}
+.drow.is-done .dt{color:var(--muted);text-decoration:line-through}
+.dmeta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}
+.dtime{font-variant-numeric:tabular-nums}
+.ddue{font-variant-numeric:tabular-nums}
+.ddue.late{color:var(--danger)}
+
 /* agenda is phone-only */
 .agenda{display:none}
 .agday{margin-bottom:16px}
@@ -834,6 +886,8 @@ tr:hover .rowx{opacity:1}
   #capture{margin:12px 15px 0;padding:11px 13px 10px}
   #capInput{font-size:16px;min-height:40px}
   #capFoot .btn{padding:8px 15px;font-size:14px;min-height:38px}
+  #capProj,#capSpace{font-size:16px;padding:7px 8px;min-height:38px;flex:1 1 40%;max-width:none}
+  #capHint{flex:1 1 100%;order:9}
   .thumb button{width:26px;height:26px;font-size:15px;line-height:26px;top:3px;right:3px}
   #mainbody{padding:14px 15px 28px}
 
@@ -993,6 +1047,8 @@ tr:hover .rowx{opacity:1}
         <textarea id="capInput" rows="1" placeholder="Get it out of your head. Enter saves it."></textarea>
         <div id="capThumbs"></div>
         <div id="capFoot">
+          <select id="capProj" aria-label="File this note under a project"></select>
+          <select id="capSpace" aria-label="File this note under a space"></select>
           <span id="capHint">#tag anything · Shift+Enter for a new line · paste an image</span>
           <button class="btn" id="capSave">Save</button>
         </div>
@@ -1002,11 +1058,11 @@ tr:hover .rowx{opacity:1}
   </div>
 
   <nav id="bottomnav" aria-label="Main">
-    <button class="bn" data-nav="projects">
-      <span class="ic">▤</span><span class="bl">Projects</span>
+    <button class="bn" data-nav="dash">
+      <span class="ic">◈</span><span class="bl">Dashboard</span>
     </button>
-    <button class="bn" data-nav="feed">
-      <span class="ic">◍</span><span class="bl">Feed</span>
+    <button class="bn" data-nav="capture">
+      <span class="ic">◍</span><span class="bl">Capture</span>
     </button>
     <button class="bn" data-nav="board">
       <span class="ic">▦</span><span class="bl">Board</span>
@@ -1014,8 +1070,8 @@ tr:hover .rowx{opacity:1}
     <button class="bn" data-nav="calendar">
       <span class="ic">▣</span><span class="bl">Calendar</span>
     </button>
-    <button class="bn" data-nav="notes">
-      <span class="ic">◈</span><span class="bl">Notes</span>
+    <button class="bn" data-nav="projects">
+      <span class="ic">▤</span><span class="bl">Projects</span>
     </button>
   </nav>
 </div>
@@ -1195,12 +1251,13 @@ var S = {
   uid:null, me:null,
   canWrite:null,          // true / false / null (unknown)
   projects:[], spaces:[], tasks:[], notes:[], schedules:[],
-  sel:"feed",             // "feed" | "all" | "unfiled" | projectId
+  sel:"dash",             // "dash" | "capture" | "all" | "unfiled" | projectId
   space:null,             // spaceId within the selected project, or null for all
   tab:"board",
   q:"",
   tag:null,
   capImages:[],
+  capProj:null, capSpace:null,   // capture box pickers; cleared after every save
   calMonth:null,          // Date on the 1st of the shown month
   newSpaceFor:null,
   editSched:null,
@@ -1387,7 +1444,7 @@ function richText(container, text){
       s.onclick = function(e){
         e.stopPropagation();
         S.tag = p.slice(1).toLowerCase();
-        if(S.sel !== "feed" && S.tab !== "notes") S.sel = "feed";
+        if(S.sel !== "capture" && S.tab !== "notes") S.sel = "capture";
         render();
       };
       container.appendChild(s);
@@ -1454,15 +1511,18 @@ function spacesOf(projectId){
   return S.spaces.filter(function(s){ return s.projectId === projectId; })
     .sort(function(a,b){ return (a.order||0)-(b.order||0); });
 }
+/* views that aren't a project: anything else in S.sel is a project id */
+var VIRTUAL_VIEWS = ["dash","capture","all","unfiled"];
+function isVirtualView(sel){ return VIRTUAL_VIEWS.indexOf(sel) !== -1; }
 function currentProject(){
-  return (S.sel !== "all" && S.sel !== "unfiled" && S.sel !== "feed") ? S.sel : null;
+  return isVirtualView(S.sel) ? null : S.sel;
 }
 
 /* ============ selectors ============ */
 function visibleTasks(){
   var q = S.q.toLowerCase();
   return S.tasks.filter(function(t){
-    if(S.sel === "unfiled" || S.sel === "feed") return false;
+    if(S.sel === "unfiled" || S.sel === "capture" || S.sel === "dash") return false;
     if(S.sel !== "all" && t.projectId !== S.sel) return false;
     if(S.space && t.spaceId !== S.space) return false;
     if(q && String(t.title||"").toLowerCase().indexOf(q) === -1) return false;
@@ -1473,7 +1533,7 @@ function visibleNotes(){
   var q = S.q.toLowerCase();
   return S.notes.filter(function(n){
     if(S.sel === "unfiled"){ if(n.projectId) return false; }
-    else if(S.sel !== "all" && S.sel !== "feed"){
+    else if(S.sel !== "all" && S.sel !== "capture" && S.sel !== "dash"){
       if(n.projectId !== S.sel) return false;
       if(S.space && n.spaceId !== S.space) return false;
     }
@@ -1489,7 +1549,7 @@ function visibleNotes(){
 }
 function visibleSchedules(){
   return S.schedules.filter(function(s){
-    if(S.sel === "all") return true;
+    if(S.sel === "all" || S.sel === "dash") return true;
     if(S.sel !== s.projectId) return false;
     if(S.space && s.spaceId !== S.space) return false;
     return true;
@@ -1629,7 +1689,7 @@ function deleteTask(id){
 }
 
 /* a captured note: first line becomes the name, the rest is the body */
-function captureNote(text, images, projectId){
+function captureNote(text, images, projectId, spaceId){
   if(!writable()) return Promise.resolve();
   var raw = String(text || "").replace(/\r/g,"");
   if(!raw.trim() && !(images && images.length)) return Promise.resolve();
@@ -1650,7 +1710,7 @@ function captureNote(text, images, projectId){
       kind: "note",
       images: images ? images.slice() : [],
       projectId: projectId || null,
-      spaceId: (projectId && S.space) ? S.space : null,
+      spaceId: projectId ? (spaceId || (S.space || null)) : null,
       createdAt: nowISO(),
       createdBy: S.uid || null,
       updatedAt: nowISO(),
@@ -1702,7 +1762,8 @@ function renderRail(){
   railEl.textContent = "";
 
   var top = el("div","rail-sec");
-  top.appendChild(railItem("feed", "Feed", S.notes.length, null));
+  top.appendChild(railItem("dash", "Dashboard", null, null));
+  top.appendChild(railItem("capture", "Capture", S.notes.length, null));
   top.appendChild(railItem("all", "Everything", S.tasks.length, null));
   railEl.appendChild(top);
 
@@ -1851,10 +1912,11 @@ function renderHead(){
 
   var title = document.createElement("input");
   title.id = "projTitle";
-  var isProject = S.sel !== "all" && S.sel !== "unfiled" && S.sel !== "feed";
+  var isProject = !isVirtualView(S.sel);
   title.value = isProject ? (projName(S.sel) || "Untitled project")
              : S.sel === "all" ? "Everything"
-             : S.sel === "feed" ? "Feed" : "Unfiled notes";
+             : S.sel === "dash" ? "Dashboard"
+             : S.sel === "capture" ? "Capture" : "Unfiled notes";
   title.disabled = !isProject || !writable();
   title.setAttribute("aria-label","Project name");
   if(isProject && writable()){
@@ -1869,7 +1931,7 @@ function renderHead(){
 
   var actions = el("div","head-actions");
   if(writable()){
-    if(S.sel !== "feed" && (S.tab === "notes" || S.sel === "unfiled")){
+    if(S.sel !== "capture" && S.sel !== "dash" && (S.tab === "notes" || S.sel === "unfiled")){
       var target = isProject ? S.sel : null;
       [["note","New note"],["doc","New doc"],["board","New whiteboard"]].forEach(function(k, i){
         var nb = el("button","btn" + (i === 0 ? " primary" : ""), k[1]);
@@ -1886,7 +1948,12 @@ function renderHead(){
   row.appendChild(actions);
   headEl.appendChild(row);
 
-  if(S.sel === "feed"){
+  if(S.sel === "dash"){
+    headEl.appendChild(el("div","meta",
+      "What wants attention today, across both of you."));
+    return;
+  }
+  if(S.sel === "capture"){
     headEl.appendChild(el("div","meta",
       "Everything either of you has captured, newest first. Tag as you type; file it into a project whenever."));
     return;
@@ -2318,7 +2385,7 @@ function renderNotes(){
   if(writable()){
     var add = el("button","note add","+  New note");
     add.onclick = function(){
-      createNote((S.sel !== "all" && S.sel !== "unfiled" && S.sel !== "feed") ? S.sel : null);
+      createNote(isVirtualView(S.sel) ? null : S.sel);
     };
     grid.appendChild(add);
   }
@@ -2348,9 +2415,11 @@ function renderNotes(){
       var spn = spaceName(n.spaceId);
       if(spn) f.appendChild(el("span","chip", spn));
     }
-    if((S.sel === "all" || S.sel === "feed") && n.projectId){
+    if((S.sel === "all" || S.sel === "capture" || S.sel === "dash") && n.projectId){
       var pn = projName(n.projectId);
       if(pn) f.appendChild(el("span","chip proj", pn));
+      var sn = spaceName(n.spaceId);
+      if(sn) f.appendChild(el("span","chip", sn));
     }
     f.appendChild(el("span", null, relTime(n.updatedAt)));
     if(n.updatedBy){
@@ -2374,7 +2443,7 @@ function renderTagBar(notes){
   var pool = S.tag
     ? S.notes.filter(function(n){
         if(S.sel === "unfiled") return !n.projectId;
-        if(S.sel !== "all" && S.sel !== "feed") return n.projectId === S.sel;
+        if(S.sel !== "all" && S.sel !== "capture" && S.sel !== "dash") return n.projectId === S.sel;
         return true;
       })
     : notes;
@@ -2396,7 +2465,149 @@ function renderTagBar(notes){
   bodyEl.appendChild(bar);
 }
 
-function renderFeed(){
+/* ============ render: dashboard ============ */
+
+function dashCard(title, count){
+  var sec = el("section","dcard");
+  var h = el("h3",null);
+  h.appendChild(document.createTextNode(title));
+  if(count) h.appendChild(el("span","n", String(count)));
+  sec.appendChild(h);
+  sec.appendChild(el("div","dlist"));
+  return sec;
+}
+
+function dashTaskRow(t){
+  var row = el("div","drow");
+
+  var tick = el("button","dtick" + (t.status === "done" ? " on" : ""), "✓");
+  tick.setAttribute("aria-label", "Mark done");
+  tick.disabled = !writable();
+  tick.onclick = function(e){
+    e.stopPropagation();
+    patchTask(t.id, { status: t.status === "done" ? "backlog" : "done" });
+  };
+  row.appendChild(tick);
+
+  var main = el("button","dmain");
+  main.appendChild(el("span","dt", t.title || "Untitled"));
+  var meta = el("span","dmeta");
+  var pn = t.projectId && projName(t.projectId);
+  if(pn) meta.appendChild(el("span","chip proj", pn));
+  var sn = t.spaceId && spaceName(t.spaceId);
+  if(sn) meta.appendChild(el("span","chip", sn));
+  if(t.due) meta.appendChild(el("span","ddue" + (isLate(t.due, t.status) ? " late" : ""), fmtDate(t.due)));
+  if(meta.childNodes.length) main.appendChild(meta);
+  main.onclick = function(){ openTask(t.id); };
+  row.appendChild(main);
+  return row;
+}
+
+function dashOccRow(s, dateStr){
+  var done = !!(s.done && s.done[dateStr]);
+  var row = el("div","drow" + (done ? " is-done" : ""));
+
+  var tick = el("button","dtick" + (done ? " on" : ""), "✓");
+  tick.setAttribute("aria-label", done ? "Not done after all" : "Mark done");
+  tick.disabled = !writable();
+  tick.onclick = function(e){ e.stopPropagation(); toggleOccurrence(s, dateStr); };
+  row.appendChild(tick);
+
+  var main = el("button","dmain");
+  main.appendChild(el("span","dt", s.title || "Untitled"));
+  var meta = el("span","dmeta");
+  if(s.time) meta.appendChild(el("span","dtime", fmtTime(s.time)));
+  var pn = s.projectId && projName(s.projectId);
+  if(pn) meta.appendChild(el("span","chip proj", pn));
+  var sn = s.spaceId && spaceName(s.spaceId);
+  if(sn) meta.appendChild(el("span","chip", sn));
+  main.appendChild(meta);
+  main.onclick = function(){
+    if(s.projectId){ S.sel = s.projectId; S.space = null; S.tab = "calendar"; prefSet("tab","calendar"); render(); }
+  };
+  row.appendChild(main);
+  return row;
+}
+
+function dashNoteRow(n){
+  var row = el("button","drow dnote");
+  row.appendChild(el("span","dt", n.title || firstLine(n.body) || "Untitled"));
+  var meta = el("span","dmeta");
+  meta.appendChild(el("span","dtime", relTime(n.updatedAt || n.createdAt)));
+  var pn = n.projectId && projName(n.projectId);
+  if(pn) meta.appendChild(el("span","chip proj", pn));
+  var sn = n.spaceId && spaceName(n.spaceId);
+  if(sn) meta.appendChild(el("span","chip", sn));
+  row.appendChild(meta);
+  row.onclick = function(){ openNote(n.id); };
+  return row;
+}
+
+function firstLine(body){
+  var l = String(body || "").split("\n")[0].trim();
+  return l.length > 60 ? l.slice(0,60) + "…" : l;
+}
+
+function fillCard(card, rows, emptyText){
+  var list = card.querySelector(".dlist");
+  if(!rows.length){
+    list.appendChild(el("div","dempty", emptyText));
+    return card;
+  }
+  rows.forEach(function(r){ list.appendChild(r); });
+  return card;
+}
+
+function renderDash(){
+  var t0 = new Date(); t0.setHours(0,0,0,0);
+  var todayS = ymd(t0);
+  var weekEnd = new Date(t0); weekEnd.setDate(weekEnd.getDate() + 7);
+  var weekEndS = ymd(weekEnd);
+
+  var open = S.tasks.filter(function(t){ return t.status !== "done"; });
+
+  var occs = S.schedules.filter(function(s){ return occursOn(s, t0); })
+    .sort(function(a,b){ return String(a.time||"").localeCompare(String(b.time||"")); });
+
+  var dueToday = open.filter(function(t){ return t.due === todayS; });
+  var overdue  = open.filter(function(t){ return t.due && t.due < todayS; })
+                     .sort(function(a,b){ return String(a.due).localeCompare(String(b.due)); });
+  var soon     = open.filter(function(t){ return t.status !== "doing" && t.due && t.due > todayS && t.due <= weekEndS; })
+                     .sort(function(a,b){ return String(a.due).localeCompare(String(b.due)); });
+  var doing    = open.filter(function(t){ return t.status === "doing"; });
+  var recent   = S.notes.slice().sort(function(a,b){
+                   return String(b.updatedAt||"").localeCompare(String(a.updatedAt||""));
+                 }).slice(0,5);
+
+  var grid = el("div","dash");
+
+  var todayRows = occs.map(function(s){ return dashOccRow(s, todayS); })
+    .concat(dueToday.map(dashTaskRow));
+  grid.appendChild(fillCard(
+    dashCard("Today", todayRows.length), todayRows,
+    "Nothing scheduled and nothing due. Enjoy it."));
+
+  if(overdue.length){
+    grid.appendChild(fillCard(
+      dashCard("Overdue", overdue.length), overdue.map(dashTaskRow), ""));
+  }
+
+  grid.appendChild(fillCard(
+    dashCard("In progress", doing.length), doing.map(dashTaskRow),
+    "Nothing on the go. Move a card into In progress to see it here."));
+
+  grid.appendChild(fillCard(
+    dashCard("Next seven days", soon.length), soon.map(dashTaskRow),
+    "Nothing due this week."));
+
+  grid.appendChild(fillCard(
+    dashCard("Latest notes", 0), recent.map(dashNoteRow),
+    "Nothing captured yet."));
+
+  bodyEl.appendChild(grid);
+}
+
+function renderCapture(){
   var notes = visibleNotes();
   renderTagBar(notes);
 
@@ -2453,6 +2664,8 @@ function feedItem(n){
   if(n.projectId){
     var pn = projName(n.projectId);
     if(pn) f.appendChild(el("span","chip proj", pn));
+    var sn = spaceName(n.spaceId);
+    if(sn) f.appendChild(el("span","chip", sn));
   }
   if(n.updatedBy){
     var av = document.createElement("img");
@@ -2760,17 +2973,65 @@ function emptyBlock(h, p, action){
 
 /* ============ capture bar ============ */
 var capEl = $("#capture"), capInput = $("#capInput"),
-    capThumbs = $("#capThumbs"), capSave = $("#capSave"), capHint = $("#capHint");
+    capThumbs = $("#capThumbs"), capSave = $("#capSave"), capHint = $("#capHint"),
+    capProj = $("#capProj"), capSpace = $("#capSpace");
 
 function autosize(ta){
   ta.style.height = "auto";
   ta.style.height = Math.min(ta.scrollHeight, 240) + "px";
 }
 function captureTarget(){
-  return (S.sel !== "all" && S.sel !== "unfiled" && S.sel !== "feed") ? S.sel : null;
+  return isVirtualView(S.sel) ? null : S.sel;
+}
+/* The project the note will be filed under: inside a project that's the project
+   you're looking at, otherwise whatever the picker says. */
+function captureProject(){
+  return captureTarget() || S.capProj || null;
+}
+function fillCapturePickers(){
+  var inProject = !!captureTarget();
+  var proj = captureProject();
+
+  capProj.style.display = inProject ? "none" : "";
+  if(!inProject){
+    capProj.textContent = "";
+    var none = document.createElement("option");
+    none.value = ""; none.textContent = "No project";
+    capProj.appendChild(none);
+    S.projects.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); })
+      .forEach(function(p){
+        var o = document.createElement("option");
+        o.value = p.id; o.textContent = p.name || "Untitled project";
+        capProj.appendChild(o);
+      });
+    capProj.value = S.capProj || "";
+    if(capProj.value !== (S.capProj || "")){ S.capProj = null; capProj.value = ""; }
+  }
+
+  /* spaces are optional and never auto-created, so the picker only appears
+     once the chosen project actually has some */
+  var spaces = proj ? spacesOf(proj) : [];
+  capSpace.style.display = spaces.length ? "" : "none";
+  if(!spaces.length){ S.capSpace = null; capSpace.textContent = ""; return; }
+
+  capSpace.textContent = "";
+  var ns = document.createElement("option");
+  ns.value = ""; ns.textContent = "No space";
+  capSpace.appendChild(ns);
+  spaces.forEach(function(sp){
+    var o = document.createElement("option");
+    o.value = sp.id; o.textContent = sp.name || "Untitled space";
+    capSpace.appendChild(o);
+  });
+  capSpace.value = S.capSpace || "";
+  if(capSpace.value !== (S.capSpace || "")){ S.capSpace = null; capSpace.value = ""; }
+}
+function resetCapturePickers(){
+  S.capProj = null;
+  S.capSpace = null;
 }
 function updateCapture(){
-  var show = writable() && (S.sel === "feed" || S.sel === "unfiled" || S.tab === "notes");
+  var show = writable() && S.sel !== "dash" && (S.sel === "capture" || S.sel === "unfiled" || S.tab === "notes");
   capEl.classList.toggle("on", !!show);
   if(!show) return;
   var target = captureTarget();
@@ -2780,6 +3041,7 @@ function updateCapture(){
   capHint.textContent = S.assets
     ? "#tag anything · Shift+Enter for a new line · paste an image"
     : "#tag anything · Shift+Enter for a new line";
+  fillCapturePickers();
 }
 function drawCapThumbs(){
   capThumbs.textContent = "";
@@ -2817,12 +3079,26 @@ function doCapture(){
   var text = capInput.value;
   if(!text.trim() && !S.capImages.length) return;
   var imgs = S.capImages.slice();
+  var proj = captureProject();
+  var space = proj ? (S.capSpace || null) : null;
   capInput.value = "";
   S.capImages = [];
   drawCapThumbs();
   autosize(capInput);
-  captureNote(text, imgs, captureTarget());
+  /* every note is filed deliberately, so the pickers start empty again */
+  resetCapturePickers();
+  captureNote(text, imgs, proj, space);
+  fillCapturePickers();
 }
+
+capProj.addEventListener("change", function(){
+  S.capProj = capProj.value || null;
+  S.capSpace = null;
+  fillCapturePickers();
+});
+capSpace.addEventListener("change", function(){
+  S.capSpace = capSpace.value || null;
+});
 capInput.addEventListener("input", function(){ autosize(capInput); });
 capInput.addEventListener("keydown", function(e){
   if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); doCapture(); }
@@ -2960,7 +3236,8 @@ $("#railToggle").onclick = function(){
 
 function renderBottomNav(){
   var nav = $("#bottomnav");
-  var active = S.sel === "feed" ? "feed"
+  var active = S.sel === "dash" ? "dash"
+             : S.sel === "capture" ? "capture"
              : S.sel === "unfiled" ? "notes"
              : S.tab;
   Array.prototype.forEach.call(nav.querySelectorAll(".bn"), function(b){
@@ -2973,9 +3250,10 @@ $("#bottomnav").addEventListener("click", function(e){
   var n = b.dataset.nav;
   closeRail();
   if(n === "projects"){ openRail(); return; }
-  if(n === "feed"){ S.sel = "feed"; S.tag = null; render(); return; }
+  if(n === "dash"){ S.sel = "dash"; S.tag = null; render(); return; }
+  if(n === "capture"){ S.sel = "capture"; S.tag = null; render(); return; }
   /* board / calendar / notes need a project context */
-  if(S.sel === "feed" || S.sel === "unfiled") S.sel = "all";
+  if(S.sel === "capture" || S.sel === "unfiled" || S.sel === "dash") S.sel = "all";
   S.tab = n;
   prefSet("tab", n);
   render();
@@ -3707,8 +3985,10 @@ function render(){
   bodyEl.textContent = "";
   if(!S.ready){
     bodyEl.appendChild(emptyBlock("Opening the board", "One moment.", null));
-  } else if(S.sel === "feed"){
-    renderFeed();
+  } else if(S.sel === "dash"){
+    renderDash();
+  } else if(S.sel === "capture"){
+    renderCapture();
   } else if(S.sel === "unfiled"){
     renderNotes();
   } else if(S.tab === "board"){
@@ -3721,7 +4001,7 @@ function render(){
     renderNotes();
   }
 
-  if(S.ready && !S.projects.length && !S.tasks.length && !S.notes.length && S.sel === "all"){
+  if(S.ready && !S.projects.length && !S.tasks.length && !S.notes.length && (S.sel === "all" || S.sel === "dash")){
     bodyEl.textContent = "";
     var act = el("button","btn primary","Create your first project");
     act.onclick = function(){
