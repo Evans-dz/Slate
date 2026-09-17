@@ -957,6 +957,9 @@ tr:hover .rowx{opacity:1}
 @media (max-width:430px){
   .two{flex-direction:column;gap:0}
   .head-actions .btn{flex:1 1 auto}
+  /* Delete project is often the only header action, and stretching it makes the
+     most destructive control the largest target on the screen */
+  .head-actions .btn.danger{flex:0 0 auto}
   .calbar .btn.primary{width:100%;margin-left:0}
 }
 
