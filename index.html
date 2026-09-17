@@ -11,6 +11,9 @@
 <meta name="apple-mobile-web-app-title" content="Slate">
 <meta name="format-detection" content="telephone=no">
 <title>Slate</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
@@ -683,6 +686,43 @@ tr:hover .rowx{opacity:1}
   *{transition:none !important;animation:none !important}
 }
 
+/* ---------- sign in (rendered by store.js when there's no session) ---------- */
+#slateLogin{
+  position:fixed;inset:0;z-index:200;background:var(--paper);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px max(20px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
+}
+#slateLogin form{
+  width:100%;max-width:330px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:24px 22px 22px;
+}
+#slateLogin .lbrand{
+  display:flex;align-items:center;gap:9px;
+  font-size:19px;font-weight:600;letter-spacing:-.01em;
+}
+#slateLogin .lbrand .mark{
+  width:15px;height:15px;border-radius:2px;background:var(--accent);
+  transform:rotate(-8deg);flex:0 0 auto;
+}
+#slateLogin .lsub{margin:6px 0 20px;font-size:13px;color:var(--muted)}
+#slateLogin label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
+#slateLogin input{
+  width:100%;border:1px solid var(--line);border-radius:3px;background:var(--paper);
+  padding:10px 11px;font-size:16px;margin-bottom:14px;min-height:44px;
+}
+#slateLogin input:focus{border-color:var(--accent);outline:none}
+#slateLogin button{
+  width:100%;background:var(--accent);border:1px solid var(--accent);
+  border-radius:var(--radius);color:var(--panel);
+  padding:11px;font-size:15px;font-weight:500;min-height:46px;
+}
+#slateLogin button:disabled{opacity:.6}
+#slateLogin .lerr{
+  margin:12px 0 0;font-size:13px;color:var(--danger);line-height:1.45;min-height:1px;
+}
+#slateLogin .lerr:empty{margin:0}
+
 /* same for the floating dialogs — must sit after their own padding shorthands */
 #overlay,#taskDlg,#schedDlg,#confirm{
   padding-left:max(16px,env(safe-area-inset-left));
@@ -1129,6 +1169,9 @@ tr:hover .rowx{opacity:1}
 <div id="amenu"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="store.js"></script>
 <script>
 (function(){
 "use strict";
@@ -2290,7 +2333,7 @@ function renderNotes(){
       var ig = el("div","imgs");
       n.images.slice(0,3).forEach(function(id){
         var im = document.createElement("img");
-        im.src = "/_blob/" + id; im.alt = ""; im.loading = "lazy";
+        im.src = SlateStore.blobUrl(id); im.alt = ""; im.loading = "lazy";
         im.onerror = function(){ im.remove(); };
         ig.appendChild(im);
       });
@@ -2393,7 +2436,7 @@ function feedItem(n){
     var ig = el("div","imgs");
     n.images.slice(0,4).forEach(function(id){
       var im = document.createElement("img");
-      im.src = "/_blob/" + id;
+      im.src = SlateStore.blobUrl(id);
       im.alt = "";
       im.loading = "lazy";
       im.onerror = function(){ im.remove(); };
@@ -2740,7 +2783,7 @@ function drawCapThumbs(){
   S.capImages.forEach(function(id){
     var w = el("div","thumb");
     var im = document.createElement("img");
-    im.src = "/_blob/" + id; im.alt = "";
+    im.src = SlateStore.blobUrl(id); im.alt = "";
     w.appendChild(im);
     var x = el("button",null,"×");
     x.setAttribute("aria-label","Remove image");
@@ -2951,7 +2994,7 @@ function drawEdImgs(){
   n.images.forEach(function(id){
     var w = el("div","thumb");
     var im = document.createElement("img");
-    im.src = "/_blob/" + id; im.alt = "";
+    im.src = SlateStore.blobUrl(id); im.alt = "";
     im.onerror = function(){ w.remove(); };
     w.appendChild(im);
     if(writable()){
@@ -3728,7 +3771,7 @@ function docsToArray(snap){
 }
 
 (async function(){
-  var user = await claude.use("user");
+  var user = await SlateStore.use("user");
   if(user){
     S.user = user;
     var me = await user.me();
@@ -3742,17 +3785,17 @@ function docsToArray(snap){
     S.canWrite = await user.can("data.write");
   }
 
-  S.assets = await claude.use("assets");
-  S.sample = await claude.use("sample");
+  S.assets = await SlateStore.use("assets");
+  S.sample = await SlateStore.use("sample");
   if(S.sample){
     var lim = await S.sample.limits().catch(function(){ return null; });
     S.canSampleImages = !!(lim && lim.images);
   }
   updateCapture();
-  var db = await claude.use("db");
+  var db = await SlateStore.use("db");
   if(!db){
     S.ready = true;
-    banner("Shared data isn't available in this view, so nothing can be saved. Open the artifact from claude.ai to use the board.");
+    banner("Can't reach the database, so nothing can be saved right now. Check your connection and reload.");
     render();
     return;
   }
@@ -3804,6 +3847,12 @@ function docsToArray(snap){
 })();
 
 })();
+
+if("serviceWorker" in navigator){
+  addEventListener("load", function(){
+    navigator.serviceWorker.register("/sw.js").catch(function(){});
+  });
+}
 </script>
 </body>
 </html>
