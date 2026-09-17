@@ -191,6 +191,34 @@ button{cursor:pointer;background:none;border:0;padding:0}
 }
 .triage select:focus{border-color:var(--accent);outline:none}
 .triage .btn{padding:4px 10px;font-size:12px}
+.pmeta-line{
+  display:flex;align-items:center;gap:7px 14px;flex-wrap:wrap;
+  margin-top:8px;font-size:12.5px;color:var(--muted);
+}
+.pmeta-line a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--line)}
+.pmeta-line a:hover{color:var(--accent-ink);border-bottom-color:var(--accent)}
+
+.viewswitch{
+  margin-left:auto;display:flex;gap:2px;align-self:center;
+  padding-bottom:5px;flex:0 0 auto;
+}
+.vbtn{
+  width:30px;height:26px;border-radius:4px;font-size:14px;line-height:1;
+  color:var(--muted);display:flex;align-items:center;justify-content:center;
+}
+.vbtn:hover{background:var(--line-soft);color:var(--ink)}
+.vbtn.on{background:var(--accent-soft);color:var(--accent-ink)}
+.tab.tabadd{color:var(--muted);font-size:16px;padding:7px 11px}
+.tab.tabadd:hover{color:var(--accent-ink)}
+.tabnew{
+  align-self:center;border:1px solid var(--accent);border-radius:3px;
+  padding:4px 8px;font-size:13px;background:var(--paper);margin-bottom:5px;
+}
+.tabnew:focus{outline:none}
+.pjspaces{display:flex;flex-direction:column;gap:6px}
+.pjspace{display:flex;align-items:center;gap:8px}
+.pjspace input{flex:1}
+.pjspace .btn{padding:4px 9px;font-size:12px}
 .pjcolor{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);line-height:1.4}
 .pjcolor .sw{width:22px;height:22px;border-radius:4px;flex:0 0 auto;transform:rotate(-8deg)}
 #mainhead .meta{font-size:12.5px;color:var(--muted);margin-top:7px}
@@ -207,7 +235,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .btn.quiet:hover{border-color:var(--line);color:var(--ink)}
 .btn.danger:hover{border-color:var(--danger);color:var(--danger)}
 
-.tabs{display:flex;gap:2px;margin:16px 0 0;border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:2px;margin:16px 0 0;border-bottom:1px solid var(--line);align-items:flex-end}
 .tab{
   padding:7px 12px;font-size:13.5px;color:var(--muted);
   border-bottom:2px solid transparent;margin-bottom:-1px;
@@ -1031,6 +1059,9 @@ tr:hover .rowx{opacity:1}
   .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .tabs::-webkit-scrollbar{display:none}
   .tab{padding:10px 13px;font-size:14px;flex:0 0 auto}
+  .viewswitch{margin-left:12px;position:sticky;right:0;background:var(--paper);padding-left:6px}
+  .vbtn{width:36px;height:36px;font-size:15px}
+  .pmeta-line{gap:6px 12px;font-size:13px}
 
   /* board: one column per screen, snapped */
   .board{
@@ -1392,6 +1423,10 @@ tr:hover .rowx{opacity:1}
         <label for="pjWebsite">Website</label>
         <input type="text" id="pjWebsite" inputmode="url" placeholder="company.com.au">
       </div>
+    </div>
+    <div class="field">
+      <label>Spaces</label>
+      <div class="pjspaces" id="pjSpaces"></div>
     </div>
     <div class="field">
       <label>Colour</label>
@@ -2266,63 +2301,6 @@ function renderRail(){
   sorted.forEach(function(p){
     var open = S.tasks.filter(function(t){ return t.projectId === p.id && !taskDone(t); }).length;
     ps.appendChild(railItem(p.id, p.name || "Untitled project", open, "dot"));
-    if(S.sel !== p.id) return;
-
-    var sub = el("div","rail-sub");
-    var spaces = spacesOf(p.id);
-    if(spaces.length){
-      var allb = el("button","rail-item" + (S.space === null ? " on" : ""));
-      allb.appendChild(el("span","lbl","All of " + (p.name || "this project")));
-      allb.onclick = function(){ S.space = null; render(); };
-      sub.appendChild(allb);
-    }
-    spaces.forEach(function(sp){
-      var cnt = S.tasks.filter(function(t){ return t.spaceId === sp.id && !taskDone(t); }).length;
-      var b = el("button","rail-item" + (S.space === sp.id ? " on" : ""));
-      b.appendChild(el("span","lbl", sp.name || "Untitled space"));
-      b.appendChild(el("span","ct", String(cnt)));
-      if(writable()){
-        var x = el("span","spacex","×");
-        x.setAttribute("role","button");
-        x.title = "Delete space";
-        x.onclick = function(e){ e.stopPropagation(); deleteSpace(sp.id); };
-        b.appendChild(x);
-      }
-      b.onclick = function(){ S.space = sp.id; render(); };
-      b.ondblclick = function(){
-        if(!writable()) return;
-        inlineEdit(b.querySelector(".lbl"), sp.name || "", function(v){ renameSpace(sp.id, v); });
-      };
-      sub.appendChild(b);
-    });
-
-    if(writable()){
-      if(S.newSpaceFor === p.id){
-        var si = document.createElement("input");
-        si.type = "text";
-        si.placeholder = "Space name";
-        si.setAttribute("aria-label","New space name");
-        si.onkeydown = function(e){
-          if(e.key === "Enter"){
-            var v = si.value.trim();
-            S.newSpaceFor = null;
-            if(v) createSpace(p.id, v); else render();
-          } else if(e.key === "Escape"){ S.newSpaceFor = null; render(); }
-        };
-        si.onblur = function(){
-          if(!si.isConnected) return;
-          var v = si.value.trim();
-          S.newSpaceFor = null;
-          if(v) createSpace(p.id, v); else render();
-        };
-        sub.appendChild(si);
-      } else {
-        var addS = el("button","rail-addspace","+ Add a space");
-        addS.onclick = function(){ S.newSpaceFor = p.id; render(); };
-        sub.appendChild(addS);
-      }
-    }
-    ps.appendChild(sub);
   });
   railEl.appendChild(ps);
 
@@ -2402,11 +2380,6 @@ function renderHead(){
         actions.appendChild(nb);
       });
     }
-    if(isProject){
-      var db_ = el("button","btn quiet danger","Delete project");
-      db_.onclick = function(){ deleteProject(S.sel); };
-      actions.appendChild(db_);
-    }
   }
   row.appendChild(actions);
   headEl.appendChild(row);
@@ -2425,11 +2398,97 @@ function renderHead(){
     return;
   }
 
-  if(S.space && isProject){
-    headEl.appendChild(el("div","meta", "Space: " + (spaceName(S.space) || "—")));
+  /* A project's contact details are what you want while you're on the phone to
+     them, so they sit in the header rather than behind the details sheet. */
+  if(isProject){
+    var pr = findProject(S.sel);
+    if(pr && (pr.contact || pr.email || pr.phone || pr.website)){
+      var info = el("div","pmeta-line");
+      if(pr.contact) info.appendChild(el("span",null, pr.contact));
+      if(pr.email){
+        var ae = document.createElement("a");
+        ae.href = "mailto:" + pr.email; ae.textContent = pr.email;
+        info.appendChild(ae);
+      }
+      if(pr.phone){
+        var at = document.createElement("a");
+        at.href = "tel:" + pr.phone.replace(/[^\d+]/g, ""); at.textContent = pr.phone;
+        info.appendChild(at);
+      }
+      if(pr.website){
+        var aw = document.createElement("a");
+        aw.href = /^https?:\/\//.test(pr.website) ? pr.website : "https://" + pr.website;
+        aw.target = "_blank"; aw.rel = "noopener noreferrer";
+        aw.textContent = pr.website.replace(/^https?:\/\//, "");
+        info.appendChild(aw);
+      }
+      headEl.appendChild(info);
+    }
   }
 
   var tabs = el("div","tabs");
+
+  /* Inside a project the tabs are its spaces: since columns became per-space,
+     the space is the unit of work. The view switcher sits at the right end. */
+  if(isProject){
+    var allb = el("button","tab" + (S.space === null ? " on" : ""));
+    allb.appendChild(document.createTextNode("All"));
+    allb.onclick = function(){ S.space = null; render(); };
+    tabs.appendChild(allb);
+
+    spacesOf(S.sel).forEach(function(sp){
+      var b = el("button","tab" + (S.space === sp.id ? " on" : ""));
+      b.appendChild(document.createTextNode(sp.name || "Untitled space"));
+      var cnt = S.tasks.filter(function(t){ return t.spaceId === sp.id && !taskDone(t); }).length;
+      b.appendChild(el("span","n", String(cnt)));
+      b.onclick = function(){ S.space = sp.id; render(); };
+      tabs.appendChild(b);
+    });
+
+    if(writable()){
+      if(S.newSpaceFor === S.sel){
+        var si = document.createElement("input");
+        si.className = "tabnew";
+        si.type = "text";
+        si.placeholder = "Space name";
+        si.setAttribute("aria-label","New space name");
+        si.onkeydown = function(e){
+          if(e.key === "Enter"){
+            var v = si.value.trim();
+            S.newSpaceFor = null;
+            if(v) createSpace(S.sel, v); else render();
+          } else if(e.key === "Escape"){ S.newSpaceFor = null; render(); }
+        };
+        si.onblur = function(){
+          if(!si.isConnected) return;
+          var v = si.value.trim();
+          S.newSpaceFor = null;
+          if(v) createSpace(S.sel, v); else render();
+        };
+        tabs.appendChild(si);
+      } else {
+        var addS = el("button","tab tabadd","+");
+        addS.title = "Add a space";
+        addS.setAttribute("aria-label","Add a space");
+        addS.onclick = function(){ S.newSpaceFor = S.sel; render(); };
+        tabs.appendChild(addS);
+      }
+    }
+
+    var views = el("div","viewswitch");
+    [["board","▦","Board"],["list","☰","List"],
+     ["calendar","▣","Calendar"],["notes","◈","Notes"]].forEach(function(v){
+      var vb = el("button","vbtn" + (S.tab === v[0] ? " on" : ""), v[1]);
+      vb.title = v[2];
+      vb.setAttribute("aria-label", v[2]);
+      vb.onclick = function(){ S.tab = v[0]; prefSet("tab", v[0]); render(); };
+      views.appendChild(vb);
+    });
+    tabs.appendChild(views);
+    headEl.appendChild(tabs);
+    return;
+  }
+
   var tabDefs = [["board","Board"],["list","List"],["calendar","Calendar"],["notes","Notes"]];
   if(S.sel === "dash") tabDefs.push(["prospects","Prospects"]);
   tabDefs.forEach(function(t){
@@ -2469,8 +2528,10 @@ function boardGroups(){
   if(S.sel !== "dash"){
     if(S.space) bucket(S.sel, S.space);
     else {
-      spacesOf(S.sel).forEach(function(sp){ bucket(S.sel, sp.id); });
-      bucket(S.sel, null);
+      var spaces = spacesOf(S.sel);
+      spaces.forEach(function(sp){ bucket(S.sel, sp.id); });
+      /* an empty "No space" board is noise once everything is filed */
+      if(!spaces.length) bucket(S.sel, null);
     }
   }
 
@@ -4011,6 +4072,7 @@ function openProject(id){
   $("#pjEmail").value = p.email || "";
   $("#pjPhone").value = p.phone || "";
   $("#pjWebsite").value = p.website || "";
+  drawProjectSpaces(id);
   $("#pjSwatch").style.background = projectColor(id) || "var(--muted)";
   $("#pjColorNote").textContent = "Assigned when the project was made, and never given to another one.";
   var ro = !writable();
@@ -4019,6 +4081,36 @@ function openProject(id){
   projDlg.classList.add("on");
   $("#pjName").focus();
 }
+/* the rail no longer lists spaces, so renaming and removing them lives here */
+function drawProjectSpaces(id){
+  var wrap = $("#pjSpaces");
+  wrap.textContent = "";
+  var spaces = spacesOf(id);
+  if(!spaces.length){
+    wrap.appendChild(el("div","dempty","None yet. Add one with + on the project's tab row."));
+    return;
+  }
+  spaces.forEach(function(sp){
+    var row = el("div","pjspace");
+    var inp = document.createElement("input");
+    inp.type = "text";
+    inp.value = sp.name || "";
+    inp.disabled = !writable();
+    inp.setAttribute("aria-label","Space name");
+    inp.onchange = function(){ renameSpace(sp.id, inp.value.trim() || "Untitled space"); };
+    row.appendChild(inp);
+    if(writable()){
+      var x = el("button","btn quiet danger","Remove");
+      x.onclick = function(){
+        deleteSpace(sp.id);
+        setTimeout(function(){ if(pjId === id) drawProjectSpaces(id); }, 250);
+      };
+      row.appendChild(x);
+    }
+    wrap.appendChild(row);
+  });
+}
+
 function closeProjectSheet(){ projDlg.classList.remove("on"); pjId = null; }
 function saveProjectSheet(){
   if(!pjId || !writable()) return;
