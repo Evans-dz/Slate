@@ -737,9 +737,8 @@ tr:hover .rowx{opacity:1}
 
 /* ---------- dashboard ---------- */
 .dash{
-  display:grid;gap:14px;align-items:start;
-  grid-template-columns:repeat(auto-fill,minmax(310px,1fr));
-  max-width:1080px;
+  display:grid;gap:12px;align-items:start;margin-bottom:22px;
+  grid-template-columns:repeat(auto-fill,minmax(248px,1fr));
 }
 .dcard{
   background:var(--panel);border:1px solid var(--line);
@@ -769,10 +768,6 @@ tr:hover .rowx{opacity:1}
 .dmain{
   flex:1;min-width:0;text-align:left;display:flex;flex-direction:column;gap:3px;
   padding:6px 4px 6px 0;
-}
-.drow.dnote{
-  display:flex;flex-direction:column;align-items:flex-start;gap:3px;
-  text-align:left;padding:7px 4px;width:100%;
 }
 .dt{font-size:13.5px;line-height:1.35;word-break:break-word}
 .drow.is-done .dt{color:var(--muted);text-decoration:line-through}
@@ -920,6 +915,14 @@ tr:hover .rowx{opacity:1}
   .list td{padding:12px 8px;font-size:15px}
   .list input[type=checkbox]{width:21px;height:21px}
   .rowx{font-size:21px;padding:6px 9px}
+
+  /* stacked, the summary is a wall of cards before the tab content; swipe it
+     instead, the same way the board scrolls here */
+  .dash{
+    display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;
+    margin:0 -15px 16px;padding:0 15px 8px;-webkit-overflow-scrolling:touch;
+  }
+  .dcard{flex:0 0 80vw;scroll-snap-align:center}
 
   .notes{grid-template-columns:1fr;gap:10px}
   .feed{max-width:none}
@@ -1251,7 +1254,7 @@ var S = {
   uid:null, me:null,
   canWrite:null,          // true / false / null (unknown)
   projects:[], spaces:[], tasks:[], notes:[], schedules:[],
-  sel:"dash",             // "dash" | "capture" | "all" | "unfiled" | projectId
+  sel:"dash",             // "dash" | "capture" | "unfiled" | projectId
   space:null,             // spaceId within the selected project, or null for all
   tab:"board",
   q:"",
@@ -1512,7 +1515,7 @@ function spacesOf(projectId){
     .sort(function(a,b){ return (a.order||0)-(b.order||0); });
 }
 /* views that aren't a project: anything else in S.sel is a project id */
-var VIRTUAL_VIEWS = ["dash","capture","all","unfiled"];
+var VIRTUAL_VIEWS = ["dash","capture","unfiled"];
 function isVirtualView(sel){ return VIRTUAL_VIEWS.indexOf(sel) !== -1; }
 function currentProject(){
   return isVirtualView(S.sel) ? null : S.sel;
@@ -1522,8 +1525,8 @@ function currentProject(){
 function visibleTasks(){
   var q = S.q.toLowerCase();
   return S.tasks.filter(function(t){
-    if(S.sel === "unfiled" || S.sel === "capture" || S.sel === "dash") return false;
-    if(S.sel !== "all" && t.projectId !== S.sel) return false;
+    if(S.sel === "unfiled" || S.sel === "capture") return false;
+    if(S.sel !== "dash" && t.projectId !== S.sel) return false;
     if(S.space && t.spaceId !== S.space) return false;
     if(q && String(t.title||"").toLowerCase().indexOf(q) === -1) return false;
     return true;
@@ -1533,7 +1536,7 @@ function visibleNotes(){
   var q = S.q.toLowerCase();
   return S.notes.filter(function(n){
     if(S.sel === "unfiled"){ if(n.projectId) return false; }
-    else if(S.sel !== "all" && S.sel !== "capture" && S.sel !== "dash"){
+    else if(S.sel !== "dash" && S.sel !== "capture"){
       if(n.projectId !== S.sel) return false;
       if(S.space && n.spaceId !== S.space) return false;
     }
@@ -1549,7 +1552,7 @@ function visibleNotes(){
 }
 function visibleSchedules(){
   return S.schedules.filter(function(s){
-    if(S.sel === "all" || S.sel === "dash") return true;
+    if(S.sel === "dash") return true;
     if(S.sel !== s.projectId) return false;
     if(S.space && s.spaceId !== S.space) return false;
     return true;
@@ -1654,7 +1657,7 @@ function deleteProject(id){
     tasks.forEach(function(t){ queue("tasks/"+t.id, function(){ return S.db.doc("tasks/"+t.id).delete(); }); });
     notes.forEach(function(n){ queue("notes/"+n.id, function(){ return S.db.doc("notes/"+n.id).update({ projectId:null }); }); });
     queue("projects/"+id, function(){ return S.db.doc("projects/"+id).delete(); })
-      .then(function(){ S.sel = "all"; render(); });
+      .then(function(){ S.sel = "dash"; render(); });
   });
 }
 
@@ -1762,9 +1765,8 @@ function renderRail(){
   railEl.textContent = "";
 
   var top = el("div","rail-sec");
-  top.appendChild(railItem("dash", "Dashboard", null, null));
+  top.appendChild(railItem("dash", "Dashboard", S.tasks.length, null));
   top.appendChild(railItem("capture", "Capture", S.notes.length, null));
-  top.appendChild(railItem("all", "Everything", S.tasks.length, null));
   railEl.appendChild(top);
 
   var ps = el("div","rail-sec");
@@ -1914,7 +1916,6 @@ function renderHead(){
   title.id = "projTitle";
   var isProject = !isVirtualView(S.sel);
   title.value = isProject ? (projName(S.sel) || "Untitled project")
-             : S.sel === "all" ? "Everything"
              : S.sel === "dash" ? "Dashboard"
              : S.sel === "capture" ? "Capture" : "Unfiled notes";
   title.disabled = !isProject || !writable();
@@ -1931,7 +1932,7 @@ function renderHead(){
 
   var actions = el("div","head-actions");
   if(writable()){
-    if(S.sel !== "capture" && S.sel !== "dash" && (S.tab === "notes" || S.sel === "unfiled")){
+    if(S.sel !== "capture" && (S.tab === "notes" || S.sel === "unfiled")){
       var target = isProject ? S.sel : null;
       [["note","New note"],["doc","New doc"],["board","New whiteboard"]].forEach(function(k, i){
         var nb = el("button","btn" + (i === 0 ? " primary" : ""), k[1]);
@@ -1950,8 +1951,7 @@ function renderHead(){
 
   if(S.sel === "dash"){
     headEl.appendChild(el("div","meta",
-      "What wants attention today, across both of you."));
-    return;
+      "What wants attention today, across every project."));
   }
   if(S.sel === "capture"){
     headEl.appendChild(el("div","meta",
@@ -2019,7 +2019,7 @@ function renderBoard(){
         if(e.key === "Enter"){
           var v = inp.value.trim();
           if(v){
-            createTask(v, st.id, S.sel === "all" ? null : S.sel, S.space || null);
+            createTask(v, st.id, S.sel === "dash" ? null : S.sel, S.space || null);
             inp.value = "";
             S.composing = {col: st.id, text: ""};
           }
@@ -2058,7 +2058,7 @@ function taskCard(t){
   c.appendChild(el("div","ttl", t.title || "Untitled"));
 
   var foot = el("div","foot");
-  if(S.sel === "all" && t.projectId){
+  if(S.sel === "dash" && t.projectId){
     var pn = projName(t.projectId);
     if(pn) foot.appendChild(el("span","chip proj", pn));
   }
@@ -2275,7 +2275,7 @@ function listRow(t){
     c2.style.cursor = "pointer";
     c2.onclick = function(){ openTask(t.id); };
   }
-  if(S.sel === "all" && t.projectId){
+  if(S.sel === "dash" && t.projectId){
     var pn = projName(t.projectId);
     if(pn){ c2.appendChild(document.createTextNode(" ")); c2.appendChild(el("span","chip proj", pn)); }
   }
@@ -2415,7 +2415,7 @@ function renderNotes(){
       var spn = spaceName(n.spaceId);
       if(spn) f.appendChild(el("span","chip", spn));
     }
-    if((S.sel === "all" || S.sel === "capture" || S.sel === "dash") && n.projectId){
+    if((S.sel === "dash" || S.sel === "capture") && n.projectId){
       var pn = projName(n.projectId);
       if(pn) f.appendChild(el("span","chip proj", pn));
       var sn = spaceName(n.spaceId);
@@ -2443,7 +2443,7 @@ function renderTagBar(notes){
   var pool = S.tag
     ? S.notes.filter(function(n){
         if(S.sel === "unfiled") return !n.projectId;
-        if(S.sel !== "all" && S.sel !== "capture" && S.sel !== "dash") return n.projectId === S.sel;
+        if(S.sel !== "dash" && S.sel !== "capture") return n.projectId === S.sel;
         return true;
       })
     : notes;
@@ -2529,25 +2529,6 @@ function dashOccRow(s, dateStr){
   return row;
 }
 
-function dashNoteRow(n){
-  var row = el("button","drow dnote");
-  row.appendChild(el("span","dt", n.title || firstLine(n.body) || "Untitled"));
-  var meta = el("span","dmeta");
-  meta.appendChild(el("span","dtime", relTime(n.updatedAt || n.createdAt)));
-  var pn = n.projectId && projName(n.projectId);
-  if(pn) meta.appendChild(el("span","chip proj", pn));
-  var sn = n.spaceId && spaceName(n.spaceId);
-  if(sn) meta.appendChild(el("span","chip", sn));
-  row.appendChild(meta);
-  row.onclick = function(){ openNote(n.id); };
-  return row;
-}
-
-function firstLine(body){
-  var l = String(body || "").split("\n")[0].trim();
-  return l.length > 60 ? l.slice(0,60) + "…" : l;
-}
-
 function fillCard(card, rows, emptyText){
   var list = card.querySelector(".dlist");
   if(!rows.length){
@@ -2575,9 +2556,6 @@ function renderDash(){
   var soon     = open.filter(function(t){ return t.status !== "doing" && t.due && t.due > todayS && t.due <= weekEndS; })
                      .sort(function(a,b){ return String(a.due).localeCompare(String(b.due)); });
   var doing    = open.filter(function(t){ return t.status === "doing"; });
-  var recent   = S.notes.slice().sort(function(a,b){
-                   return String(b.updatedAt||"").localeCompare(String(a.updatedAt||""));
-                 }).slice(0,5);
 
   var grid = el("div","dash");
 
@@ -2599,10 +2577,6 @@ function renderDash(){
   grid.appendChild(fillCard(
     dashCard("Next seven days", soon.length), soon.map(dashTaskRow),
     "Nothing due this week."));
-
-  grid.appendChild(fillCard(
-    dashCard("Latest notes", 0), recent.map(dashNoteRow),
-    "Nothing captured yet."));
 
   bodyEl.appendChild(grid);
 }
@@ -3031,7 +3005,7 @@ function resetCapturePickers(){
   S.capSpace = null;
 }
 function updateCapture(){
-  var show = writable() && S.sel !== "dash" && (S.sel === "capture" || S.sel === "unfiled" || S.tab === "notes");
+  var show = writable() && (S.sel === "capture" || S.sel === "unfiled" || S.tab === "notes");
   capEl.classList.toggle("on", !!show);
   if(!show) return;
   var target = captureTarget();
@@ -3253,7 +3227,7 @@ $("#bottomnav").addEventListener("click", function(e){
   if(n === "dash"){ S.sel = "dash"; S.tag = null; render(); return; }
   if(n === "capture"){ S.sel = "capture"; S.tag = null; render(); return; }
   /* board / calendar / notes need a project context */
-  if(S.sel === "capture" || S.sel === "unfiled" || S.sel === "dash") S.sel = "all";
+  if(S.sel === "capture" || S.sel === "unfiled") S.sel = "dash";
   S.tab = n;
   prefSet("tab", n);
   render();
@@ -3985,23 +3959,19 @@ function render(){
   bodyEl.textContent = "";
   if(!S.ready){
     bodyEl.appendChild(emptyBlock("Opening the board", "One moment.", null));
-  } else if(S.sel === "dash"){
-    renderDash();
   } else if(S.sel === "capture"){
     renderCapture();
   } else if(S.sel === "unfiled"){
     renderNotes();
-  } else if(S.tab === "board"){
-    renderBoard();
-  } else if(S.tab === "list"){
-    renderList();
-  } else if(S.tab === "calendar"){
-    renderCalendar();
   } else {
-    renderNotes();
+    if(S.sel === "dash") renderDash();
+    if(S.tab === "board") renderBoard();
+    else if(S.tab === "list") renderList();
+    else if(S.tab === "calendar") renderCalendar();
+    else renderNotes();
   }
 
-  if(S.ready && !S.projects.length && !S.tasks.length && !S.notes.length && (S.sel === "all" || S.sel === "dash")){
+  if(S.ready && !S.projects.length && !S.tasks.length && !S.notes.length && S.sel === "dash"){
     bodyEl.textContent = "";
     var act = el("button","btn primary","Create your first project");
     act.onclick = function(){
