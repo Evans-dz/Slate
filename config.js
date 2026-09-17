@@ -3,8 +3,8 @@
    security policies allow, which is why supabase/schema.sql locks every table to
    signed-in users. Find them in Supabase under Project Settings -> API. */
 window.SLATE_CONFIG = {
-  supabaseUrl: "",
-  supabaseAnonKey: "",
+  supabaseUrl: "https://zwzmjgfzohdodvdwxyhc.supabase.co",
+  supabaseAnonKey: "sb_publishable_uSakP9altAYTCNldJa6K0A_BiZUpq95",
 
   /* Identifies this app to the browser's push service when a device subscribes.
      Public by design; the matching private key lives only in Vercel's env

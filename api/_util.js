@@ -13,8 +13,9 @@ let vapidReady = false;
 
 function service() {
   const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set");
+  // either name: the classic service_role JWT or Supabase's new sb_secret_... key
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+  if (!url || !key) throw new Error("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY) not set");
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
