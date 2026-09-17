@@ -5,6 +5,10 @@
 -- ---------- documents ----------
 -- One table for every collection. `collection` holds the full path string, so a
 -- subcollection like 'notes/<id>/strokes' is just a longer value — no tree.
+-- Documents are schemaless, so a new collection needs no migration: projects,
+-- spaces, tasks, notes, schedules, prospects and meta all live here already,
+-- and adding another means subscribing to it in the app, nothing more.
+-- Writes upsert with onConflict "collection,id" because the key is composite.
 create table if not exists public.docs (
   collection  text        not null,
   id          text        not null,
