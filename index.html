@@ -88,7 +88,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
 
 /* touch devices: never hide an action behind hover */
 @media (hover:none){
-  .rowx,.blkcopy,.spacex,.col-head .colx{opacity:1 !important}
+  .rowx,.blkcopy,.spacex,.col-head .colx,.projtitle .pinfo{opacity:1 !important}
 }
 
 /* ---------- shell ---------- */
@@ -161,15 +161,38 @@ button{cursor:pointer;background:none;border:0;padding:0}
 #main{min-width:0;display:flex;flex-direction:column}
 #mainhead{padding:20px 22px 0;flex:0 0 auto}
 .title-row{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
-#projTitle{
+.projtitle{
+  display:flex;align-items:center;gap:9px;text-align:left;max-width:100%;
   font-size:25px;font-weight:600;letter-spacing:-.02em;line-height:1.2;
-  border:0;background:none;padding:2px 4px;margin:-2px -4px;
-  border-radius:3px;min-width:120px;max-width:100%;
+  padding:2px 6px;margin:-2px -6px;border-radius:4px;
 }
-#projTitle:hover:not(:disabled){background:var(--line-soft)}
-#projTitle:disabled{
-  cursor:default;color:var(--ink);opacity:1;-webkit-text-fill-color:var(--ink);
+.projtitle.plain{cursor:default}
+.projtitle .pname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.projtitle .pdot{
+  width:11px;height:11px;border-radius:3px;flex:0 0 auto;
+  transform:rotate(-8deg);
 }
+.projtitle .pinfo{
+  font-size:11.5px;font-weight:400;letter-spacing:0;color:var(--muted);
+  border:1px solid var(--line);border-radius:9px;padding:1px 8px;
+  flex:0 0 auto;opacity:0;transition:opacity .12s ease;
+}
+.projtitle:hover{background:var(--line-soft)}
+.projtitle:hover .pinfo,.projtitle:focus-visible .pinfo{opacity:1}
+#tkNote{align-self:flex-start;margin:2px 0 10px;font-size:12.5px}
+.triage{
+  display:flex;gap:7px;align-items:center;flex-wrap:wrap;
+  margin-top:10px;padding-top:9px;border-top:1px solid var(--note-edge);
+}
+.triage select{
+  border:1px solid var(--note-edge);background:var(--panel);
+  border-radius:3px;padding:4px 7px;font-size:12px;font-family:var(--ui);
+  max-width:100%;
+}
+.triage select:focus{border-color:var(--accent);outline:none}
+.triage .btn{padding:4px 10px;font-size:12px}
+.pjcolor{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);line-height:1.4}
+.pjcolor .sw{width:22px;height:22px;border-radius:4px;flex:0 0 auto;transform:rotate(-8deg)}
 #mainhead .meta{font-size:12.5px;color:var(--muted);margin-top:7px}
 .head-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
 
@@ -246,6 +269,12 @@ button{cursor:pointer;background:none;border:0;padding:0}
 body.dragging-now{user-select:none;-webkit-user-select:none}
 
 /* task sheet reuses the schedule dialog shell */
+#projDlg{
+  position:fixed;inset:0;z-index:78;display:none;
+  background:rgba(20,19,17,.36);padding:9vh 16px 16px;overflow-y:auto;
+}
+#projDlg.on{display:block}
+
 #prospectDlg{
   position:fixed;inset:0;z-index:77;display:none;
   background:rgba(20,19,17,.36);padding:9vh 16px 16px;overflow-y:auto;
@@ -742,10 +771,39 @@ tr:hover .rowx{opacity:1}
 #slateLogin .lerr:empty{margin:0}
 
 /* same for the floating dialogs — must sit after their own padding shorthands */
-#overlay,#taskDlg,#schedDlg,#prospectDlg,#confirm{
+#overlay,#taskDlg,#schedDlg,#prospectDlg,#projDlg,#confirm{
   padding-left:max(16px,env(safe-area-inset-left));
   padding-right:max(16px,env(safe-area-inset-right));
 }
+
+/* ---------- search results ---------- */
+.sbar{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line);
+}
+.sbar .sq{font-size:13.5px;color:var(--muted)}
+.sbar .btn{margin-left:auto}
+.ssec{margin-bottom:22px;max-width:760px}
+.ssec h4{
+  margin:0 0 8px;font-size:12px;font-weight:500;color:var(--muted);
+  letter-spacing:.02em;text-transform:uppercase;
+  display:flex;align-items:center;gap:7px;
+}
+.ssec h4 .n{
+  font-size:11.5px;font-variant-numeric:tabular-nums;text-transform:none;
+  background:var(--line-soft);border-radius:9px;padding:1px 7px;
+}
+.srow{
+  display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);padding:9px 11px;margin-bottom:6px;
+}
+.srow:hover{border-color:var(--accent)}
+.srow.is-done .st{color:var(--muted);text-decoration:line-through}
+.srow .st{font-size:14px;line-height:1.35;word-break:break-word}
+.smeta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}
+.swhere{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sago{font-variant-numeric:tabular-nums}
 
 /* ---------- grouped boards ---------- */
 .bgroup{margin-bottom:26px}
@@ -964,7 +1022,8 @@ tr:hover .rowx{opacity:1}
   #mainbody{padding:14px 15px 28px}
 
   /* headline + actions stack */
-  #projTitle{font-size:22px}
+  .projtitle{font-size:22px}
+  .projtitle .pinfo{opacity:1}
   .head-actions{margin-left:0;width:100%;gap:7px;flex-wrap:wrap}
   .head-actions .btn{min-height:38px;padding:7px 13px;font-size:13.5px}
   .title-row{gap:8px}
@@ -1003,6 +1062,8 @@ tr:hover .rowx{opacity:1}
 
   .bgroup{margin-bottom:20px}
   .coladd{flex:0 0 auto;min-height:38px}
+  .triage select{font-size:16px;padding:8px 9px;min-height:38px;flex:1 1 40%}
+  .triage .btn{min-height:38px;padding:8px 14px;font-size:14px}
   .prow{flex-wrap:wrap;padding:11px 12px}
   .pmain{flex:1 1 100%}
   .pstage{font-size:16px;padding:7px 8px;min-height:38px;flex:1}
@@ -1024,7 +1085,7 @@ tr:hover .rowx{opacity:1}
   #bottomnav{display:flex}
 
   /* every overlay becomes a full-height sheet */
-  #overlay,#schedDlg,#taskDlg,#prospectDlg{padding:0;background:var(--paper)}
+  #overlay,#schedDlg,#taskDlg,#prospectDlg,#projDlg{padding:0;background:var(--paper)}
   #editor,#editor.doc,#editor.board,.sbox{
     max-width:none;margin:0;min-height:100dvh;border:0;border-radius:0;
     box-shadow:none;
@@ -1070,6 +1131,8 @@ tr:hover .rowx{opacity:1}
 
   /* task and schedule sheets: actions belong at the bottom of the screen, not
      floating under the last field */
+  #tkNote{width:100%;min-height:38px;margin-bottom:10px}
+  #prNote{font-size:16px}
   .sbox{display:flex;flex-direction:column;padding-bottom:0}
   .sbox .crow{
     margin:auto -15px 0;position:sticky;bottom:0;background:var(--panel);
@@ -1243,6 +1306,7 @@ tr:hover .rowx{opacity:1}
       <label for="tkOwner">Owner</label>
       <select id="tkOwner"></select>
     </div>
+    <button class="btn quiet" id="tkNote">Open the note this came from</button>
     <div class="crow">
       <button class="btn quiet danger" id="tkDelete">Delete</button>
       <button class="btn" id="tkClose">Close</button>
@@ -1298,6 +1362,44 @@ tr:hover .rowx{opacity:1}
       <button class="btn quiet danger" id="sDelete">Delete</button>
       <button class="btn" id="sCancel">Cancel</button>
       <button class="btn primary" id="sSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="projDlg" role="dialog" aria-modal="true" aria-labelledby="pjHead">
+  <div class="sbox">
+    <h3 id="pjHead">Project</h3>
+    <div class="field">
+      <label for="pjName">Name</label>
+      <input type="text" id="pjName" placeholder="Project name">
+    </div>
+    <div class="two">
+      <div class="field">
+        <label for="pjContact">Contact</label>
+        <input type="text" id="pjContact" placeholder="Who you deal with">
+      </div>
+      <div class="field">
+        <label for="pjEmail">Email</label>
+        <input type="text" id="pjEmail" inputmode="email" placeholder="name@company.com">
+      </div>
+    </div>
+    <div class="two">
+      <div class="field">
+        <label for="pjPhone">Phone</label>
+        <input type="text" id="pjPhone" inputmode="tel" placeholder="04xx xxx xxx">
+      </div>
+      <div class="field">
+        <label for="pjWebsite">Website</label>
+        <input type="text" id="pjWebsite" inputmode="url" placeholder="company.com.au">
+      </div>
+    </div>
+    <div class="field">
+      <label>Colour</label>
+      <div class="pjcolor"><span class="sw" id="pjSwatch"></span><span id="pjColorNote"></span></div>
+    </div>
+    <div class="crow">
+      <button class="btn quiet danger" id="pjDelete">Delete project</button>
+      <button class="btn" id="pjClose">Close</button>
     </div>
   </div>
 </div>
@@ -1367,6 +1469,38 @@ tr:hover .rowx{opacity:1}
    filed to the project but to no space. A set that has never been edited uses
    these. The LAST column always means done — the tick, the strikethrough and
    the dashboard all read it that way, so a set needs no extra flag. */
+/* Every project gets its own hue, and an index is never handed out twice —
+   not even after the project that held it is deleted. The golden angle keeps
+   consecutive hues far apart, so the palette never visually repeats and never
+   runs out. */
+var GOLDEN_ANGLE = 137.508;
+function projectHue(idx){ return ((idx || 0) * GOLDEN_ANGLE) % 360; }
+function hueOf(projectId){
+  var p = findProject(projectId);
+  return p ? projectHue(p.colorIndex || 0) : null;
+}
+function projectColor(projectId, kind){
+  var h = hueOf(projectId);
+  if(h === null) return null;
+  var dark = matchMedia("(prefers-color-scheme: dark)").matches
+             && document.documentElement.getAttribute("data-theme") !== "light";
+  if(document.documentElement.getAttribute("data-theme") === "dark") dark = true;
+  if(kind === "ink")  return "hsl(" + h + " 42% " + (dark ? "72%" : "30%") + ")";
+  if(kind === "soft") return "hsl(" + h + " " + (dark ? "30% 18%" : "46% 92%") + ")";
+  return "hsl(" + h + " " + (dark ? "38% 58%" : "44% 40%") + ")";
+}
+/* The high water mark lives in the database, not this browser, so a colour
+   stays retired for both of you and survives the project that held it. */
+function nextColorIndex(){
+  var high = (S.meta.colors && S.meta.colors.high) || 0;
+  S.projects.forEach(function(p){
+    if((p.colorIndex || 0) >= high) high = (p.colorIndex || 0) + 1;
+  });
+  S.meta.colors = { high: high + 1 };
+  queue("meta/colors", function(){ return S.db.doc("meta/colors").set({ high: high + 1 }); });
+  return high;
+}
+
 var DEFAULT_COLUMNS = [
   { id: "todo",  name: "To-do" },
   { id: "doing", name: "In progress" },
@@ -1390,6 +1524,7 @@ var S = {
   uid:null, me:null,
   canWrite:null,          // true / false / null (unknown)
   projects:[], spaces:[], tasks:[], notes:[], schedules:[], prospects:[],
+  meta:{},                // small shared counters, currently just the colour high water mark
   sel:"dash",             // "dash" | "capture" | "unfiled" | projectId
   space:null,             // spaceId within the selected project, or null for all
   tab:"board",
@@ -1397,6 +1532,7 @@ var S = {
   tag:null,
   capImages:[],
   capProj:null, capSpace:null,   // capture box pickers; cleared after every save
+  triage:{},                     // noteId -> project chosen mid-triage, before a space is picked
   calMonth:null,          // Date on the 1st of the shown month
   newSpaceFor:null,
   editSched:null,
@@ -1835,16 +1971,12 @@ function createProject(name){
     return S.db.doc("projects/"+id).set({
       name: name || "New project",
       order: maxOrder + 1,
+      colorIndex: nextColorIndex(),
+      contact: "", email: "", phone: "", website: "",
       createdAt: nowISO(),
       createdBy: S.uid || null
     });
   }).then(function(){ S.sel = id; S.tab = "board"; render(); });
-}
-function renameProject(id, name){
-  if(!writable()) return;
-  queue("projects/"+id, function(){
-    return S.db.doc("projects/"+id).update({ name: name });
-  });
 }
 function deleteProject(id){
   if(!writable()) return;
@@ -1910,6 +2042,7 @@ function captureNote(text, images, projectId, spaceId){
     body = "";
   }
   var id = uid();
+  captureNote.lastId = id;
   return queue("notes/"+id, function(){
     return S.db.doc("notes/"+id).set({
       title: title,
@@ -2014,6 +2147,8 @@ function convertProspect(id){
     return S.db.doc("projects/"+pid).set({
       name: p.company || "New project",
       order: maxOrder + 1,
+      colorIndex: nextColorIndex(),
+      contact: p.contact || "", email: p.email || "", phone: "", website: "",
       createdAt: nowISO(),
       createdBy: S.uid || null
     });
@@ -2208,7 +2343,12 @@ function renderRail(){
 }
 function railItem(id, label, count, dotCls){
   var b = el("button","rail-item" + (S.sel === id ? " on" : ""));
-  if(dotCls) b.appendChild(el("span","dot"));
+  if(dotCls){
+    var dot = el("span","dot");
+    var c = projectColor(id);
+    if(c) dot.style.background = c;
+    b.appendChild(dot);
+  }
   b.appendChild(el("span","lbl", label));
   if(count != null) b.appendChild(el("span","ct", String(count)));
   b.onclick = function(){
@@ -2229,21 +2369,26 @@ function renderHead(){
   headEl.textContent = "";
   var row = el("div","title-row");
 
-  var title = document.createElement("input");
-  title.id = "projTitle";
   var isProject = !isVirtualView(S.sel);
-  title.value = isProject ? (projName(S.sel) || "Untitled project")
-             : S.sel === "dash" ? "Dashboard"
-             : S.sel === "capture" ? "Capture" : "Unfiled notes";
-  title.disabled = !isProject || !writable();
-  title.setAttribute("aria-label","Project name");
-  if(isProject && writable()){
-    var last = title.value;
-    title.onchange = function(){
-      var v = title.value.trim() || "Untitled project";
-      title.value = v;
-      if(v !== last){ last = v; renameProject(S.sel, v); }
-    };
+  var label = isProject ? (projName(S.sel) || "Untitled project")
+            : S.sel === "dash" ? "Dashboard"
+            : S.sel === "capture" ? "Capture" : "Unfiled notes";
+
+  var title;
+  if(isProject){
+    title = el("button","projtitle");
+    title.id = "projTitle";
+    var sw = el("span","pdot");
+    sw.style.background = projectColor(S.sel) || "var(--muted)";
+    title.appendChild(sw);
+    title.appendChild(el("span","pname", label));
+    title.appendChild(el("span","pinfo", "Details"));
+    title.title = "Contact details, website and colour";
+    title.onclick = function(){ openProject(S.sel); };
+  } else {
+    title = el("div","projtitle plain");
+    title.id = "projTitle";
+    title.appendChild(el("span","pname", label));
   }
   row.appendChild(title);
 
@@ -2810,6 +2955,61 @@ function closeAssignee(){
 }
 
 /* ============ render: notes ============ */
+/* Filing from inside the note editor means opening every one. On the unfiled
+   view each card carries its own pickers so the stack clears in a pass. */
+function triageRow(n){
+  var row = el("div","triage");
+  row.onclick = function(e){ e.stopPropagation(); };
+
+  var ps = document.createElement("select");
+  ps.setAttribute("aria-label","File this note under a project");
+  var none = document.createElement("option");
+  none.value = ""; none.textContent = "File it\u2026";
+  ps.appendChild(none);
+  S.projects.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); }).forEach(function(p){
+    var o = document.createElement("option");
+    o.value = p.id; o.textContent = p.name || "Untitled project";
+    ps.appendChild(o);
+  });
+  ps.value = S.triage[n.id] || "";
+  ps.onchange = function(){
+    S.triage[n.id] = ps.value || null;
+    if(!ps.value){ render(); return; }
+    /* no spaces to choose from means the choice is already complete */
+    if(!spacesOf(ps.value).length){ fileNote(n, ps.value, null); return; }
+    render();
+  };
+  row.appendChild(ps);
+
+  var chosen = S.triage[n.id];
+  var spaces = chosen ? spacesOf(chosen) : [];
+  if(spaces.length){
+    var ss = document.createElement("select");
+    ss.setAttribute("aria-label","File this note under a space");
+    var ns = document.createElement("option");
+    ns.value = ""; ns.textContent = "No space";
+    ss.appendChild(ns);
+    spaces.forEach(function(sp){
+      var o = document.createElement("option");
+      o.value = sp.id; o.textContent = sp.name || "Untitled space";
+      ss.appendChild(o);
+    });
+    ss.onchange = function(){ fileNote(n, chosen, ss.value || null); };
+    row.appendChild(ss);
+
+    var go = el("button","btn","File it");
+    go.onclick = function(){ fileNote(n, chosen, ss.value || null); };
+    row.appendChild(go);
+  }
+  return row;
+}
+function fileNote(n, projectId, spaceId){
+  delete S.triage[n.id];
+  patchNote(n.id, { projectId: projectId, spaceId: spaceId || null });
+  toast("Filed into " + (projName(projectId) || "the project") +
+        (spaceId ? " \u203a " + (spaceName(spaceId) || "") : ""));
+}
+
 function renderNotes(){
   var notes = visibleNotes();
   renderTagBar(notes);
@@ -2861,6 +3061,7 @@ function renderNotes(){
       f.appendChild(im2);
     }
     b.appendChild(f);
+    if(S.sel === "unfiled" && writable()) b.appendChild(triageRow(n));
     grid.appendChild(b);
   });
 
@@ -2984,6 +3185,125 @@ function fillCard(card, rows, emptyText){
   }
   rows.forEach(function(r){ list.appendChild(r); });
   return card;
+}
+
+/* ============ render: search ============ */
+
+/* Filtering only the view you happen to be on hides the thing you're looking
+   for whenever it lives somewhere else, which for a capture-first tool is most
+   of the time. A query searches everything and says where each hit lives. */
+function searchAll(q){
+  var lq = q.toLowerCase();
+  function hit(){
+    for(var i=0;i<arguments.length;i++){
+      if(String(arguments[i] || "").toLowerCase().indexOf(lq) > -1) return true;
+    }
+    return false;
+  }
+  return {
+    notes: S.notes.filter(function(n){ return hit(n.title, n.body); })
+      .sort(function(a,b){ return String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")); }),
+    tasks: S.tasks.filter(function(t){ return hit(t.title); }),
+    prospects: S.prospects.filter(function(p){ return hit(p.company, p.contact, p.email, p.note); }),
+    projects: S.projects.filter(function(p){ return hit(p.name, p.contact, p.email, p.website, p.phone); })
+  };
+}
+
+function searchSection(title, rows){
+  if(!rows.length) return null;
+  var sec = el("div","ssec");
+  var h = el("h4",null);
+  h.appendChild(document.createTextNode(title));
+  h.appendChild(el("span","n", String(rows.length)));
+  sec.appendChild(h);
+  rows.forEach(function(r){ sec.appendChild(r); });
+  return sec;
+}
+function whereChips(projectId, spaceId){
+  var w = el("span","swhere");
+  var pn = projectId && projName(projectId);
+  if(pn){
+    var c = el("span","chip proj", pn);
+    var ink = projectColor(projectId, "ink"), soft = projectColor(projectId, "soft");
+    if(ink){ c.style.color = ink; c.style.background = soft; }
+    w.appendChild(c);
+  } else {
+    w.appendChild(el("span","chip","Unfiled"));
+  }
+  var sn = spaceId && spaceName(spaceId);
+  if(sn) w.appendChild(el("span","chip", sn));
+  return w;
+}
+
+function renderSearch(){
+  var res = searchAll(S.q);
+  var total = res.notes.length + res.tasks.length + res.prospects.length + res.projects.length;
+
+  var bar = el("div","sbar");
+  bar.appendChild(el("span","sq", total + (total === 1 ? " result for " : " results for ") + "\u201c" + S.q + "\u201d"));
+  var clr = el("button","btn","Clear");
+  clr.onclick = function(){ S.q = ""; $("#search").value = ""; render(); };
+  bar.appendChild(clr);
+  bodyEl.appendChild(bar);
+
+  if(!total){
+    bodyEl.appendChild(emptyBlock("Nothing matches that",
+      "Try a shorter word \u2014 notes, tasks, prospects and project details are all searched.", null));
+    return;
+  }
+
+  var secs = [];
+  secs.push(searchSection("Notes", res.notes.map(function(n){
+    var row = el("button","srow");
+    row.appendChild(el("span","st", (n.title && n.title.trim()) || firstLineOf(n.body) || "Untitled note"));
+    var meta = el("span","smeta");
+    meta.appendChild(whereChips(n.projectId, n.spaceId));
+    meta.appendChild(el("span","sago", relTime(n.updatedAt)));
+    row.appendChild(meta);
+    row.onclick = function(){ openNote(n.id); };
+    return row;
+  })));
+
+  secs.push(searchSection("Tasks", res.tasks.map(function(t){
+    var row = el("button","srow" + (taskDone(t) ? " is-done" : ""));
+    row.appendChild(el("span","st", t.title || "Untitled"));
+    var meta = el("span","smeta");
+    meta.appendChild(whereChips(t.projectId, t.spaceId));
+    meta.appendChild(el("span","chip", columnName(t.projectId, t.spaceId, columnOf(t))));
+    if(t.due) meta.appendChild(el("span","sago", fmtDate(t.due)));
+    row.appendChild(meta);
+    row.onclick = function(){ openTask(t.id); };
+    return row;
+  })));
+
+  secs.push(searchSection("Prospects", res.prospects.map(function(p){
+    var row = el("button","srow");
+    row.appendChild(el("span","st", p.company || "Untitled"));
+    var meta = el("span","smeta");
+    meta.appendChild(el("span","chip", STAGE_LABEL[p.stage || "lead"] || "Lead"));
+    if(p.contact) meta.appendChild(el("span","sago", p.contact));
+    row.appendChild(meta);
+    row.onclick = function(){ openProspect(p.id); };
+    return row;
+  })));
+
+  secs.push(searchSection("Projects", res.projects.map(function(p){
+    var row = el("button","srow");
+    row.appendChild(el("span","st", p.name || "Untitled project"));
+    var meta = el("span","smeta");
+    if(p.contact) meta.appendChild(el("span","sago", p.contact));
+    if(p.email) meta.appendChild(el("span","sago", p.email));
+    row.appendChild(meta);
+    row.onclick = function(){ S.q = ""; $("#search").value = ""; S.sel = p.id; S.space = null; render(); };
+    return row;
+  })));
+
+  secs.forEach(function(x){ if(x) bodyEl.appendChild(x); });
+}
+
+function firstLineOf(body){
+  var l = String(body || "").split("\n")[0].trim();
+  return l.length > 70 ? l.slice(0,70) + "\u2026" : l;
 }
 
 /* ============ render: prospects ============ */
@@ -3227,6 +3547,15 @@ function fmtTime(t){
   var h12 = h % 12; if(h12 === 0) h12 = 12;
   return h12 + (m === "00" ? "" : ":" + m) + ap;
 }
+/* a calendar chip wears its project's colour, so a month reads by project */
+function tintOcc(node, projectId, outline){
+  var soft = projectColor(projectId, "soft");
+  var ink = projectColor(projectId, "ink");
+  if(!soft || !ink) return;
+  if(outline){ node.style.borderColor = ink; node.style.color = ink; }
+  else { node.style.background = soft; node.style.color = ink; }
+}
+
 /* does this schedule fall on this date? */
 function occursOn(s, date){
   var start = parseYmd(s.startDate);
@@ -3326,6 +3655,7 @@ function calCell(d, m, scheds, tasks, todayStr){
     if(!occursOn(s, d)) return;
     var done = !!(s.done && s.done[ds]);
     var o = el("button","occ" + (done ? " done" : ""));
+    if(!done) tintOcc(o, s.projectId);
     o.appendChild(el("span","tm", fmtTime(s.time)));
     o.appendChild(el("span","ot", s.title || "Untitled"));
     o.title = (s.title || "Untitled") + " — click to mark it done, double-click to edit";
@@ -3338,6 +3668,7 @@ function calCell(d, m, scheds, tasks, todayStr){
     if(t.due !== ds) return;
     var o = el("button","occ task" + (taskDone(t) ? " done" : "") +
                         (isLate(t.due, taskDone(t) ? "done" : "") ? " late" : ""));
+    if(!taskDone(t) && !isLate(t.due, "")) tintOcc(o, t.projectId, true);
     o.appendChild(el("span","ot", t.title || "Untitled"));
     o.title = "Task due — click to toggle done";
     o.onclick = function(){ patchTask(t.id, { status: taskDone(t) ? firstColumnId(t.projectId, t.spaceId) : doneColumnId(t.projectId, t.spaceId) }); };
@@ -3614,7 +3945,17 @@ function doCapture(){
   autosize(capInput);
   /* every note is filed deliberately, so the pickers start empty again */
   resetCapturePickers();
-  captureNote(text, imgs, proj, space);
+  captureNote(text, imgs, proj, space).then(function(){
+    /* filing it into a project puts it on that board's first column too, with the
+       note kept whole behind the card */
+    if(!proj) return;
+    var noteId = captureNote.lastId;
+    var n = null;
+    for(var i=0;i<S.notes.length;i++) if(S.notes[i].id === noteId) n = S.notes[i];
+    if(!n) return;
+    createTask(taskTitleFor(n), null, proj, space, noteId);
+    toast("Saved, and added to " + (columnName(proj, space, firstColumnId(proj, space)) || "the board"));
+  });
   fillCapturePickers();
 }
 
@@ -3651,6 +3992,56 @@ capEl.addEventListener("drop", function(e){
     uploadImages(e.dataTransfer.files, function(id){ S.capImages.push(id); drawCapThumbs(); });
   }
 });
+
+function findNote(id){
+  for(var i=0;i<S.notes.length;i++) if(S.notes[i].id === id) return S.notes[i];
+  return null;
+}
+
+/* ============ project sheet ============ */
+var projDlg = $("#projDlg"), pjId = null;
+
+function openProject(id){
+  var p = findProject(id);
+  if(!p) return;
+  pjId = id;
+  $("#pjHead").textContent = p.name || "Project";
+  $("#pjName").value = p.name || "";
+  $("#pjContact").value = p.contact || "";
+  $("#pjEmail").value = p.email || "";
+  $("#pjPhone").value = p.phone || "";
+  $("#pjWebsite").value = p.website || "";
+  $("#pjSwatch").style.background = projectColor(id) || "var(--muted)";
+  $("#pjColorNote").textContent = "Assigned when the project was made, and never given to another one.";
+  var ro = !writable();
+  ["pjName","pjContact","pjEmail","pjPhone","pjWebsite"].forEach(function(k){ $("#"+k).disabled = ro; });
+  $("#pjDelete").style.display = ro ? "none" : "";
+  projDlg.classList.add("on");
+  $("#pjName").focus();
+}
+function closeProjectSheet(){ projDlg.classList.remove("on"); pjId = null; }
+function saveProjectSheet(){
+  if(!pjId || !writable()) return;
+  queue("projects/"+pjId, function(){
+    return S.db.doc("projects/"+pjId).update({
+      name: $("#pjName").value.trim() || "Untitled project",
+      contact: $("#pjContact").value.trim(),
+      email: $("#pjEmail").value.trim(),
+      phone: $("#pjPhone").value.trim(),
+      website: $("#pjWebsite").value.trim()
+    });
+  });
+}
+["pjName","pjContact","pjEmail","pjPhone","pjWebsite"].forEach(function(k){
+  $("#"+k).addEventListener("change", saveProjectSheet);
+});
+$("#pjClose").onclick = function(){ saveProjectSheet(); closeProjectSheet(); };
+$("#pjDelete").onclick = function(){
+  var id = pjId;
+  closeProjectSheet();
+  deleteProject(id);
+};
+projDlg.onmousedown = function(e){ if(e.target === projDlg){ saveProjectSheet(); closeProjectSheet(); } };
 
 /* ============ prospect sheet ============ */
 var prospectDlg = $("#prospectDlg"), prId = null;
@@ -3784,6 +4175,9 @@ function openTask(id){
     });
   }
 
+  var src = t.noteId && findNote(t.noteId);
+  $("#tkNote").style.display = src ? "" : "none";
+
   var ro = !writable();
   ["tkName","tkStatus","tkDue","tkProj","tkSpace","tkOwner"].forEach(function(k){ $("#"+k).disabled = ro; });
   $("#tkSave").style.display = ro ? "none" : "";
@@ -3796,6 +4190,12 @@ function closeTask(){ taskDlg.classList.remove("on"); tkId = null; }
 
 $("#tkProj").onchange = tkSyncSpaces;
 $("#tkClose").onclick = closeTask;
+$("#tkNote").onclick = function(){
+  var t = findTask(tkId);
+  if(!t || !t.noteId) return;
+  closeTask();
+  openNote(t.noteId);
+};
 taskDlg.onmousedown = function(e){ if(e.target === taskDlg) closeTask(); };
 $("#tkSave").onclick = function(){
   if(!tkId || !writable()) return closeTask();
@@ -4058,6 +4458,7 @@ overlay.addEventListener("mousedown", function(e){ if(e.target === overlay) clos
 document.addEventListener("keydown", function(e){
   if(e.key !== "Escape") return;
   if($("#confirm").classList.contains("on")) return; // the dialog handles its own Escape
+  if(projDlg.classList.contains("on")){ saveProjectSheet(); closeProjectSheet(); return; }
   if(prospectDlg.classList.contains("on")){ saveProspect(); closeProspect(); return; }
   if(taskDlg.classList.contains("on")){ closeTask(); return; }
   if(schedDlg.classList.contains("on")){ closeSchedule(); return; }
@@ -4584,6 +4985,8 @@ function render(){
   bodyEl.textContent = "";
   if(!S.ready){
     bodyEl.appendChild(emptyBlock("Opening the board", "One moment.", null));
+  } else if(S.q){
+    renderSearch();
   } else if(S.sel === "capture"){
     renderCapture();
   } else if(S.sel === "unfiled"){
@@ -4706,6 +5109,13 @@ function docsToArray(snap){
     S.prospects = docsToArray(snap);
     mark("prospects");
   }, dbErr);
+
+  /* not gated on readiness: an empty meta is a perfectly good starting point */
+  db.collection("meta").onSnapshot(function(snap){
+    var m = {};
+    snap.docs.forEach(function(d){ m[d.id] = d.data(); });
+    S.meta = m;
+  }, function(){});
 
   db.collection("tasks").onSnapshot(function(snap){
     S.tasks = docsToArray(snap);
