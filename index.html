@@ -88,7 +88,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
 
 /* touch devices: never hide an action behind hover */
 @media (hover:none){
-  .rowx,.blkcopy,.spacex{opacity:1 !important}
+  .rowx,.blkcopy,.spacex,.col-head .colx{opacity:1 !important}
 }
 
 /* ---------- shell ---------- */
@@ -747,6 +747,32 @@ tr:hover .rowx{opacity:1}
   padding-right:max(16px,env(safe-area-inset-right));
 }
 
+/* ---------- grouped boards ---------- */
+.bgroup{margin-bottom:26px}
+.bgroup h4{
+  margin:0 0 9px;font-size:12px;font-weight:500;color:var(--muted);
+  letter-spacing:.02em;display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+}
+.bgroup h4 .bg-proj{color:var(--ink);font-weight:600}
+.bgroup h4 .bg-sep{color:var(--line);font-size:13px}
+.bgroup h4 .n{
+  font-size:11.5px;font-variant-numeric:tabular-nums;
+  background:var(--line-soft);border-radius:9px;padding:1px 7px;
+}
+.col-head .colx{
+  margin-left:4px;color:var(--muted);font-size:15px;line-height:1;
+  padding:2px 5px;border-radius:3px;opacity:0;
+}
+.col:hover .col-head .colx{opacity:.7}
+.col-head .colx:hover{opacity:1;color:var(--danger);background:var(--line-soft)}
+.coladd{
+  flex:0 0 auto;align-self:flex-start;
+  border:1px dashed var(--line);border-radius:var(--radius);
+  padding:9px 14px;font-size:12.5px;color:var(--muted);white-space:nowrap;
+}
+.coladd:hover{border-style:solid;border-color:var(--accent);color:var(--accent-ink)}
+.col-head .nm .inline-edit{font-size:13px;padding:1px 4px}
+
 /* ---------- prospects ---------- */
 .padd{margin-bottom:18px;max-width:520px}
 .padd input{
@@ -975,6 +1001,8 @@ tr:hover .rowx{opacity:1}
   }
   .dcard{flex:0 0 80vw;scroll-snap-align:center}
 
+  .bgroup{margin-bottom:20px}
+  .coladd{flex:0 0 auto;min-height:38px}
   .prow{flex-wrap:wrap;padding:11px 12px}
   .pmain{flex:1 1 100%}
   .pstage{font-size:16px;padding:7px 8px;min-height:38px;flex:1}
@@ -1335,14 +1363,15 @@ tr:hover .rowx{opacity:1}
 "use strict";
 
 /* ============ constants ============ */
-var STATUSES = [
-  {id:"backlog", label:"Backlog"},
-  {id:"doing",   label:"In progress"},
-  {id:"review",  label:"Review"},
-  {id:"done",    label:"Done"}
+/* Columns belong to a space. A project carries its own set too, used by tasks
+   filed to the project but to no space. A set that has never been edited uses
+   these. The LAST column always means done — the tick, the strikethrough and
+   the dashboard all read it that way, so a set needs no extra flag. */
+var DEFAULT_COLUMNS = [
+  { id: "todo",  name: "To-do" },
+  { id: "doing", name: "In progress" },
+  { id: "done",  name: "Done" }
 ];
-var STATUS_LABEL = {};
-STATUSES.forEach(function(s){ STATUS_LABEL[s.id] = s.label; });
 
 /* outreach pipeline. Won is terminal: a won prospect becomes a project. */
 var STAGES = [
@@ -1609,6 +1638,58 @@ function dayLabel(iso){
   return s;
 }
 
+function findProject(id){
+  for(var i=0;i<S.projects.length;i++) if(S.projects[i].id === id) return S.projects[i];
+  return null;
+}
+function findSpace(id){
+  for(var i=0;i<S.spaces.length;i++) if(S.spaces[i].id === id) return S.spaces[i];
+  return null;
+}
+/* the doc that owns a set of columns: the space if there is one, else the project */
+function columnHost(projectId, spaceId){
+  if(spaceId && findSpace(spaceId)) return "spaces/" + spaceId;
+  if(projectId && findProject(projectId)) return "projects/" + projectId;
+  return null;
+}
+function columnsFor(projectId, spaceId){
+  var sp = spaceId && findSpace(spaceId);
+  if(sp && sp.columns && sp.columns.length) return sp.columns;
+  var pr = projectId && findProject(projectId);
+  if(pr && pr.columns && pr.columns.length) return pr.columns;
+  return DEFAULT_COLUMNS;
+}
+function firstColumnId(projectId, spaceId){
+  var c = columnsFor(projectId, spaceId);
+  return c.length ? c[0].id : null;
+}
+function doneColumnId(projectId, spaceId){
+  var c = columnsFor(projectId, spaceId);
+  return c.length ? c[c.length-1].id : null;
+}
+function taskDone(t){
+  return !!t && t.status === doneColumnId(t.projectId, t.spaceId);
+}
+/* started but not finished: anything in a middle column */
+function taskUnderway(t){
+  var c = columnsFor(t.projectId, t.spaceId);
+  if(c.length < 3) return false;
+  for(var i=1;i<c.length-1;i++) if(c[i].id === t.status) return true;
+  return false;
+}
+function columnName(projectId, spaceId, colId){
+  var c = columnsFor(projectId, spaceId);
+  for(var i=0;i<c.length;i++) if(c[i].id === colId) return c[i].name;
+  return c.length ? c[0].name : "";
+}
+/* a status that no longer matches any column falls back to the first one, so a
+   renamed or deleted column can never strand a task off the board */
+function columnOf(t){
+  var c = columnsFor(t.projectId, t.spaceId);
+  for(var i=0;i<c.length;i++) if(c[i].id === t.status) return t.status;
+  return c.length ? c[0].id : t.status;
+}
+
 function projName(id){
   for(var i=0;i<S.projects.length;i++) if(S.projects[i].id === id) return S.projects[i].name || "Untitled project";
   return null;
@@ -1780,10 +1861,13 @@ function deleteProject(id){
   });
 }
 
-function createTask(title, status, projectId, spaceId){
+function createTask(title, status, projectId, spaceId, noteId){
   if(!writable() || !String(title||"").trim()) return;
   var id = uid();
-  var inCol = S.tasks.filter(function(t){ return t.status === status; });
+  status = status || firstColumnId(projectId, spaceId);
+  var inCol = S.tasks.filter(function(t){
+    return t.status === status && (t.projectId||null) === (projectId||null) && (t.spaceId||null) === (spaceId||null);
+  });
   var maxOrder = inCol.reduce(function(m,t){ return Math.max(m, t.order||0); }, 0);
   queue("tasks/"+id, function(){
     return S.db.doc("tasks/"+id).set({
@@ -1793,6 +1877,7 @@ function createTask(title, status, projectId, spaceId){
       spaceId: spaceId || null,
       assignee: null,
       due: null,
+      noteId: noteId || null,
       order: maxOrder + 1,
       createdAt: nowISO(),
       createdBy: S.uid || null,
@@ -1841,13 +1926,45 @@ function captureNote(text, images, projectId, spaceId){
   });
 }
 
+function taskTitleFor(n){
+  var title = (n.title && n.title.trim()) || String(n.body||"").split("\n")[0].trim() || "Untitled";
+  return title.length > 120 ? title.slice(0,117) + "…" : title;
+}
 function noteToTask(n){
   if(!writable()) return;
-  var title = (n.title && n.title.trim()) || String(n.body||"").split("\n")[0].trim() || "Untitled";
-  if(title.length > 120) title = title.slice(0,117) + "…";
-  createTask(title, "backlog", n.projectId || null, n.spaceId || null);
+  createTask(taskTitleFor(n), null, n.projectId || null, n.spaceId || null, n.id || null);
   toast(n.projectId ? "Added to " + (projName(n.projectId) || "the board")
                     : "Added to the Dashboard board — file it into a project from there");
+}
+
+/* ---- columns ---- */
+function writeColumns(projectId, spaceId, cols){
+  var host = columnHost(projectId, spaceId);
+  if(!host || !writable()) return Promise.resolve();
+  return queue(host, function(){ return S.db.doc(host).update({ columns: cols }); });
+}
+function addColumn(projectId, spaceId, name){
+  var cols = columnsFor(projectId, spaceId).slice();
+  cols.push({ id: uid(), name: name || "New column" });
+  return writeColumns(projectId, spaceId, cols);
+}
+function renameColumn(projectId, spaceId, colId, name){
+  var cols = columnsFor(projectId, spaceId).map(function(c){
+    return c.id === colId ? { id: c.id, name: name } : { id: c.id, name: c.name };
+  });
+  return writeColumns(projectId, spaceId, cols);
+}
+function deleteColumn(projectId, spaceId, colId){
+  var cols = columnsFor(projectId, spaceId);
+  if(cols.length <= 1) return Promise.resolve();
+  var left = cols.filter(function(c){ return c.id !== colId; });
+  var fallback = left[0].id;
+  S.tasks.forEach(function(t){
+    if(t.projectId === projectId && (t.spaceId || null) === (spaceId || null) && t.status === colId){
+      queue("tasks/"+t.id, function(){ return S.db.doc("tasks/"+t.id).update({ status: fallback }); });
+    }
+  });
+  return writeColumns(projectId, spaceId, left);
 }
 
 /* ---- prospects ---- */
@@ -2012,7 +2129,7 @@ function renderRail(){
     ps.appendChild(el("div","rail-empty","No projects yet."));
   }
   sorted.forEach(function(p){
-    var open = S.tasks.filter(function(t){ return t.projectId === p.id && t.status !== "done"; }).length;
+    var open = S.tasks.filter(function(t){ return t.projectId === p.id && !taskDone(t); }).length;
     ps.appendChild(railItem(p.id, p.name || "Untitled project", open, "dot"));
     if(S.sel !== p.id) return;
 
@@ -2025,7 +2142,7 @@ function renderRail(){
       sub.appendChild(allb);
     }
     spaces.forEach(function(sp){
-      var cnt = S.tasks.filter(function(t){ return t.spaceId === sp.id && t.status !== "done"; }).length;
+      var cnt = S.tasks.filter(function(t){ return t.spaceId === sp.id && !taskDone(t); }).length;
       var b = el("button","rail-item" + (S.space === sp.id ? " on" : ""));
       b.appendChild(el("span","lbl", sp.name || "Untitled space"));
       b.appendChild(el("span","ct", String(cnt)));
@@ -2188,19 +2305,84 @@ function renderHead(){
 var dragId = null;
 var justDragged = false;
 
-function renderBoard(){
+function boardGroups(){
   var tasks = visibleTasks();
+  /* one board per set of columns. A space owns a set; tasks filed to a project
+     but to no space share the project's own set. */
+  var groups = [], byKey = {};
+  function bucket(projectId, spaceId){
+    var key = (projectId || "~") + "|" + (spaceId || "~");
+    if(!byKey[key]){
+      byKey[key] = { projectId: projectId, spaceId: spaceId, tasks: [] };
+      groups.push(byKey[key]);
+    }
+    return byKey[key];
+  }
+  tasks.forEach(function(t){ bucket(t.projectId || null, t.spaceId || null).tasks.push(t); });
+
+  /* a space you're looking at should show even when it holds nothing yet */
+  if(S.sel !== "dash"){
+    if(S.space) bucket(S.sel, S.space);
+    else {
+      spacesOf(S.sel).forEach(function(sp){ bucket(S.sel, sp.id); });
+      bucket(S.sel, null);
+    }
+  }
+
+  groups.sort(function(a,b){
+    var pa = a.projectId ? (projName(a.projectId) || "") : "\uffff";
+    var pb = b.projectId ? (projName(b.projectId) || "") : "\uffff";
+    if(pa !== pb) return pa.localeCompare(pb);
+    var sa = a.spaceId ? (spaceName(a.spaceId) || "") : "";
+    var sb = b.spaceId ? (spaceName(b.spaceId) || "") : "";
+    return sa.localeCompare(sb);
+  });
+  return groups;
+}
+
+function boardFor(group){
+  var cols = columnsFor(group.projectId, group.spaceId);
+  var editable = writable() && !!columnHost(group.projectId, group.spaceId);
   var board = el("div","board");
 
-  STATUSES.forEach(function(st){
+  cols.forEach(function(st){
     var col = el("div","col");
     col.dataset.status = st.id;
+    col.dataset.project = group.projectId || "";
+    col.dataset.space = group.spaceId || "";
 
     var ch = el("div","col-head");
     ch.appendChild(el("span","bar"));
-    ch.appendChild(el("span","nm", st.label));
-    var inCol = tasks.filter(function(t){ return t.status === st.id; });
+    var nm = el("span","nm", st.name);
+    if(editable){
+      nm.title = "Rename this column";
+      nm.style.cursor = "text";
+      nm.onclick = function(){
+        if(nm.querySelector(".inline-edit")) return;
+        inlineEdit(nm, st.name, function(v){
+          renameColumn(group.projectId, group.spaceId, st.id, v || st.name);
+        });
+      };
+    }
+    ch.appendChild(nm);
+    var inCol = group.tasks.filter(function(t){ return columnOf(t) === st.id; });
     ch.appendChild(el("span","n", String(inCol.length)));
+    if(editable && cols.length > 1){
+      var del = el("button","colx","\u00d7");
+      del.title = "Remove this column";
+      del.setAttribute("aria-label","Remove the " + st.name + " column");
+      del.onclick = function(e){
+        e.stopPropagation();
+        var moving = inCol.length;
+        askConfirm("Remove the " + st.name + " column?",
+          moving ? moving + (moving === 1 ? " card moves" : " cards move") + " to " + cols[0].name + ". Nothing is deleted."
+                 : "It's empty, so nothing moves.",
+          "Remove column").then(function(ok){
+            if(ok) deleteColumn(group.projectId, group.spaceId, st.id);
+          });
+      };
+      ch.appendChild(del);
+    }
     col.appendChild(ch);
 
     var cb = el("div","col-body");
@@ -2209,22 +2391,23 @@ function renderBoard(){
     col.appendChild(cb);
 
     if(writable()){
+      var ckey = (group.projectId || "~") + "|" + (group.spaceId || "~") + "|" + st.id;
       var cf = el("div","col-foot");
       var inp = document.createElement("input");
       inp.className = "addtask";
       inp.type = "text";
       inp.placeholder = "Add a task";
-      inp.setAttribute("aria-label","Add a task to " + st.label);
-      if(S.composing.col === st.id) inp.value = S.composing.text;
-      inp.oninput = function(){ S.composing = {col: st.id, text: inp.value}; };
-      inp.onfocus = function(){ S.composing.col = st.id; };
+      inp.setAttribute("aria-label","Add a task to " + st.name);
+      if(S.composing.col === ckey) inp.value = S.composing.text;
+      inp.oninput = function(){ S.composing = {col: ckey, text: inp.value}; };
+      inp.onfocus = function(){ S.composing.col = ckey; };
       inp.onkeydown = function(e){
         if(e.key === "Enter"){
           var v = inp.value.trim();
           if(v){
-            createTask(v, st.id, S.sel === "dash" ? null : S.sel, S.space || null);
+            createTask(v, st.id, group.projectId, group.spaceId);
             inp.value = "";
-            S.composing = {col: st.id, text: ""};
+            S.composing = {col: ckey, text: ""};
           }
         } else if(e.key === "Escape"){
           inp.value = ""; S.composing = {col:null, text:""}; inp.blur();
@@ -2237,19 +2420,56 @@ function renderBoard(){
     board.appendChild(col);
   });
 
-  bodyEl.appendChild(board);
+  if(editable){
+    var addc = el("button","coladd","+ Column");
+    addc.onclick = function(){ addColumn(group.projectId, group.spaceId, "New column"); };
+    board.appendChild(addc);
+  }
+  return board;
+}
 
-  if(!tasks.length && !S.q){
+function renderBoard(){
+  var groups = boardGroups();
+
+  /* one space selected: just its board, no heading, it's the page title */
+  if(S.sel !== "dash" && S.space){
+    bodyEl.appendChild(boardFor(groups[0] || { projectId: S.sel, spaceId: S.space, tasks: [] }));
+    return;
+  }
+
+  if(!groups.length){
     bodyEl.appendChild(emptyBlock(
-      "Nothing on the board",
-      "Type in a column to add your first task, then drag it across as it moves.",
+      S.q ? "Nothing matches that" : "Nothing on the board",
+      S.q ? "Try a different word, or clear the filter."
+          : "Type in a column to add your first task, then drag it across as it moves.",
       null
     ));
+    return;
   }
+
+  var onDash = S.sel === "dash";
+  groups.forEach(function(g){
+    var sec = el("div","bgroup");
+    var h = el("h4",null);
+    var label = onDash
+      ? (g.projectId ? (projName(g.projectId) || "Untitled project") : "No project")
+      : (g.spaceId ? (spaceName(g.spaceId) || "Untitled space") : "No space");
+    if(onDash && g.spaceId){
+      h.appendChild(el("span","bg-proj", label));
+      h.appendChild(el("span","bg-sep", "\u203a"));
+      h.appendChild(el("span",null, spaceName(g.spaceId) || "Untitled space"));
+    } else {
+      h.appendChild(el("span", onDash ? "bg-proj" : null, label));
+    }
+    h.appendChild(el("span","n", String(g.tasks.length)));
+    sec.appendChild(h);
+    sec.appendChild(boardFor(g));
+    bodyEl.appendChild(sec);
+  });
 }
 
 function taskCard(t){
-  var c = el("div","card" + (t.status === "done" ? " done" : ""));
+  var c = el("div","card" + (taskDone(t) ? " done" : ""));
   c.dataset.id = t.id;
   if(writable()){
     var grip = el("div","grip");
@@ -2266,7 +2486,7 @@ function taskCard(t){
     if(pn) foot.appendChild(el("span","chip proj", pn));
   }
   if(t.due){
-    foot.appendChild(el("span","chip due" + (isLate(t.due, t.status) ? " late" : ""), fmtDate(t.due)));
+    foot.appendChild(el("span","chip due" + (isLate(t.due, taskDone(t) ? "done" : "") ? " late" : ""), fmtDate(t.due)));
   }
   if(t.assignee){
     var img = document.createElement("img");
@@ -2348,7 +2568,7 @@ function startDrag(e, card, t, immediate){
     var col = columnAt(ev.clientX, ev.clientY);
     if(col){
       var body = col.querySelector(".col-body");
-      dropOn(t.id, col.dataset.status, ev.clientY, body);
+      dropOn(t.id, col, ev.clientY, body);
     }
   }
   function cleanup(){
@@ -2393,12 +2613,19 @@ function autoPan(x){
   panT = setTimeout(function(){ autoPan(x); }, 16);
 }
 
-function dropOn(id, status, clientY, colBody){
+function dropOn(id, col, clientY, colBody){
   var task = null;
   for(var i=0;i<S.tasks.length;i++) if(S.tasks[i].id === id) task = S.tasks[i];
   if(!task) return;
 
-  var siblings = visibleTasks().filter(function(t){ return t.status === status && t.id !== id; });
+  var status = col.dataset.status;
+  var projectId = col.dataset.project || null;
+  var spaceId = col.dataset.space || null;
+
+  var siblings = visibleTasks().filter(function(t){
+    return t.status === status && t.id !== id &&
+           (t.projectId || null) === projectId && (t.spaceId || null) === spaceId;
+  });
   var cards = Array.prototype.slice.call(colBody.querySelectorAll(".card"))
     .filter(function(c){ return c.dataset.id !== id; });
 
@@ -2415,8 +2642,11 @@ function dropOn(id, status, clientY, colBody){
   else if(after)      order = (after.order||0) - 1;
   else                order = 1;
 
-  if(task.status === status && task.order === order) return;
-  patchTask(id, { status: status, order: order });
+  var moved = (task.projectId || null) !== projectId || (task.spaceId || null) !== spaceId;
+  if(!moved && task.status === status && task.order === order) return;
+  patchTask(id, moved
+    ? { status: status, order: order, projectId: projectId, spaceId: spaceId }
+    : { status: status, order: order });
 }
 
 
@@ -2458,14 +2688,14 @@ function listRow(t){
   var c1 = document.createElement("td"); c1.className = "c-check";
   var cb = document.createElement("input");
   cb.type = "checkbox";
-  cb.checked = t.status === "done";
+  cb.checked = taskDone(t);
   cb.disabled = !writable();
   cb.setAttribute("aria-label","Mark done");
-  cb.onchange = function(){ patchTask(t.id, { status: cb.checked ? "done" : "backlog" }); };
+  cb.onchange = function(){ patchTask(t.id, { status: cb.checked ? doneColumnId(t.projectId, t.spaceId) : firstColumnId(t.projectId, t.spaceId) }); };
   c1.appendChild(cb); tr.appendChild(c1);
 
   var c2 = document.createElement("td");
-  c2.className = "tt" + (t.status === "done" ? " done" : "");
+  c2.className = "tt" + (taskDone(t) ? " done" : "");
   c2.textContent = t.title || "Untitled";
   if(writable()){
     c2.style.cursor = "pointer";
@@ -2488,10 +2718,10 @@ function listRow(t){
   var sel = document.createElement("select");
   sel.disabled = !writable();
   sel.setAttribute("aria-label","Status");
-  STATUSES.forEach(function(s){
+  columnsFor(t.projectId, t.spaceId).forEach(function(c){
     var o = document.createElement("option");
-    o.value = s.id; o.textContent = s.label;
-    if(t.status === s.id) o.selected = true;
+    o.value = c.id; o.textContent = c.name;
+    if(columnOf(t) === c.id) o.selected = true;
     sel.appendChild(o);
   });
   sel.onchange = function(){ patchTask(t.id, { status: sel.value }); };
@@ -2503,7 +2733,7 @@ function listRow(t){
   d.value = t.due || "";
   d.disabled = !writable();
   d.setAttribute("aria-label","Due date");
-  if(isLate(t.due, t.status)) d.style.color = "var(--danger)";
+  if(isLate(t.due, taskDone(t) ? "done" : "")) d.style.color = "var(--danger)";
   d.onchange = function(){ patchTask(t.id, { due: d.value || null }); };
   c4.appendChild(d); tr.appendChild(c4);
 
@@ -2683,12 +2913,12 @@ function dashCard(title, count){
 function dashTaskRow(t){
   var row = el("div","drow");
 
-  var tick = el("button","dtick" + (t.status === "done" ? " on" : ""), "✓");
+  var tick = el("button","dtick" + (taskDone(t) ? " on" : ""), "✓");
   tick.setAttribute("aria-label", "Mark done");
   tick.disabled = !writable();
   tick.onclick = function(e){
     e.stopPropagation();
-    patchTask(t.id, { status: t.status === "done" ? "backlog" : "done" });
+    patchTask(t.id, { status: taskDone(t) ? firstColumnId(t.projectId, t.spaceId) : doneColumnId(t.projectId, t.spaceId) });
   };
   row.appendChild(tick);
 
@@ -2699,7 +2929,7 @@ function dashTaskRow(t){
   if(pn) meta.appendChild(el("span","chip proj", pn));
   var sn = t.spaceId && spaceName(t.spaceId);
   if(sn) meta.appendChild(el("span","chip", sn));
-  if(t.due) meta.appendChild(el("span","ddue" + (isLate(t.due, t.status) ? " late" : ""), fmtDate(t.due)));
+  if(t.due) meta.appendChild(el("span","ddue" + (isLate(t.due, taskDone(t) ? "done" : "") ? " late" : ""), fmtDate(t.due)));
   if(meta.childNodes.length) main.appendChild(meta);
   main.onclick = function(){ openTask(t.id); };
   row.appendChild(main);
@@ -2860,7 +3090,7 @@ function renderDash(){
   var weekEnd = new Date(t0); weekEnd.setDate(weekEnd.getDate() + 7);
   var weekEndS = ymd(weekEnd);
 
-  var open = S.tasks.filter(function(t){ return t.status !== "done"; });
+  var open = S.tasks.filter(function(t){ return !taskDone(t); });
 
   var occs = S.schedules.filter(function(s){ return occursOn(s, t0); })
     .sort(function(a,b){ return String(a.time||"").localeCompare(String(b.time||"")); });
@@ -2868,9 +3098,9 @@ function renderDash(){
   var dueToday = open.filter(function(t){ return t.due === todayS; });
   var overdue  = open.filter(function(t){ return t.due && t.due < todayS; })
                      .sort(function(a,b){ return String(a.due).localeCompare(String(b.due)); });
-  var soon     = open.filter(function(t){ return t.status !== "doing" && t.due && t.due > todayS && t.due <= weekEndS; })
+  var soon     = open.filter(function(t){ return !taskUnderway(t) && t.due && t.due > todayS && t.due <= weekEndS; })
                      .sort(function(a,b){ return String(a.due).localeCompare(String(b.due)); });
-  var doing    = open.filter(function(t){ return t.status === "doing"; });
+  var doing    = open.filter(taskUnderway);
 
   var chasing     = openProspects().filter(function(p){ return p.next; });
   var chaseNow    = chasing.filter(function(p){ return p.next <= todayS; })
@@ -3106,11 +3336,11 @@ function calCell(d, m, scheds, tasks, todayStr){
 
   tasks.forEach(function(t){
     if(t.due !== ds) return;
-    var o = el("button","occ task" + (t.status === "done" ? " done" : "") +
-                        (isLate(t.due, t.status) ? " late" : ""));
+    var o = el("button","occ task" + (taskDone(t) ? " done" : "") +
+                        (isLate(t.due, taskDone(t) ? "done" : "") ? " late" : ""));
     o.appendChild(el("span","ot", t.title || "Untitled"));
     o.title = "Task due — click to toggle done";
-    o.onclick = function(){ patchTask(t.id, { status: t.status === "done" ? "backlog" : "done" }); };
+    o.onclick = function(){ patchTask(t.id, { status: taskDone(t) ? firstColumnId(t.projectId, t.spaceId) : doneColumnId(t.projectId, t.spaceId) }); };
     cell.appendChild(o);
   });
   return cell;
@@ -3164,12 +3394,12 @@ function agendaRow(it){
     return r;
   }
   var t = it.t;
-  var tr = el("button","agrow" + (t.status === "done" ? " done" : ""));
+  var tr = el("button","agrow" + (taskDone(t) ? " done" : ""));
   var tk = el("span","tick","✓");
   tr.appendChild(tk);
   tr.appendChild(el("span","ot", t.title || "Untitled"));
   tr.appendChild(el("span","tm","task"));
-  tr.onclick = function(){ patchTask(t.id, { status: t.status === "done" ? "backlog" : "done" }); };
+  tr.onclick = function(){ patchTask(t.id, { status: taskDone(t) ? firstColumnId(t.projectId, t.spaceId) : doneColumnId(t.projectId, t.spaceId) }); };
   return tr;
 }
 
@@ -3526,7 +3756,7 @@ function openTask(id){
   tkId = id;
   $("#tkHead").textContent = writable() ? "Task" : "Task (read only)";
   $("#tkName").value = t.title || "";
-  fillSelect($("#tkStatus"), STATUSES.map(function(s){ return [s.id, s.label]; }), t.status || "backlog");
+  fillSelect($("#tkStatus"), columnsFor(t.projectId, t.spaceId).map(function(c){ return [c.id, c.name]; }), columnOf(t));
   $("#tkDue").value = t.due || "";
   fillSelect($("#tkProj"),
     [["","No project"]].concat(S.projects.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); })
@@ -3786,7 +4016,7 @@ $("#edTask").onclick = function(){
   var n = currentNote();
   if(!n || !writable()) return;
   flushNote();
-  noteToTask({ title: edTitle.value, body: edBody.value, projectId: n.projectId });
+  noteToTask({ id: n.id, title: edTitle.value, body: edBody.value, projectId: n.projectId, spaceId: n.spaceId });
 };
 edBody.addEventListener("paste", function(e){
   var files = e.clipboardData && e.clipboardData.files;
