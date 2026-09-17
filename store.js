@@ -19,6 +19,21 @@ window.SlateStore = (function () {
   var sb = null;
   var session = null;
 
+  /* ?demo runs the app off in-memory sample data, with no Supabase and no sign in.
+     Handy for looking at the thing before the project is configured, and for
+     showing someone what it does without giving them your data. */
+  var DEMO = /(^|[?&])demo(=|&|$)/.test(location.search);
+
+  function loadDemo(){
+    return new Promise(function(resolve, reject){
+      var el = document.createElement("script");
+      el.src = "demo.js";
+      el.onload = function(){ resolve(window.SlateDemo.api); };
+      el.onerror = function(){ reject(new Error("demo.js failed to load")); };
+      document.head.appendChild(el);
+    });
+  }
+
   /* ---------- login ---------- */
 
   function loginScreen(message) {
@@ -70,6 +85,7 @@ window.SlateStore = (function () {
   /* ---------- boot ---------- */
 
   var ready = (async function () {
+    if (DEMO) return await loadDemo();
     if (!URL_ || !KEY_) {
       await loginScreen("Supabase isn't configured. Set supabaseUrl and supabaseAnonKey in config.js.");
       return {};
@@ -294,6 +310,7 @@ window.SlateStore = (function () {
       return ready.then(function (api) { return api[name] || null; });
     },
     blobUrl: function (id) {
+      if (DEMO) return window.SlateDemo ? window.SlateDemo.blobUrl(id) : "";
       return URL_ + "/storage/v1/object/public/" + BUCKET + "/" + id;
     },
     signOut: function () {

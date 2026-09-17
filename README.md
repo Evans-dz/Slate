@@ -56,6 +56,17 @@ python3 -m http.server 8080
 Then open `http://localhost:8080`. Service workers need a secure context, and `localhost`
 counts, so the PWA behaves the same as it does in production.
 
+## Looking at it without a database
+
+Add `?demo` to the URL — `http://localhost:8080/?demo`, or `your-app.vercel.app/?demo`
+once it's deployed. That skips Supabase and the sign in entirely and runs the app off the
+sample studio in `demo.js`: four projects, a filled board, a month of recurring items and a
+prospect pipeline. Everything works — drag cards, tick things off, open the whiteboard —
+but it lives in memory, so a reload starts over and nothing touches your real data.
+
+Useful before the Supabase project exists, and for showing someone what Slate does without
+handing them your board. Edit `demo.js` to change what the sample studio looks like.
+
 ## What works offline
 
 The shell is cached, so the app opens with no connection and anything already loaded stays
