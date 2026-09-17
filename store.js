@@ -174,7 +174,8 @@ window.SlateStore = (function () {
           local(p.col, p.id, data);
           return sb
             .from("docs")
-            .upsert({ collection: p.col, id: p.id, data: data, updated_at: new Date().toISOString() })
+            .upsert({ collection: p.col, id: p.id, data: data, updated_at: new Date().toISOString() },
+                    { onConflict: "collection,id" })
             .then(check);
         },
         update: function (patch) {
@@ -182,7 +183,8 @@ window.SlateStore = (function () {
           local(p.col, p.id, merged);
           return sb
             .from("docs")
-            .upsert({ collection: p.col, id: p.id, data: merged, updated_at: new Date().toISOString() })
+            .upsert({ collection: p.col, id: p.id, data: merged, updated_at: new Date().toISOString() },
+                    { onConflict: "collection,id" })
             .then(check);
         },
         delete: function () {
