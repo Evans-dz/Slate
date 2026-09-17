@@ -7,10 +7,12 @@ For how it's built and why, see `ARCHITECTURE.md`.
 
 ```
 index.html              the app: markup, CSS and the render code
-store.js                the platform layer: db, user, assets, all Supabase-backed
-config.js               your Supabase URL and anon key
+store.js                the platform layer: db, user, assets, push, all Supabase-backed
+config.js               your Supabase URL, anon key and the push public key
+lib/brief.js            the notification briefs: grouping, wording, Denver dates
+api/                    Vercel serverless functions: push subscribe/test, the two cron briefs
 vendor/supabase.js      the Supabase client, vendored so the shell works offline
-sw.js                   service worker: caches the shell
+sw.js                   service worker: caches the shell, shows the push briefs
 manifest.webmanifest    PWA manifest
 supabase/schema.sql     run this once in the Supabase SQL editor
 ARCHITECTURE.md         data model, views, deliberate decisions, the CSS traps
@@ -68,6 +70,48 @@ this once and the rest should follow:
 If writes fail immediately, check the browser console. The most likely causes are a row
 level security policy that didn't apply, or the schema not having been run.
 
+## Push notification briefs
+
+Two pushes a day to every enabled device, weekdays only, straight from the app's own
+icon — no Firebase, no third-party service:
+
+- **☀️ Morning Brief** (~7am Mountain) — today's events and open to-dos, grouped
+  Project → Space. Scoped per person: your tasks and unassigned ones, so with nothing
+  assigned you both get the same brief.
+- **🌙 Day Wrap** (~6pm Mountain) — what got completed today, the same grouping,
+  identical for both of you. Nothing completed, no buzz.
+
+Tapping either lands on the **Today** page, which carries the full detail behind the
+digest. The wording and grouping live in `lib/brief.js`, shared by the crons and the page.
+
+**Server setup, once:**
+
+1. `.env.local` holds the six env values the `/api` functions need — Supabase URL and
+   service role key, the three VAPID values, and `CRON_SECRET`. Copy each into Vercel
+   under Project Settings → Environment Variables, all environments. The VAPID pair is
+   **permanent**: rotate it and every device has to re-enable notifications. The public
+   half also sits in `config.js` (public by design) and must match `VAPID_PUBLIC_KEY`.
+2. Re-run `supabase/schema.sql` in the SQL editor — it's idempotent, and it now creates
+   `push_subscriptions`.
+3. Deploy. `vercel.json` registers the two cron jobs. **Schedules are UTC**, so the
+   Denver hour slips by one when DST flips (7am becomes 6am in winter); nudge the two
+   cron expressions if that grates. The Hobby plan allows exactly two once-daily crons,
+   and fires them within the hour rather than on the minute.
+
+**On each phone:** install the app first — on iOS web push only works from the
+home-screen icon (iOS 16.4+), never from a Safari tab. Then tap the bell in the top
+bar → *Enable on this device*, and confirm with *Send a test*. Each person enables
+each of their own devices.
+
+**Testing the crons without waiting for the clock:**
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" https://your-app.vercel.app/api/cron/morning
+```
+
+Same for `/api/cron/evening`. Both return a JSON summary (sent / failed / pruned, or
+why they skipped) and that's also what shows in the Vercel cron logs.
+
 ## Running it locally
 
 ```bash
@@ -105,9 +149,10 @@ readable. Writes need the network — there's no offline write queue yet.
 - **Handwriting transcription.** The whiteboard's *Turn writing into text* button hides
   itself until a serverless `/api/transcribe` exists to call the Anthropic API with the key
   held server-side.
-- **Push notifications** for the 8am recurring items. Schedules render and tick off in the
-  calendar, but nothing buzzes a phone. On iOS, web push only works once the app is on the
-  home screen, and needs iOS 16.4 or newer.
+- **Per-item schedule reminders.** The morning brief lists today's recurring items, but
+  nothing buzzes at the item's own time (the 8am reminder at 8am). That needs a `notify`
+  flag per schedule and a sent-log keyed `(scheduleId, date)` — and more cron granularity
+  than the Hobby plan's two once-daily jobs.
 - **Offline write queue.** Reads work offline; writes fail until you reconnect.
 
 `ARCHITECTURE.md` has notes on what each of these would take.

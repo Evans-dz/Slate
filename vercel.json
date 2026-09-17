@@ -1,6 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
+  "crons": [
+    { "path": "/api/cron/morning", "schedule": "0 13 * * *" },
+    { "path": "/api/cron/evening", "schedule": "0 0 * * *" }
+  ],
   "headers": [
     {
       "source": "/sw.js",

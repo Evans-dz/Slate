@@ -16,17 +16,19 @@ One HTML file. `index.html` holds the markup, the CSS and roughly 3,000 lines of
 code, in plain JavaScript with no framework and no build step. That's deliberate: the point
 is that you can open one file and change something without relearning a toolchain.
 
-`store.js` is the only other moving part. It provides four capabilities — `db`, `user`,
-`assets` and `sample` — and everything else in the app talks to those rather than to
-Supabase directly. That separation is what let the app move off the Claude artifact runtime
-by rewriting one file, and it's what would let it move again.
+`store.js` is the only other moving part. It provides five capabilities — `db`, `user`,
+`assets`, `push` and `sample` — and everything else in the app talks to those rather than
+to Supabase directly. That separation is what let the app move off the Claude artifact
+runtime by rewriting one file, and it's what would let it move again.
 
 ```
 index.html              markup, CSS, and every render function
-store.js                the platform layer: db, user, assets, all Supabase-backed
-config.js               your Supabase URL and anon key
+store.js                the platform layer: db, user, assets, push, all Supabase-backed
+config.js               your Supabase URL, anon key and the push public key
+lib/brief.js            brief logic: grouping, wording, Denver dates (page + server)
+api/                    Vercel functions: push subscribe/unsubscribe/test, two cron briefs
 vendor/supabase.js      the Supabase client, vendored so the shell works offline
-sw.js                   service worker: caches the app shell
+sw.js                   service worker: caches the app shell, shows the push briefs
 supabase/schema.sql     run once in the Supabase SQL editor
 ```
 
@@ -65,8 +67,12 @@ Deleting a space does **not** delete its contents; it nulls `spaceId` on the tas
 schedules that referenced it.
 
 **`tasks`** — `title`, `status` (a column id, see below), `projectId`, `spaceId`, `assignee`,
-`due` (`YYYY-MM-DD`), `noteId`, `order`, timestamps. `order` is a float; reordering inserts
-at the midpoint of its neighbours. `noteId` points back at the note a card was made from.
+`due` (`YYYY-MM-DD`), `noteId`, `order`, timestamps, and `completedAt`. `order` is a float;
+reordering inserts at the midpoint of its neighbours. `noteId` points back at the note a
+card was made from. `completedAt` is stamped by `patchTask` the moment a status change
+lands a task in its done column and cleared when it leaves — done-ness itself stays
+positional (see Columns), the timestamp exists so the evening brief can say what got
+finished *today*.
 
 **`notes`** — `title`, `body`, `kind` (`note` | `doc` | `board`), `images` (asset ids),
 `projectId`, `spaceId`, timestamps. Tags are **derived, not stored** — `tagsOf()` regexes
@@ -94,6 +100,11 @@ colour high water mark.
 
 **`profiles`** — a real table, not a doc blob: `id` (references `auth.users`), `name`,
 `avatar_url`. The UI expects `{ id, name, avatarUrl }`.
+
+**`push_subscriptions`** — also a real table: one row per device that enabled the briefs,
+keyed unique on `endpoint` so re-enabling upserts instead of duplicating. Written through
+the `/api/push` functions with the service role key; rows the push service reports gone
+(404/410) are pruned on every send.
 
 ---
 
@@ -149,6 +160,47 @@ the spaces, and open in place in read mode with per-block Copy buttons.
 
 **Search** crosses everything. A non-empty query replaces the view with grouped results —
 notes, tasks, prospects, project details — each saying which project and space it lives in.
+
+---
+
+## The briefs
+
+Two scheduled pushes a day, sent by the app itself over the Web Push standard — no
+Firebase, no third-party relay, no cost. Vercel Cron hits `/api/cron/morning` (13:00 UTC)
+and `/api/cron/evening` (00:00 UTC); each route checks the `CRON_SECRET` bearer token,
+works out the date **in America/Denver**, skips Denver weekends, and fans the digest out
+to every row in `push_subscriptions` via the `web-push` package.
+
+The reasoning worth keeping:
+
+- **`lib/brief.js` is the single source of truth.** It builds the models (what's on
+  today, what got done) and the notification text. The cron routes require it; the Today
+  page loads the same file as a browser global. The push body is a digest — counts plus
+  the busiest few `Project → Space` lines — because push bodies truncate; the Today page
+  (`/?view=today`, which a notification tap deep-links into) carries the rest.
+- **Denver, never UTC.** The evening cron fires at 00:00 UTC, which is 6pm *the previous
+  UTC day* in Denver — every date comparison goes through the Denver calendar or the
+  brief is quietly wrong. Same for weekends: Friday's wrap fires on Saturday 00:00 UTC
+  and must still send. The cron *schedules* are UTC though, so the Denver hour drifts by
+  one across DST; the two expressions in `vercel.json` can be nudged twice a year, and a
+  guard-and-skip hourly job isn't possible on the Hobby plan's two once-daily crons.
+- **The morning brief is per-person** — your tasks plus unassigned ones — and **the
+  evening wrap is shared**, because "what we got done" is team news. With nothing
+  assigned both people get identical briefs, so the scoping costs nothing until it's
+  used.
+- **Completion stays positional.** The evening brief needs a time, so `patchTask` stamps
+  `completedAt` when a task lands in its done column — but the brief only claims a task
+  whose `completedAt` is today **and** which still sits in a done column, so a tick that
+  was undone, or a column edit that reshuffled done-ness, can't fabricate a completion.
+- **Quiet days send nothing.** No open work and no events, or nothing completed — the
+  route logs a skip instead of buzzing a phone about zero.
+- **The VAPID key pair is permanent.** Rotate it and every subscription dies silently;
+  both users re-enable by hand. The public half lives in `config.js`, the pair in
+  Vercel's env.
+- **iOS only delivers web push to an installed app** (home screen, iOS 16.4+) and only
+  prompts for permission inside a user gesture — which is why the whole subscribe flow
+  hangs off the bell button in the top bar, and why the bell shows install instructions
+  instead of a dead button in a Safari tab.
 
 ---
 
@@ -258,11 +310,12 @@ Recorded because the reasoning still gets quoted at me.
   at `/api/transcribe` calling the Anthropic API with the key held server-side. The prompt
   should return bare text, unclear words in square brackets, and the literal string
   `(nothing legible)` for a blank page.
-- **Push notifications** for recurring items. Schedules render and tick off, but nothing
-  buzzes a phone. Needs a scheduled job (Supabase `pg_cron` plus an Edge Function, or Vercel
-  Cron), a `web-push` subscription per device, a `notify` flag per schedule, and a sent table
-  keyed `(scheduleId, date)` so a restart doesn't re-fire the morning's notifications. On iOS
-  this only works once the app is on the home screen, and needs iOS 16.4 or newer.
+- **Per-item schedule reminders.** The morning brief lists today's recurring items, but
+  nothing fires at an item's own time (the 8am reminder at 8am). That needs a `notify` flag
+  per schedule, a sent table keyed `(scheduleId, date)` so a restart doesn't re-fire, and a
+  cron that runs more than once a day — which the Vercel Hobby plan doesn't allow, so this
+  probably means Supabase `pg_cron` plus an Edge Function reusing the same
+  `push_subscriptions` rows.
 - **Offline write queue.** Reads work offline because the shell is cached; writes fail until
   you reconnect. Queue them in IndexedDB and replay on reconnect.
 - **A real run against Supabase.** Every feature so far was verified against a local

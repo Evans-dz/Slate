@@ -5,6 +5,7 @@
      SlateStore.use("db")     -> collection().onSnapshot / doc().set/update/delete
      SlateStore.use("user")   -> me / can / search / profiles
      SlateStore.use("assets") -> upload / delete
+     SlateStore.use("push")   -> subscribe / unsubscribe / test (the notification briefs)
      SlateStore.use("sample") -> handwriting transcription (null until /api/transcribe is wired)
 
    Everything is backed by Supabase: one `docs` table for every collection, realtime
@@ -84,7 +85,7 @@ window.SlateStore = (function () {
       await loginScreen("");
       return {};
     }
-    return { db: makeDb(), user: makeUser(), assets: makeAssets(), sample: null };
+    return { db: makeDb(), user: makeUser(), assets: makeAssets(), push: makePush(), sample: null };
   })();
 
   /* ---------- db ---------- */
@@ -264,6 +265,41 @@ window.SlateStore = (function () {
         return everyone().then(function (list) {
           return list.filter(function (p) { return ids.indexOf(p.id) > -1; });
         });
+      }
+    };
+  }
+
+  /* ---------- push ---------- */
+
+  /* Talks to the /api/push functions with the caller's Supabase token, fetched
+     fresh per call because access tokens rotate. The render code hands over the
+     PushSubscription and never sees the API or the token. */
+  function makePush() {
+    function call(path, body) {
+      return sb.auth.getSession().then(function (got) {
+        var token = got.data.session && got.data.session.access_token;
+        if (!token) throw new Error("Not signed in");
+        return fetch(path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+          body: JSON.stringify(body || {})
+        });
+      }).then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (j) {
+          if (!res.ok) throw new Error(j.error || "Request failed (" + res.status + ")");
+          return j;
+        });
+      });
+    }
+    return {
+      subscribe: function (subscription) {
+        return call("/api/push/subscribe", { subscription: subscription, userAgent: navigator.userAgent });
+      },
+      unsubscribe: function (endpoint) {
+        return call("/api/push/unsubscribe", { endpoint: endpoint });
+      },
+      test: function () {
+        return call("/api/push/test");
       }
     };
   }

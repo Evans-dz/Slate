@@ -1,13 +1,15 @@
 /* Slate service worker.
    The shell is cached so the app opens with no network; data still needs a
-   connection, because Supabase requests carry auth and are never cached. */
+   connection, because Supabase requests carry auth and are never cached.
+   Also receives the push briefs — see the handlers at the bottom. */
 
-var VERSION = "slate-v1";
+var VERSION = "slate-v2";
 var SHELL = [
   "/",
   "/index.html",
   "/config.js",
   "/store.js",
+  "/lib/brief.js",
   "/vendor/supabase.js",
   "/manifest.webmanifest",
   "/icons/icon-192.png",
@@ -85,4 +87,39 @@ self.addEventListener("fetch", function (e) {
       url.hostname === "fonts.gstatic.com") {
     e.respondWith(cacheFirst(req));
   }
+});
+
+/* ---------- push briefs ---------- */
+/* Payloads come from /api/cron/* and /api/push/test as
+   { title, body, url, tag }. The tag replaces yesterday's brief of the same
+   kind instead of stacking a pile of stale ones. */
+
+self.addEventListener("push", function (e) {
+  var data = {};
+  try { data = e.data ? e.data.json() : {}; } catch (err) {}
+  e.waitUntil(
+    self.registration.showNotification(data.title || "Slate", {
+      body: data.body || "",
+      icon: "/icons/icon-192.png",
+      data: { url: data.url || "/?view=today" },
+      tag: data.tag || "slate"
+    })
+  );
+});
+
+/* Tapping a brief lands on the Today page: reuse a window that's already open
+   by telling it to switch views, otherwise open one at the deep link. */
+self.addEventListener("notificationclick", function (e) {
+  e.notification.close();
+  var url = (e.notification.data && e.notification.data.url) || "/?view=today";
+  e.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (list) {
+      var open = list.filter(function (c) { return new URL(c.url).origin === location.origin; })[0];
+      if (open) {
+        open.postMessage({ kind: "open-view", url: url });
+        return open.focus();
+      }
+      return clients.openWindow(url);
+    })
+  );
 });
