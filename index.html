@@ -219,6 +219,27 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .pjspace{display:flex;align-items:center;gap:8px}
 .pjspace input{flex:1}
 .pjspace .btn{padding:4px 9px;font-size:12px}
+.tabsep{
+  align-self:center;width:1px;height:16px;background:var(--line);
+  margin:0 6px 6px;flex:0 0 auto;
+}
+.tab.tabdoc{display:flex;align-items:center;gap:6px;font-family:var(--serif);font-size:14px}
+.tab.tabdoc .dico{font-family:var(--ui);font-size:11px;color:var(--muted);line-height:1}
+.tab.tabdoc.on .dico{color:var(--accent-ink)}
+
+.docpage-head{
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line);
+}
+.docpage-head h2{
+  margin:0;font-family:var(--serif);font-size:23px;font-weight:600;
+  letter-spacing:-.015em;
+}
+.docpage-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.docpage-head .btn{margin-left:auto}
+.docpage{
+  display:flex;flex-direction:column;gap:10px;max-width:760px;
+}
 .pjcolor{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);line-height:1.4}
 .pjcolor .sw{width:22px;height:22px;border-radius:4px;flex:0 0 auto;transform:rotate(-8deg)}
 #mainhead .meta{font-size:12.5px;color:var(--muted);margin-top:7px}
@@ -1062,6 +1083,10 @@ tr:hover .rowx{opacity:1}
   .viewswitch{margin-left:12px;position:sticky;right:0;background:var(--paper);padding-left:6px}
   .vbtn{width:36px;height:36px;font-size:15px}
   .pmeta-line{gap:6px 12px;font-size:13px}
+  .docpage-head h2{font-size:20px}
+  .docpage-head .btn{min-height:38px;padding:7px 14px}
+  .docpage .blk{padding-right:0}
+  .docpage .blkcopy{position:static;display:block;margin-top:7px;padding:7px 12px;font-size:13px}
 
   /* board: one column per screen, snapped */
   .board{
@@ -1567,6 +1592,7 @@ var S = {
   tag:null,
   capImages:[],
   capProj:null, capSpace:null,   // capture box pickers; cleared after every save
+  doc:null,                      // a doc opened as a tab inside its project
   triage:{},                     // noteId -> project chosen mid-triage, before a space is picked
   calMonth:null,          // Date on the 1st of the shown month
   newSpaceFor:null,
@@ -2332,6 +2358,7 @@ function railItem(id, label, count, dotCls){
   b.onclick = function(){
     if(S.sel !== id) S.space = null;
     S.sel = id;
+    S.doc = null;
     S.tag = null;
     if(id === "unfiled") S.tab = "notes";
     /* only the dashboard has a prospects tab */
@@ -2372,7 +2399,7 @@ function renderHead(){
 
   var actions = el("div","head-actions");
   if(writable()){
-    if(S.sel !== "capture" && (S.tab === "notes" || S.sel === "unfiled")){
+    if(S.sel !== "capture" && !S.doc && (S.tab === "notes" || S.sel === "unfiled")){
       var target = isProject ? S.sel : null;
       [["note","New note"],["doc","New doc"],["board","New whiteboard"]].forEach(function(k, i){
         var nb = el("button","btn" + (i === 0 ? " primary" : ""), k[1]);
@@ -2431,17 +2458,17 @@ function renderHead(){
   /* Inside a project the tabs are its spaces: since columns became per-space,
      the space is the unit of work. The view switcher sits at the right end. */
   if(isProject){
-    var allb = el("button","tab" + (S.space === null ? " on" : ""));
+    var allb = el("button","tab" + (!S.doc && S.space === null ? " on" : ""));
     allb.appendChild(document.createTextNode("All"));
-    allb.onclick = function(){ S.space = null; render(); };
+    allb.onclick = function(){ S.doc = null; S.space = null; render(); };
     tabs.appendChild(allb);
 
     spacesOf(S.sel).forEach(function(sp){
-      var b = el("button","tab" + (S.space === sp.id ? " on" : ""));
+      var b = el("button","tab" + (!S.doc && S.space === sp.id ? " on" : ""));
       b.appendChild(document.createTextNode(sp.name || "Untitled space"));
       var cnt = S.tasks.filter(function(t){ return t.spaceId === sp.id && !taskDone(t); }).length;
       b.appendChild(el("span","n", String(cnt)));
-      b.onclick = function(){ S.space = sp.id; render(); };
+      b.onclick = function(){ S.doc = null; S.space = sp.id; render(); };
       tabs.appendChild(b);
     });
 
@@ -2475,13 +2502,33 @@ function renderHead(){
       }
     }
 
+    /* Docs filed to this project get their own tab: a prompt library or a
+       client brief is reference material you want one tap away, not something
+       to go hunting for under Notes. */
+    var docs = S.notes.filter(function(n){
+      return n.projectId === S.sel && noteKind(n) === "doc";
+    }).sort(function(a,b){
+      return String(a.title||"").localeCompare(String(b.title||""));
+    });
+    if(docs.length){
+      tabs.appendChild(el("span","tabsep"));
+      docs.forEach(function(d){
+        var b = el("button","tab tabdoc" + (S.doc === d.id ? " on" : ""));
+        b.appendChild(el("span","dico","\u25a4"));
+        b.appendChild(document.createTextNode(
+          (d.title && d.title.trim()) || "Untitled doc"));
+        b.onclick = function(){ S.doc = d.id; render(); };
+        tabs.appendChild(b);
+      });
+    }
+
     var views = el("div","viewswitch");
     [["board","▦","Board"],["list","☰","List"],
      ["calendar","▣","Calendar"],["notes","◈","Notes"]].forEach(function(v){
-      var vb = el("button","vbtn" + (S.tab === v[0] ? " on" : ""), v[1]);
+      var vb = el("button","vbtn" + (!S.doc && S.tab === v[0] ? " on" : ""), v[1]);
       vb.title = v[2];
       vb.setAttribute("aria-label", v[2]);
-      vb.onclick = function(){ S.tab = v[0]; prefSet("tab", v[0]); render(); };
+      vb.onclick = function(){ S.doc = null; S.tab = v[0]; prefSet("tab", v[0]); render(); };
       views.appendChild(vb);
     });
     tabs.appendChild(views);
@@ -3069,6 +3116,29 @@ function fileNote(n, projectId, spaceId){
   patchNote(n.id, { projectId: projectId, spaceId: spaceId || null });
   toast("Filed into " + (projName(projectId) || "the project") +
         (spaceId ? " \u203a " + (spaceName(spaceId) || "") : ""));
+}
+
+function renderDocPage(){
+  var n = findNote(S.doc);
+  if(!n){ S.doc = null; renderBoard(); return; }
+
+  var head = el("div","docpage-head");
+  head.appendChild(el("h2",null, (n.title && n.title.trim()) || "Untitled doc"));
+  var meta = el("div","docpage-meta");
+  var sn = spaceName(n.spaceId);
+  if(sn) meta.appendChild(el("span","chip", sn));
+  meta.appendChild(el("span",null,"Edited " + relTime(n.updatedAt)));
+  head.appendChild(meta);
+  if(writable()){
+    var edit = el("button","btn","Edit");
+    edit.onclick = function(){ openNote(n.id); };
+    head.appendChild(edit);
+  }
+  bodyEl.appendChild(head);
+
+  var page = el("div","docpage");
+  paintDocBlocks(page, n.body || "");
+  bodyEl.appendChild(page);
 }
 
 function renderNotes(){
@@ -3950,7 +4020,7 @@ function resetCapturePickers(){
   S.capSpace = null;
 }
 function updateCapture(){
-  var show = writable() && (S.sel === "capture" || S.sel === "unfiled" || S.tab === "notes");
+  var show = writable() && !S.doc && (S.sel === "capture" || S.sel === "unfiled" || S.tab === "notes");
   capEl.classList.toggle("on", !!show);
   if(!show) return;
   var target = captureTarget();
@@ -4622,9 +4692,11 @@ function copyText(text, btn){
   } else fallback();
 }
 
-function renderDocRead(){
+function renderDocRead(){ paintDocBlocks(edRead, edBody.value); }
+
+function paintDocBlocks(edRead, text){
   edRead.textContent = "";
-  var blocks = docBlocks(edBody.value);
+  var blocks = docBlocks(text);
   if(!blocks.length){
     var e = el("div","blk");
     e.appendChild(el("p", null,
@@ -5085,7 +5157,8 @@ function render(){
     renderNotes();
   } else {
     if(S.sel === "dash") renderDash();
-    if(S.sel === "dash" && S.tab === "prospects") renderProspects();
+    if(S.doc && !isVirtualView(S.sel)) renderDocPage();
+    else if(S.sel === "dash" && S.tab === "prospects") renderProspects();
     else if(S.tab === "board") renderBoard();
     else if(S.tab === "list") renderList();
     else if(S.tab === "calendar") renderCalendar();
