@@ -3,7 +3,7 @@
    connection, because Supabase requests carry auth and are never cached.
    Also receives the push briefs — see the handlers at the bottom. */
 
-var VERSION = "slate-v2";
+var VERSION = "slate-v3";
 var SHELL = [
   "/",
   "/index.html",
@@ -77,6 +77,14 @@ self.addEventListener("fetch", function (e) {
 
   // Navigations: network first so a new deploy lands, cache as the offline fallback.
   if (req.mode === "navigate") {
+    e.respondWith(networkFirst(req));
+    return;
+  }
+
+  // config.js is deploy-time configuration — network first, or a changed key
+  // sits stale in the cache forever (vercel.json marks it must-revalidate for
+  // the same reason). The cached copy is only the offline fallback.
+  if (url.origin === location.origin && url.pathname === "/config.js") {
     e.respondWith(networkFirst(req));
     return;
   }
