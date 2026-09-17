@@ -246,6 +246,18 @@ button{cursor:pointer;background:none;border:0;padding:0}
 body.dragging-now{user-select:none;-webkit-user-select:none}
 
 /* task sheet reuses the schedule dialog shell */
+#prospectDlg{
+  position:fixed;inset:0;z-index:77;display:none;
+  background:rgba(20,19,17,.36);padding:9vh 16px 16px;overflow-y:auto;
+}
+#prospectDlg.on{display:block}
+#prNote{
+  width:100%;border:1px solid var(--line);border-radius:3px;
+  padding:8px 9px;font-size:13.5px;background:var(--paper);
+  font-family:var(--ui);line-height:1.5;resize:vertical;
+}
+#prNote:focus{border-color:var(--accent);outline:none}
+
 #taskDlg{
   position:fixed;inset:0;z-index:76;display:none;
   background:rgba(20,19,17,.36);padding:9vh 16px 16px;overflow-y:auto;
@@ -730,10 +742,49 @@ tr:hover .rowx{opacity:1}
 #slateLogin .lerr:empty{margin:0}
 
 /* same for the floating dialogs — must sit after their own padding shorthands */
-#overlay,#taskDlg,#schedDlg,#confirm{
+#overlay,#taskDlg,#schedDlg,#prospectDlg,#confirm{
   padding-left:max(16px,env(safe-area-inset-left));
   padding-right:max(16px,env(safe-area-inset-right));
 }
+
+/* ---------- prospects ---------- */
+.padd{margin-bottom:18px;max-width:520px}
+.padd input{
+  width:100%;border:1px dashed var(--line);background:transparent;
+  border-radius:var(--radius);padding:9px 11px;font-size:14px;
+}
+.padd input:focus{border-style:solid;border-color:var(--accent);outline:none}
+.psec{margin-bottom:20px;max-width:760px}
+.psec h4{
+  margin:0 0 8px;font-size:12px;font-weight:500;color:var(--muted);
+  letter-spacing:.02em;text-transform:uppercase;
+  display:flex;align-items:center;gap:7px;
+}
+.psec h4 .n{
+  font-size:11.5px;font-variant-numeric:tabular-nums;text-transform:none;
+  background:var(--line-soft);border-radius:9px;padding:1px 7px;
+}
+.prow{
+  display:flex;align-items:center;gap:10px;
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);padding:9px 11px;margin-bottom:6px;
+}
+.prow.is-cold{opacity:.6}
+.pmain{flex:1;min-width:0;text-align:left;display:flex;flex-direction:column;gap:3px}
+.pco{font-size:14px;font-weight:500;word-break:break-word}
+.pmeta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}
+.pem{font-variant-numeric:tabular-nums}
+.pnext{font-variant-numeric:tabular-nums}
+.pnext.late{color:var(--danger)}
+.pnote{
+  font-size:12.5px;color:var(--muted);line-height:1.4;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.pstage{
+  flex:0 0 auto;border:1px solid var(--line);border-radius:3px;
+  background:var(--paper);padding:4px 6px;font-size:12px;font-family:var(--ui);
+}
+.pstage:focus{border-color:var(--accent);outline:none}
 
 /* ---------- dashboard ---------- */
 .dash{
@@ -924,6 +975,12 @@ tr:hover .rowx{opacity:1}
   }
   .dcard{flex:0 0 80vw;scroll-snap-align:center}
 
+  .prow{flex-wrap:wrap;padding:11px 12px}
+  .pmain{flex:1 1 100%}
+  .pstage{font-size:16px;padding:7px 8px;min-height:38px;flex:1}
+  .padd input{font-size:16px;min-height:42px}
+  .pnote{white-space:normal}
+
   .notes{grid-template-columns:1fr;gap:10px}
   .feed{max-width:none}
   .fitem{padding:13px 14px 11px}
@@ -939,7 +996,7 @@ tr:hover .rowx{opacity:1}
   #bottomnav{display:flex}
 
   /* every overlay becomes a full-height sheet */
-  #overlay,#schedDlg,#taskDlg{padding:0;background:var(--paper)}
+  #overlay,#schedDlg,#taskDlg,#prospectDlg{padding:0;background:var(--paper)}
   #editor,#editor.doc,#editor.board,.sbox{
     max-width:none;margin:0;min-height:100dvh;border:0;border-radius:0;
     box-shadow:none;
@@ -1217,6 +1274,45 @@ tr:hover .rowx{opacity:1}
   </div>
 </div>
 
+<div id="prospectDlg" role="dialog" aria-modal="true" aria-labelledby="prHead">
+  <div class="sbox">
+    <h3 id="prHead">Prospect</h3>
+    <div class="field">
+      <label for="prCompany">Company</label>
+      <input type="text" id="prCompany" placeholder="Who you want to work with">
+    </div>
+    <div class="two">
+      <div class="field">
+        <label for="prContact">Who you talk to</label>
+        <input type="text" id="prContact" placeholder="Name or role">
+      </div>
+      <div class="field">
+        <label for="prEmail">Email</label>
+        <input type="text" id="prEmail" inputmode="email" placeholder="name@company.com">
+      </div>
+    </div>
+    <div class="two">
+      <div class="field">
+        <label for="prStage">Stage</label>
+        <select id="prStage"></select>
+      </div>
+      <div class="field">
+        <label for="prNext">Chase them on</label>
+        <input type="date" id="prNext">
+      </div>
+    </div>
+    <div class="field">
+      <label for="prNote">What you know about them</label>
+      <textarea id="prNote" rows="5" placeholder="Why them, what you'd pitch, anything you noticed. This is what you write the email from — and it follows them into the project when you land it."></textarea>
+    </div>
+    <div class="crow">
+      <button class="btn quiet danger" id="prDelete">Remove</button>
+      <button class="btn" id="prClose">Close</button>
+      <button class="btn primary" id="prWon">Landed it</button>
+    </div>
+  </div>
+</div>
+
 <div id="confirm" role="dialog" aria-modal="true" aria-labelledby="cTitle">
   <div class="cbox">
     <h3 id="cTitle"></h3>
@@ -1248,12 +1344,23 @@ var STATUSES = [
 var STATUS_LABEL = {};
 STATUSES.forEach(function(s){ STATUS_LABEL[s.id] = s.label; });
 
+/* outreach pipeline. Won is terminal: a won prospect becomes a project. */
+var STAGES = [
+  {id:"lead",      label:"Lead"},
+  {id:"contacted", label:"Contacted"},
+  {id:"talking",   label:"In conversation"},
+  {id:"won",       label:"Won"},
+  {id:"lost",      label:"Not now"}
+];
+var STAGE_LABEL = {};
+STAGES.forEach(function(s){ STAGE_LABEL[s.id] = s.label; });
+
 /* ============ state ============ */
 var S = {
   db:null, user:null, assets:null, sample:null, canSampleImages:false,
   uid:null, me:null,
   canWrite:null,          // true / false / null (unknown)
-  projects:[], spaces:[], tasks:[], notes:[], schedules:[],
+  projects:[], spaces:[], tasks:[], notes:[], schedules:[], prospects:[],
   sel:"dash",             // "dash" | "capture" | "unfiled" | projectId
   space:null,             // spaceId within the selected project, or null for all
   tab:"board",
@@ -1520,6 +1627,18 @@ function isVirtualView(sel){ return VIRTUAL_VIEWS.indexOf(sel) !== -1; }
 function currentProject(){
   return isVirtualView(S.sel) ? null : S.sel;
 }
+/* still chasing: won ones became projects, lost ones are parked */
+function openProspects(){
+  var q = S.q.toLowerCase();
+  return S.prospects.filter(function(p){
+    if(p.stage === "won" || p.stage === "lost") return false;
+    if(q){
+      var hay = (String(p.company||"") + " " + String(p.contact||"") + " " + String(p.note||"")).toLowerCase();
+      if(hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+}
 
 /* ============ selectors ============ */
 function visibleTasks(){
@@ -1728,7 +1847,86 @@ function noteToTask(n){
   if(title.length > 120) title = title.slice(0,117) + "…";
   createTask(title, "backlog", n.projectId || null, n.spaceId || null);
   toast(n.projectId ? "Added to " + (projName(n.projectId) || "the board")
-                    : "Added to Everything — file it into a project from the board");
+                    : "Added to the Dashboard board — file it into a project from there");
+}
+
+/* ---- prospects ---- */
+function createProspect(company){
+  if(!writable()) return;
+  var id = uid();
+  var maxOrder = S.prospects.reduce(function(m,p){ return Math.max(m, p.order||0); }, 0);
+  queue("prospects/"+id, function(){
+    return S.db.doc("prospects/"+id).set({
+      company: company || "New prospect",
+      contact: "",
+      email: "",
+      stage: "lead",
+      note: "",
+      next: null,
+      order: maxOrder + 1,
+      createdAt: nowISO(),
+      createdBy: S.uid || null,
+      updatedAt: nowISO(),
+      updatedBy: S.uid || null
+    });
+  });
+}
+function patchProspect(id, patch){
+  if(!writable()) return Promise.resolve();
+  patch.updatedAt = nowISO();
+  patch.updatedBy = S.uid || null;
+  return queue("prospects/"+id, function(){ return S.db.doc("prospects/"+id).update(patch); });
+}
+function deleteProspect(id){
+  if(!writable()) return;
+  queue("prospects/"+id, function(){ return S.db.doc("prospects/"+id).delete(); });
+}
+function findProspect(id){
+  for(var i=0;i<S.prospects.length;i++) if(S.prospects[i].id === id) return S.prospects[i];
+  return null;
+}
+
+/* Landing one turns it into a project. Everything you wrote while chasing them
+   becomes the project's first note, so the context survives the handover. */
+function convertProspect(id){
+  var p = findProspect(id);
+  if(!p || !writable()) return;
+  var pid = uid();
+  var maxOrder = S.projects.reduce(function(m,x){ return Math.max(m, x.order||0); }, 0);
+  queue("projects/"+pid, function(){
+    return S.db.doc("projects/"+pid).set({
+      name: p.company || "New project",
+      order: maxOrder + 1,
+      createdAt: nowISO(),
+      createdBy: S.uid || null
+    });
+  }).then(function(){
+    var lines = [];
+    if(p.contact) lines.push("Contact: " + p.contact);
+    if(p.email) lines.push("Email: " + p.email);
+    if(p.note) lines.push("", p.note);
+    if(!lines.length) return;
+    var nid = uid();
+    return queue("notes/"+nid, function(){
+      return S.db.doc("notes/"+nid).set({
+        title: "How we won " + (p.company || "this one"),
+        body: lines.join("\n"),
+        kind: "note",
+        images: [],
+        projectId: pid,
+        spaceId: null,
+        createdAt: nowISO(),
+        createdBy: S.uid || null,
+        updatedAt: nowISO(),
+        updatedBy: S.uid || null
+      });
+    });
+  }).then(function(){
+    deleteProspect(id);
+    S.sel = pid; S.space = null; S.tab = "board";
+    toast("Welcome aboard, " + (p.company || "new client"));
+    render();
+  });
 }
 
 function createNote(projectId, kind){
@@ -1901,6 +2099,8 @@ function railItem(id, label, count, dotCls){
     S.sel = id;
     S.tag = null;
     if(id === "unfiled") S.tab = "notes";
+    /* only the dashboard has a prospects tab */
+    if(S.tab === "prospects" && id !== "dash"){ S.tab = "board"; prefSet("tab","board"); }
     closeRail();
     render();
   };
@@ -1968,11 +2168,14 @@ function renderHead(){
   }
 
   var tabs = el("div","tabs");
-  [["board","Board"],["list","List"],["calendar","Calendar"],["notes","Notes"]].forEach(function(t){
+  var tabDefs = [["board","Board"],["list","List"],["calendar","Calendar"],["notes","Notes"]];
+  if(S.sel === "dash") tabDefs.push(["prospects","Prospects"]);
+  tabDefs.forEach(function(t){
     var b = el("button","tab" + (S.tab === t[0] ? " on" : ""));
     b.appendChild(document.createTextNode(t[1]));
     var n = t[0] === "notes" ? visibleNotes().length
           : t[0] === "calendar" ? visibleSchedules().length
+          : t[0] === "prospects" ? openProspects().length
           : visibleTasks().length;
     b.appendChild(el("span","n", String(n)));
     b.onclick = function(){ S.tab = t[0]; prefSet("tab", t[0]); render(); };
@@ -2503,6 +2706,20 @@ function dashTaskRow(t){
   return row;
 }
 
+function dashProspectRow(p){
+  var row = el("div","drow");
+  var main = el("button","dmain");
+  main.appendChild(el("span","dt", "Chase " + (p.company || "a prospect")));
+  var meta = el("span","dmeta");
+  meta.appendChild(el("span","chip", STAGE_LABEL[p.stage || "lead"] || "Lead"));
+  if(p.contact) meta.appendChild(el("span",null, p.contact));
+  if(p.next) meta.appendChild(el("span","ddue" + (isLate(p.next, null) ? " late" : ""), fmtDate(p.next)));
+  main.appendChild(meta);
+  main.onclick = function(){ openProspect(p.id); };
+  row.appendChild(main);
+  return row;
+}
+
 function dashOccRow(s, dateStr){
   var done = !!(s.done && s.done[dateStr]);
   var row = el("div","drow" + (done ? " is-done" : ""));
@@ -2539,6 +2756,104 @@ function fillCard(card, rows, emptyText){
   return card;
 }
 
+/* ============ render: prospects ============ */
+
+function prospectRow(p){
+  var row = el("div","prow" + (p.stage === "lost" ? " is-cold" : ""));
+
+  var main = el("button","pmain");
+  main.appendChild(el("span","pco", p.company || "Untitled"));
+  var meta = el("span","pmeta");
+  if(p.contact) meta.appendChild(el("span",null, p.contact));
+  if(p.email) meta.appendChild(el("span","pem", p.email));
+  if(p.next){
+    var late = isLate(p.next, null);
+    meta.appendChild(el("span","pnext" + (late ? " late" : ""), (late ? "Chase " : "Next ") + fmtDate(p.next)));
+  }
+  if(meta.childNodes.length) main.appendChild(meta);
+  if(p.note) main.appendChild(el("span","pnote", p.note.split("\n")[0]));
+  main.onclick = function(){ openProspect(p.id); };
+  row.appendChild(main);
+
+  if(writable()){
+    var sel = document.createElement("select");
+    sel.className = "pstage";
+    sel.setAttribute("aria-label","Stage");
+    STAGES.forEach(function(st){
+      var o = document.createElement("option");
+      o.value = st.id; o.textContent = st.label;
+      if((p.stage || "lead") === st.id) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.onchange = function(){
+      if(sel.value === "won"){ sel.value = p.stage || "lead"; convertProspect(p.id); return; }
+      patchProspect(p.id, { stage: sel.value });
+    };
+    row.appendChild(sel);
+
+    var x = el("button","rowx","×");
+    x.title = "Remove prospect";
+    x.setAttribute("aria-label","Remove prospect");
+    x.onclick = function(e){
+      e.stopPropagation();
+      askConfirm("Remove " + (p.company || "this prospect") + "?",
+        "They disappear from the pipeline. Nothing else changes.",
+        "Remove").then(function(ok){ if(ok) deleteProspect(p.id); });
+    };
+    row.appendChild(x);
+  }
+  return row;
+}
+
+function renderProspects(){
+  var all = S.prospects.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
+  var q = S.q.toLowerCase();
+  if(q){
+    all = all.filter(function(p){
+      return ((String(p.company||"") + " " + String(p.contact||"") + " " + String(p.note||"")).toLowerCase()).indexOf(q) > -1;
+    });
+  }
+
+  if(writable()){
+    var add = el("div","padd");
+    var inp = document.createElement("input");
+    inp.type = "text";
+    inp.placeholder = "Add a company you want to work with";
+    inp.setAttribute("aria-label","New prospect");
+    inp.onkeydown = function(e){
+      if(e.key === "Enter"){
+        var v = inp.value.trim();
+        if(v){ createProspect(v); inp.value = ""; }
+      }
+    };
+    add.appendChild(inp);
+    bodyEl.appendChild(add);
+  }
+
+  if(!all.length){
+    bodyEl.appendChild(emptyBlock(
+      S.q ? "Nothing matches that" : "No one in the pipeline yet",
+      S.q ? "Try a different word, or clear the filter."
+          : "Add a company above. Keep what you know about them in the notes — it's what you'll write the pitch from, and it follows them into the project when you land it.",
+      null
+    ));
+    return;
+  }
+
+  STAGES.forEach(function(st){
+    if(st.id === "won") return;   // won prospects have already become projects
+    var rows = all.filter(function(p){ return (p.stage || "lead") === st.id; });
+    if(!rows.length) return;
+    var sec = el("div","psec");
+    var h = el("h4",null);
+    h.appendChild(document.createTextNode(st.label));
+    h.appendChild(el("span","n", String(rows.length)));
+    sec.appendChild(h);
+    rows.forEach(function(p){ sec.appendChild(prospectRow(p)); });
+    bodyEl.appendChild(sec);
+  });
+}
+
 function renderDash(){
   var t0 = new Date(); t0.setHours(0,0,0,0);
   var todayS = ymd(t0);
@@ -2557,10 +2872,17 @@ function renderDash(){
                      .sort(function(a,b){ return String(a.due).localeCompare(String(b.due)); });
   var doing    = open.filter(function(t){ return t.status === "doing"; });
 
+  var chasing     = openProspects().filter(function(p){ return p.next; });
+  var chaseNow    = chasing.filter(function(p){ return p.next <= todayS; })
+                           .sort(function(a,b){ return String(a.next).localeCompare(String(b.next)); });
+  var chaseSoon   = chasing.filter(function(p){ return p.next > todayS && p.next <= weekEndS; })
+                           .sort(function(a,b){ return String(a.next).localeCompare(String(b.next)); });
+
   var grid = el("div","dash");
 
   var todayRows = occs.map(function(s){ return dashOccRow(s, todayS); })
-    .concat(dueToday.map(dashTaskRow));
+    .concat(dueToday.map(dashTaskRow))
+    .concat(chaseNow.map(dashProspectRow));
   grid.appendChild(fillCard(
     dashCard("Today", todayRows.length), todayRows,
     "Nothing scheduled and nothing due. Enjoy it."));
@@ -2574,8 +2896,9 @@ function renderDash(){
     dashCard("In progress", doing.length), doing.map(dashTaskRow),
     "Nothing on the go. Move a card into In progress to see it here."));
 
+  var soonRows = soon.map(dashTaskRow).concat(chaseSoon.map(dashProspectRow));
   grid.appendChild(fillCard(
-    dashCard("Next seven days", soon.length), soon.map(dashTaskRow),
+    dashCard("Next seven days", soonRows.length), soonRows,
     "Nothing due this week."));
 
   bodyEl.appendChild(grid);
@@ -3099,6 +3422,77 @@ capEl.addEventListener("drop", function(e){
   }
 });
 
+/* ============ prospect sheet ============ */
+var prospectDlg = $("#prospectDlg"), prId = null;
+
+function openProspect(id){
+  var p = findProspect(id);
+  if(!p) return;
+  prId = id;
+  $("#prHead").textContent = p.company || "Prospect";
+  $("#prCompany").value = p.company || "";
+  $("#prContact").value = p.contact || "";
+  $("#prEmail").value = p.email || "";
+  $("#prNext").value = p.next || "";
+  $("#prNote").value = p.note || "";
+
+  var st = $("#prStage");
+  st.textContent = "";
+  STAGES.forEach(function(x){
+    if(x.id === "won") return;      // landing one is the button, not a stage
+    var o = document.createElement("option");
+    o.value = x.id; o.textContent = x.label;
+    if((p.stage || "lead") === x.id) o.selected = true;
+    st.appendChild(o);
+  });
+
+  var ro = !writable();
+  ["prCompany","prContact","prEmail","prNext","prNote","prStage"].forEach(function(k){ $("#"+k).disabled = ro; });
+  $("#prDelete").style.display = ro ? "none" : "";
+  $("#prWon").style.display = ro ? "none" : "";
+
+  prospectDlg.classList.add("on");
+  $("#prCompany").focus();
+}
+function closeProspect(){
+  prospectDlg.classList.remove("on");
+  prId = null;
+}
+function saveProspect(){
+  if(!prId || !writable()) return;
+  patchProspect(prId, {
+    company: $("#prCompany").value.trim() || "Untitled",
+    contact: $("#prContact").value.trim(),
+    email:   $("#prEmail").value.trim(),
+    stage:   $("#prStage").value,
+    next:    $("#prNext").value || null,
+    note:    $("#prNote").value
+  });
+}
+/* the sheet saves as you go, so Close is just Close */
+["prCompany","prContact","prEmail","prNext","prNote"].forEach(function(k){
+  $("#"+k).addEventListener("change", saveProspect);
+});
+$("#prStage").addEventListener("change", saveProspect);
+$("#prClose").onclick = function(){ saveProspect(); closeProspect(); };
+$("#prWon").onclick = function(){
+  var id = prId;
+  saveProspect();
+  closeProspect();
+  convertProspect(id);
+};
+$("#prDelete").onclick = function(){
+  var id = prId, p = findProspect(id);
+  askConfirm("Remove " + ((p && p.company) || "this prospect") + "?",
+    "They disappear from the pipeline. Nothing else changes.",
+    "Remove").then(function(ok){
+      if(!ok) return;
+      closeProspect();
+      deleteProspect(id);
+    });
+};
+prospectDlg.onmousedown = function(e){ if(e.target === prospectDlg){ saveProspect(); closeProspect(); } };
+
 /* ============ task sheet ============ */
 var taskDlg = $("#taskDlg"), tkId = null, tkOwnerIds = [];
 
@@ -3434,6 +3828,7 @@ overlay.addEventListener("mousedown", function(e){ if(e.target === overlay) clos
 document.addEventListener("keydown", function(e){
   if(e.key !== "Escape") return;
   if($("#confirm").classList.contains("on")) return; // the dialog handles its own Escape
+  if(prospectDlg.classList.contains("on")){ saveProspect(); closeProspect(); return; }
   if(taskDlg.classList.contains("on")){ closeTask(); return; }
   if(schedDlg.classList.contains("on")){ closeSchedule(); return; }
   if(overlay.classList.contains("on")) closeNote();
@@ -3965,7 +4360,8 @@ function render(){
     renderNotes();
   } else {
     if(S.sel === "dash") renderDash();
-    if(S.tab === "board") renderBoard();
+    if(S.sel === "dash" && S.tab === "prospects") renderProspects();
+    else if(S.tab === "board") renderBoard();
     else if(S.tab === "list") renderList();
     else if(S.tab === "calendar") renderCalendar();
     else renderNotes();
@@ -4012,7 +4408,7 @@ $("#search").addEventListener("input", function(e){
 
 /* ============ boot ============ */
 S.tab = prefGet("tab","board");
-if(["board","list","calendar","notes"].indexOf(S.tab) === -1) S.tab = "board";
+if(["board","list","calendar","notes","prospects"].indexOf(S.tab) === -1) S.tab = "board";
 render();
 
 function docsToArray(snap){
@@ -4054,10 +4450,10 @@ function docsToArray(snap){
   }
   S.db = db;
 
-  var got = {projects:false, spaces:false, tasks:false, notes:false, schedules:false};
+  var got = {projects:false, spaces:false, tasks:false, notes:false, schedules:false, prospects:false};
   function mark(k){
     got[k] = true;
-    if(got.projects && got.spaces && got.tasks && got.notes && got.schedules) S.ready = true;
+    if(got.projects && got.spaces && got.tasks && got.notes && got.schedules && got.prospects) S.ready = true;
     render();
   }
 
@@ -4074,6 +4470,11 @@ function docsToArray(snap){
   db.collection("schedules").onSnapshot(function(snap){
     S.schedules = docsToArray(snap);
     mark("schedules");
+  }, dbErr);
+
+  db.collection("prospects").onSnapshot(function(snap){
+    S.prospects = docsToArray(snap);
+    mark("prospects");
   }, dbErr);
 
   db.collection("tasks").onSnapshot(function(snap){
