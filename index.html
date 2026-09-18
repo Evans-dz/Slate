@@ -2077,14 +2077,26 @@ function deleteProject(id){
   if(!writable()) return;
   var tasks = S.tasks.filter(function(t){ return t.projectId === id; });
   var notes = S.notes.filter(function(n){ return n.projectId === id; });
-  var msg = tasks.length + " task" + (tasks.length===1?"":"s") + " will be deleted with it. " +
+  /* Repeating items and spaces belong to the project and can only be reached
+     through it. Left behind they become unreachable: a schedule still occurs
+     every day, so the dashboard and every morning brief would go on announcing
+     an event for a project that no longer exists, with nowhere to go and delete
+     it. deleteSpace already clears schedules for the same reason. */
+  var scheds = S.schedules.filter(function(s){ return s.projectId === id; });
+  var spaces = spacesOf(id);
+
+  var msg = tasks.length + " task" + (tasks.length===1?"":"s") +
+            (scheds.length ? " and " + scheds.length + " repeating item" + (scheds.length===1?"":"s") : "") +
+            " will be deleted with it. " +
             notes.length + " note" + (notes.length===1?"":"s") + " will move to Unfiled notes.";
   askConfirm("Delete " + (projName(id) || "this project") + "?", msg, "Delete project").then(function(ok){
     if(!ok) return;
     tasks.forEach(function(t){ queue("tasks/"+t.id, function(){ return S.db.doc("tasks/"+t.id).delete(); }); });
     notes.forEach(function(n){ queue("notes/"+n.id, function(){ return S.db.doc("notes/"+n.id).update({ projectId:null }); }); });
+    scheds.forEach(function(s){ queue("schedules/"+s.id, function(){ return S.db.doc("schedules/"+s.id).delete(); }); });
+    spaces.forEach(function(sp){ queue("spaces/"+sp.id, function(){ return S.db.doc("spaces/"+sp.id).delete(); }); });
     queue("projects/"+id, function(){ return S.db.doc("projects/"+id).delete(); })
-      .then(function(){ S.sel = "dash"; render(); });
+      .then(function(){ S.sel = "dash"; S.space = null; render(); });
   });
 }
 
@@ -2200,9 +2212,20 @@ function deleteColumn(projectId, spaceId, colId){
   if(cols.length <= 1) return Promise.resolve();
   var left = cols.filter(function(c){ return c.id !== colId; });
   var fallback = left[0].id;
+  /* This re-files cards without going through patchTask, so it has to keep
+     completedAt itself — and done-ness has to be judged against the columns that
+     will exist after the delete, not the ones being replaced. Deleting down to a
+     single column makes that column both first and last, so the cards landing on
+     it become done. */
+  var doneAfter = left[left.length - 1].id;
+  var nowDone = fallback === doneAfter;
   S.tasks.forEach(function(t){
     if(t.projectId === projectId && (t.spaceId || null) === (spaceId || null) && t.status === colId){
-      queue("tasks/"+t.id, function(){ return S.db.doc("tasks/"+t.id).update({ status: fallback }); });
+      var patch = { status: fallback, updatedAt: nowISO() };
+      var wasDone = taskDone(t);
+      if(!wasDone && nowDone) patch.completedAt = nowISO();
+      else if(wasDone && !nowDone) patch.completedAt = null;
+      queue("tasks/"+t.id, function(){ return S.db.doc("tasks/"+t.id).update(patch); });
     }
   });
   return writeColumns(projectId, spaceId, left);
