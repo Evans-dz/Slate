@@ -775,7 +775,11 @@ tr:hover .rowx{opacity:1}
 .blkcopy.ok{color:var(--accent-ink);border-color:var(--accent);opacity:1}
 
 /* ---------- whiteboard ---------- */
-#editor.board{
+/* NOT ".board" — that's the kanban container at the top of this file, and sharing
+   the name meant this editor silently inherited its align-items:flex-start, which
+   let #inkWrap shrink-wrap the canvas. The canvas is sized FROM the wrap's width,
+   so it collapsed to the 320px floor and stayed there on every screen. */
+#editor.whiteboard{
   max-width:min(1180px,96vw);background:var(--panel);
   border-color:var(--line);border-radius:var(--radius);
   padding:14px 14px 12px;gap:8px;
@@ -795,6 +799,17 @@ tr:hover .rowx{opacity:1}
 #inkWrap{
   border:1px solid var(--line);border-radius:4px;background:#fff;
   overflow:auto;max-height:64vh;touch-action:pan-y;
+  /* explicit, because the canvas inside is measured from this element: anything
+     that lets it shrink-wrap collapses the page to its minimum and keeps it there */
+  align-self:stretch;
+}
+/* On anything bigger than a phone — an iPad especially — a page of handwriting
+   should have the screen. Fill the overlay's height and give the ink whatever the
+   toolbar, title and footer don't use. Phones already get a full-height sheet from
+   the block further down. */
+@media (min-width:721px){
+  #editor.whiteboard{height:calc(100dvh - 48px)}
+  #editor.whiteboard #inkWrap{flex:1 1 auto;max-height:none;min-height:0}
 }
 #inkCanvas{display:block;touch-action:none;cursor:crosshair}
 #inkFoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
@@ -1182,7 +1197,7 @@ tr:hover .rowx{opacity:1}
 
   /* every overlay becomes a full-height sheet */
   #overlay,#schedDlg,#taskDlg,#prospectDlg,#projDlg{padding:0;background:var(--paper)}
-  #editor,#editor.doc,#editor.board,.sbox{
+  #editor,#editor.doc,#editor.whiteboard,.sbox{
     max-width:none;margin:0;min-height:100dvh;border:0;border-radius:0;
     box-shadow:none;
     padding:calc(14px + env(safe-area-inset-top)) 15px calc(15px + env(safe-area-inset-bottom));
@@ -1197,7 +1212,7 @@ tr:hover .rowx{opacity:1}
     margin:auto -15px 0;padding:10px 15px calc(6px + env(safe-area-inset-bottom));
     gap:7px;
   }
-  #editor.doc #edFoot,#editor.board #edFoot{background:var(--panel)}
+  #editor.doc #edFoot,#editor.whiteboard #edFoot{background:var(--panel)}
   #edFoot .btn{min-height:38px;padding:7px 12px}
   /* 16px or iOS zooms the sheet when the select takes focus */
   #edProj,#edSpace{font-size:16px;padding:7px 9px;min-height:38px;flex:1;min-width:120px}
@@ -4806,7 +4821,7 @@ function openNote(id, fresh){
   S.openNote = id;
   var kind = noteKind(n);
   var editor = $("#editor");
-  editor.className = kind === "doc" ? "doc" : kind === "board" ? "board" : "";
+  editor.className = kind === "doc" ? "doc" : kind === "board" ? "whiteboard" : "";
 
   edTitle.value = n.title || "";
   edTitle.placeholder = kind === "doc" ? "Name this doc"
@@ -5098,6 +5113,7 @@ var ink = {
 };
 
 function inkFit(){
+  ink.lastFitW = inkWrap.clientWidth;
   var avail = Math.max(320, inkWrap.clientWidth - 2);
   ink.scale = Math.min(1, avail / INK_W);
   var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
@@ -5452,6 +5468,18 @@ function inkScroll(dir){
 $("#inkUp").onclick = function(){ inkScroll(-1); };
 $("#inkDown").onclick = function(){ inkScroll(1); };
 window.addEventListener("resize", function(){ if(ink.noteId) inkFit(); });
+/* Rotating an iPad, entering Split View, or the editor's flex height resolving a
+   frame late all change the drawing area without firing a window resize. Refit only
+   when the WIDTH actually moved: this observes the element whose own child we then
+   resize, so reacting to every change would chase its own tail. */
+if(window.ResizeObserver){
+  new ResizeObserver(function(){
+    if(!ink.noteId) return;
+    var w = inkWrap.clientWidth;
+    if(w === ink.lastFitW) return;
+    inkFit();
+  }).observe(inkWrap);
+}
 
 /* ============ profiles ============ */
 function paintPeople(){
