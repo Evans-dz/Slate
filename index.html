@@ -3835,14 +3835,17 @@ function renderProspects(){
 }
 
 function renderDash(){
-  var t0 = new Date(); t0.setHours(0,0,0,0);
-  var todayS = ymd(t0);
-  var weekEnd = new Date(t0); weekEnd.setDate(weekEnd.getDate() + 7);
+  /* Denver, not the browser's clock. dashOccRow writes schedule.done[todayS], and
+     the Today page and both briefs key that map by the Denver date — on a laptop
+     left on another timezone the two views would tick different days of the same
+     schedule and never agree. Everything below derives from this one date. */
+  var todayS = SlateBrief.denverToday().ymd;
+  var weekEnd = parseYmd(todayS); weekEnd.setDate(weekEnd.getDate() + 7);
   var weekEndS = ymd(weekEnd);
 
   var open = S.tasks.filter(function(t){ return !taskDone(t); });
 
-  var occs = S.schedules.filter(function(s){ return occursOn(s, t0); })
+  var occs = S.schedules.filter(function(s){ return SlateBrief.occursOn(s, todayS); })
     .sort(function(a,b){ return String(a.time||"").localeCompare(String(b.time||"")); });
 
   var dueToday = open.filter(function(t){ return t.due === todayS; });
@@ -4713,10 +4716,13 @@ $("#bottomnav").addEventListener("click", function(e){
   if(n === "projects"){ openRail(); return; }
   if(n === "dash"){ S.sel = "dash"; S.tag = null; render(); return; }
   if(n === "capture"){ S.sel = "capture"; S.tag = null; render(); return; }
-  /* board / calendar / notes need a project context. "today" belongs here too:
-     it renders its own thing and ignores S.tab, so without this a tap on Board
-     from the page a notification just opened would do nothing at all. */
-  if(S.sel === "capture" || S.sel === "unfiled" || S.sel === "today") S.sel = "dash";
+  /* Board / list / calendar / notes need a project context, and render() checks
+     a search, an open doc and the virtual views all before it ever looks at
+     S.tab — so any of those left set makes these buttons silently do nothing.
+     The desktop view switcher already clears S.doc for the same reason. */
+  if(isVirtualView(S.sel) && S.sel !== "dash") S.sel = "dash";
+  S.doc = null;
+  if(S.q){ S.q = ""; $("#search").value = ""; }
   S.tab = n;
   prefSet("tab", n);
   render();

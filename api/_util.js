@@ -79,7 +79,8 @@ async function fetchDocs(sb, collections) {
   const out = {};
   collections.forEach((c) => { out[c] = []; });
   const page = 1000;
-  for (let from = 0; ; from += page) {
+  let cap = null;
+  for (let from = 0; ;) {
     const r = await sb.from("docs")
       .select("collection,id,data")
       .in("collection", collections)
@@ -91,7 +92,13 @@ async function fetchDocs(sb, collections) {
       o.id = row.id;
       out[row.collection].push(o);
     });
-    if (r.data.length < page) break;
+    /* PostgREST caps every response at the project's Max Rows, whatever Range we
+       asked for. Comparing against a hardcoded 1000 would treat a lowered cap as
+       "last page" and silently brief on a fraction of the data, so take the cap
+       from what the server actually returned first. */
+    if (cap === null) cap = r.data.length;
+    if (!r.data.length || r.data.length < cap) break;
+    from += r.data.length;
   }
   return out;
 }

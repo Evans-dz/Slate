@@ -3,10 +3,12 @@
    connection, because Supabase requests carry auth and are never cached.
    Also receives the push briefs — see the handlers at the bottom. */
 
-var VERSION = "slate-v3";
+var VERSION = "slate-v4";
+/* "/index.html" is deliberately absent: cleanUrls redirects it to "/", so caching
+   it stores a redirected response, and returning one of those for a navigation is
+   a network error rather than a page. "/" precaches the same bytes. */
 var SHELL = [
   "/",
-  "/index.html",
   "/config.js",
   "/store.js",
   "/lib/brief.js",
@@ -60,8 +62,14 @@ function networkFirst(req) {
     }
     return res;
   }).catch(function () {
+    /* Offline. A push deep link is "/?view=today", which matches no cache key on
+       its own — caches.match is query-sensitive — so fall back through the same
+       URL ignoring its query, then to the shell. */
     return caches.match(req).then(function (hit) {
-      return hit || caches.match("/index.html");
+      if (hit) return hit;
+      return caches.match(req, { ignoreSearch: true }).then(function (h2) {
+        return h2 || caches.match("/");
+      });
     });
   });
 }

@@ -93,10 +93,14 @@ digest. The wording and grouping live in `lib/brief.js`, shared by the crons and
    half also sits in `config.js` (public by design) and must match `VAPID_PUBLIC_KEY`.
 2. Re-run `supabase/schema.sql` in the SQL editor — it's idempotent, and it now creates
    `push_subscriptions`.
-3. Deploy. `vercel.json` registers the two cron jobs. **Schedules are UTC**, so the
-   Denver hour slips by one when DST flips (7am becomes 6am in winter); nudge the two
-   cron expressions if that grates. The Hobby plan allows exactly two once-daily crons,
-   and fires them within the hour rather than on the minute.
+3. Deploy. `vercel.json` registers **four** cron entries — two per brief. Cron schedules
+   are UTC, so one fixed time drifts an hour when Denver leaves daylight time (a 7am
+   brief arriving at 6am). Each brief is therefore scheduled at both candidate UTC
+   hours, and the route checks the Denver hour and returns early on the one that isn't
+   7am (or 6pm) there, so exactly one fires per day year-round. Hobby allows up to 100
+   cron jobs, each at most once daily, and invokes them somewhere within the hour
+   rather than on the minute — which is why the check compares the hour, never the
+   minute.
 
 **On each phone:** install the app first — on iOS web push only works from the
 home-screen icon (iOS 16.4+), never from a Safari tab. Then tap the bell in the top

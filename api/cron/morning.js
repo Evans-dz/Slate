@@ -10,8 +10,18 @@
 const { handler, service, fromCron, fetchDocs, sendToSubscriptions } = require("../_util");
 const brief = require("../../lib/brief");
 
+const MORNING_HOUR = 7; // Denver local
+
 module.exports = handler(async (req, res) => {
   if (!fromCron(req)) return res.status(401).json({ error: "Not from cron" });
+
+  /* Two schedules are registered for this route, 13:00 and 14:00 UTC, because a
+     single fixed one drifts an hour when Denver leaves daylight time. Whichever
+     one isn't 7am in Denver right now stops here. */
+  const hour = brief.denverHour();
+  if (hour !== MORNING_HOUR) {
+    return res.status(200).json({ skipped: "not " + MORNING_HOUR + ":00 in Denver", denverHour: hour });
+  }
 
   const today = brief.denverToday();
   if (brief.isWeekend(today.dow)) {

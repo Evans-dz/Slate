@@ -3,7 +3,9 @@
   "cleanUrls": true,
   "crons": [
     { "path": "/api/cron/morning", "schedule": "0 13 * * *" },
-    { "path": "/api/cron/evening", "schedule": "0 0 * * *" }
+    { "path": "/api/cron/morning", "schedule": "0 14 * * *" },
+    { "path": "/api/cron/evening", "schedule": "0 0 * * *" },
+    { "path": "/api/cron/evening", "schedule": "0 1 * * *" }
   ],
   "headers": [
     {
@@ -14,7 +16,7 @@
       ]
     },
     {
-      "source": "/index.html",
+      "source": "/",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
     },
     {

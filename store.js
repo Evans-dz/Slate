@@ -118,14 +118,31 @@ window.SlateStore = (function () {
        deletions show up too. */
     function resync() {
       Object.keys(loaded).forEach(function (col) {
-        sb.from("docs").select("id,data").eq("collection", col).then(function (r) {
-          if (r.error) return;                       // offline; the next wake tries again
-          var fresh = {};
-          r.data.forEach(function (row) { fresh[row.id] = row.data; });
+        fetchAll(col).then(function (fresh) {
+          if (!fresh) return;                        // offline; the next wake tries again
           cache[col] = fresh;
           emit(col);
         });
       });
+    }
+
+    /* Every response is capped at the project's Max Rows (1000 by default), so a
+       plain select quietly stops there. Page until a short one comes back, and
+       resolve null on error rather than throwing into a background resync. */
+    function fetchAll(col) {
+      var acc = {}, cap = null;
+      function page(from) {
+        return sb.from("docs").select("id,data").eq("collection", col)
+          .order("id").range(from, from + 999)
+          .then(function (r) {
+            if (r.error) return null;
+            r.data.forEach(function (row) { acc[row.id] = row.data; });
+            if (cap === null) cap = r.data.length;
+            if (!r.data.length || r.data.length < cap) return acc;
+            return page(from + r.data.length);
+          });
+      }
+      return page(0);
     }
 
     var resyncT = null;
@@ -178,15 +195,11 @@ window.SlateStore = (function () {
     function hydrate(col) {
       if (loaded[col]) return loaded[col];
       cache[col] = cache[col] || {};
-      loaded[col] = sb
-        .from("docs")
-        .select("id,data")
-        .eq("collection", col)
-        .then(function (r) {
-          if (r.error) throw r.error;
-          r.data.forEach(function (row) { cache[col][row.id] = row.data; });
-          emit(col);
-        });
+      loaded[col] = fetchAll(col).then(function (rows) {
+        if (!rows) throw new Error("Couldn't load " + col);
+        Object.keys(rows).forEach(function (id) { cache[col][id] = rows[id]; });
+        emit(col);
+      });
       return loaded[col];
     }
 

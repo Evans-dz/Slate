@@ -25,13 +25,13 @@ drop policy if exists "signed in can read docs"  on public.docs;
 drop policy if exists "signed in can write docs" on public.docs;
 
 create policy "signed in can read docs"
-  on public.docs for select
-  using (auth.role() = 'authenticated');
+  on public.docs for select to authenticated
+  using (true);
 
 create policy "signed in can write docs"
-  on public.docs for all
-  using (auth.role() = 'authenticated')
-  with check (auth.role() = 'authenticated');
+  on public.docs for all to authenticated
+  using (true)
+  with check (true);
 
 -- realtime: the client subscribes to this table and patches its cache per event
 alter publication supabase_realtime add table public.docs;
@@ -51,13 +51,13 @@ drop policy if exists "signed in can read profiles" on public.profiles;
 drop policy if exists "own profile is editable"     on public.profiles;
 
 create policy "signed in can read profiles"
-  on public.profiles for select
-  using (auth.role() = 'authenticated');
+  on public.profiles for select to authenticated
+  using (true);
 
 create policy "own profile is editable"
-  on public.profiles for update
-  using (auth.uid() = id)
-  with check (auth.uid() = id);
+  on public.profiles for update to authenticated
+  using ((select auth.uid()) = id)
+  with check ((select auth.uid()) = id);
 
 -- ---------- storage ----------
 -- Public bucket for pasted and dropped images. Reads are public so <img src> works
@@ -71,16 +71,16 @@ drop policy if exists "signed in can upload slate assets" on storage.objects;
 drop policy if exists "signed in can delete slate assets" on storage.objects;
 
 create policy "anyone can read slate assets"
-  on storage.objects for select
+  on storage.objects for select to public
   using (bucket_id = 'slate-assets');
 
 create policy "signed in can upload slate assets"
-  on storage.objects for insert
-  with check (bucket_id = 'slate-assets' and auth.role() = 'authenticated');
+  on storage.objects for insert to authenticated
+  with check (bucket_id = 'slate-assets');
 
 create policy "signed in can delete slate assets"
-  on storage.objects for delete
-  using (bucket_id = 'slate-assets' and auth.role() = 'authenticated');
+  on storage.objects for delete to authenticated
+  using (bucket_id = 'slate-assets');
 
 -- ---------- push subscriptions ----------
 -- One row per device that has enabled the notification briefs; both users may
@@ -108,16 +108,16 @@ drop policy if exists "own subscriptions insertable" on public.push_subscription
 drop policy if exists "own subscriptions deletable"  on public.push_subscriptions;
 
 create policy "own subscriptions readable"
-  on public.push_subscriptions for select
-  using (auth.uid() = user_id);
+  on public.push_subscriptions for select to authenticated
+  using ((select auth.uid()) = user_id);
 
 create policy "own subscriptions insertable"
-  on public.push_subscriptions for insert
-  with check (auth.uid() = user_id);
+  on public.push_subscriptions for insert to authenticated
+  with check ((select auth.uid()) = user_id);
 
 create policy "own subscriptions deletable"
-  on public.push_subscriptions for delete
-  using (auth.uid() = user_id);
+  on public.push_subscriptions for delete to authenticated
+  using ((select auth.uid()) = user_id);
 
 -- ---------- accounts ----------
 -- Create the two users under Authentication -> Users -> Add user (tick
