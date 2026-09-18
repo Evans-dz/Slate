@@ -2,9 +2,9 @@
    calling user has enabled. Debugging push without a manual trigger is
    miserable — keep this. */
 
-const { service, requireUser, sendToSubscriptions } = require("../_util");
+const { handler, service, requireUser, sendToSubscriptions } = require("../_util");
 
-module.exports = async (req, res) => {
+module.exports = handler(async (req, res) => {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
   const sb = service();
@@ -25,4 +25,4 @@ module.exports = async (req, res) => {
   }, 300);
 
   return res.status(200).json(Object.assign({ ok: true }, summary));
-};
+});

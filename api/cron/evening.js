@@ -6,10 +6,10 @@
    Test by hand:
    curl -H "Authorization: Bearer $CRON_SECRET" https://<app>/api/cron/evening */
 
-const { service, fromCron, fetchDocs, sendToSubscriptions } = require("../_util");
+const { handler, service, fromCron, fetchDocs, sendToSubscriptions } = require("../_util");
 const brief = require("../../lib/brief");
 
-module.exports = async (req, res) => {
+module.exports = handler(async (req, res) => {
   if (!fromCron(req)) return res.status(401).json({ error: "Not from cron" });
 
   const today = brief.denverToday();
@@ -28,4 +28,4 @@ module.exports = async (req, res) => {
 
   const summary = await sendToSubscriptions(sb, subs.data, brief.formatEvening(model), 6 * 3600);
   return res.status(200).json(Object.assign({ date: today.ymd, completed: model.count }, summary));
-};
+});

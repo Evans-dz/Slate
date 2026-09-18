@@ -11,11 +11,37 @@ const webpush = require("web-push");
 
 let vapidReady = false;
 
+/* A missing env var is worth saying out loud: it names a variable, never a value,
+   and these endpoints get debugged from a phone. Anything else stays generic. */
+function configError(message) {
+  const e = new Error(message);
+  e.expose = true;
+  return e;
+}
+
+/* Wraps a handler so an unexpected throw becomes readable JSON instead of
+   Vercel's opaque FUNCTION_INVOCATION_FAILED, with the detail in the log either
+   way. Without this, a missing env var looks identical to a real bug. */
+function handler(fn) {
+  return async (req, res) => {
+    try {
+      return await fn(req, res);
+    } catch (e) {
+      console.error("Unhandled error:", (e && e.stack) || e);
+      if (res.headersSent) return;
+      return res.status(500).json({
+        error: e && e.expose ? e.message : "Server error — check the Vercel function logs"
+      });
+    }
+  };
+}
+
 function service() {
   const url = process.env.SUPABASE_URL;
   // either name: the classic service_role JWT or Supabase's new sb_secret_... key
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
-  if (!url || !key) throw new Error("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY) not set");
+  if (!url) throw configError("SUPABASE_URL is not set in this environment");
+  if (!key) throw configError("SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY) is not set in this environment");
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
@@ -23,7 +49,8 @@ function configureWebPush() {
   if (vapidReady) return;
   const pub = process.env.VAPID_PUBLIC_KEY;
   const priv = process.env.VAPID_PRIVATE_KEY;
-  if (!pub || !priv) throw new Error("VAPID keys not set");
+  if (!pub) throw configError("VAPID_PUBLIC_KEY is not set in this environment");
+  if (!priv) throw configError("VAPID_PRIVATE_KEY is not set in this environment");
   webpush.setVapidDetails(process.env.VAPID_SUBJECT || "mailto:evans@armour-crete.com", pub, priv);
   vapidReady = true;
 }
@@ -105,4 +132,4 @@ async function sendToSubscriptions(sb, subs, payload, ttl) {
   return summary;
 }
 
-module.exports = { service, requireUser, fromCron, fetchDocs, sendToSubscriptions };
+module.exports = { handler, service, requireUser, fromCron, fetchDocs, sendToSubscriptions };

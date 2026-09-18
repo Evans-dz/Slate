@@ -2,9 +2,9 @@
    endpoint alone: endpoints are unguessable, and a device that presents one
    no longer wants pushes regardless of which account is signed in. */
 
-const { service, requireUser } = require("../_util");
+const { handler, service, requireUser } = require("../_util");
 
-module.exports = async (req, res) => {
+module.exports = handler(async (req, res) => {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
   const sb = service();
@@ -17,4 +17,4 @@ module.exports = async (req, res) => {
   const { error } = await sb.from("push_subscriptions").delete().eq("endpoint", endpoint);
   if (error) return res.status(500).json({ error: error.message });
   return res.status(200).json({ ok: true });
-};
+});

@@ -5,9 +5,9 @@
    Upserts on endpoint — re-enabling from the same device updates the existing
    row instead of stacking duplicates. One row per device per user. */
 
-const { service, requireUser } = require("../_util");
+const { handler, service, requireUser } = require("../_util");
 
-module.exports = async (req, res) => {
+module.exports = handler(async (req, res) => {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
   const sb = service();
@@ -29,4 +29,4 @@ module.exports = async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
   return res.status(200).json({ ok: true });
-};
+});

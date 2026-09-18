@@ -7,10 +7,10 @@
    Test by hand:
    curl -H "Authorization: Bearer $CRON_SECRET" https://<app>/api/cron/morning */
 
-const { service, fromCron, fetchDocs, sendToSubscriptions } = require("../_util");
+const { handler, service, fromCron, fetchDocs, sendToSubscriptions } = require("../_util");
 const brief = require("../../lib/brief");
 
-module.exports = async (req, res) => {
+module.exports = handler(async (req, res) => {
   if (!fromCron(req)) return res.status(401).json({ error: "Not from cron" });
 
   const today = brief.denverToday();
@@ -37,4 +37,4 @@ module.exports = async (req, res) => {
   }
 
   return res.status(200).json(summary);
-};
+});
