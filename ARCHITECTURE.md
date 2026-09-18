@@ -42,6 +42,20 @@ cost real debugging.
 for the owner dropdown. Returning an array made every lookup `undefined`, so avatars and
 owner names silently fell back to blank everywhere with no error. Keep it a map.
 
+**A write that can't reach the server goes in the outbox, not on the floor.** An
+IndexedDB store holds one record per document path; `set`, `update` and `delete` try the
+network first and, when the failure is one that could succeed later, persist and *resolve* —
+because the bytes really are saved and rejecting would fire "that change didn't save" over a
+change that did. A fatal error still rejects, exactly as before. **One record per path is
+correct only because every write here upserts the whole document**, so a newer record always
+supersedes an older one; a partial PATCH, an RPC or a counter would be silently coalesced
+away by it. See *Deliberate decisions*.
+
+**Pending writes are re-applied over everything the server sends.** `overlay()` runs in all
+three places server state reaches the cache — `resync()`, `hydrate()` and the realtime
+handler — so reconnecting never wipes work that hasn't flushed. The invariant: **cache is
+server state with pending applied last**, and a fourth door added later silently breaks it.
+
 **Realtime re-syncs; it doesn't just listen.** Postgres change events are never replayed,
 so anything the other person changed while a device was asleep, backgrounded or offline is
 simply missed — and on a phone that's most of the day. So the db layer re-reads every
@@ -309,7 +323,16 @@ Don't "fix" these.
   start empty.
 - **Won is an action, not a stage.** A won prospect is a project.
 - **Last-write-wins at document level.** Two people rarely edit the same field, and field-level
-  merging isn't worth the complexity here.
+  merging isn't worth the complexity here. The offline outbox now leans on this twice: it is
+  why one record per path can replace an older one wholesale, and it is why a write queued in
+  a basement can be replayed an hour later without inspecting what changed meanwhile. Both
+  hold **only while every write ends in a full-document upsert** — adding a real partial
+  update would quietly break them.
+- **Images are not queued offline.** The text of a note is the thing worth saving in a
+  basement; a photo can wait. Queuing blobs would need a second store against the same
+  quota, different error semantics, and a two-phase commit so a note never references an
+  image that hasn't landed — a failure the *other* person would see. `assets.upload()`
+  refuses offline and the note saves without it.
 
 ## Reversed decisions
 
@@ -337,7 +360,9 @@ Recorded because the reasoning still gets quoted at me.
   cron that runs more than once a day — which the Vercel Hobby plan doesn't allow, so this
   probably means Supabase `pg_cron` plus an Edge Function reusing the same
   `push_subscriptions` rows.
-- **Offline write queue.** Reads work offline because the shell is cached; writes fail until
-  you reconnect. Queue them in IndexedDB and replay on reconnect.
+- **Offline *reads*.** The shell is cached but the data is not, so a cold start with no signal
+  shows an empty app until it reconnects. Writes are safe (see the outbox above) and anything
+  loaded in a live session stays readable — but capturing into an app that looks empty is an
+  odd experience. Persisting the document cache alongside the outbox is the fix.
 - **A real run against Supabase.** Every feature so far was verified against a local
   stand-in for the platform layer. `store.js` itself has barely been exercised.

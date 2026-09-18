@@ -1686,16 +1686,29 @@ function toast(msg){
   clearTimeout(toastT);
   toastT = setTimeout(function(){ t.classList.remove("on"); }, 2600);
 }
-function banner(msg){
+/* One strip, three things that want it. Highest wins, and a lower one never
+   erases a higher one — the update notice in particular carries a click handler
+   that a plain banner() call used to destroy. */
+var bannerLayers = { update:null, error:null, outbox:null };
+var BANNER_ORDER = ["update","error","outbox"];
+function paintBanner(){
   var b = $("#banner");
-  /* the update notice borrows this strip and makes it clickable, so clear that
-     before showing an ordinary message through it */
-  b.classList.remove("tap");
+  var top = null;
+  for(var i=0;i<BANNER_ORDER.length;i++){
+    if(bannerLayers[BANNER_ORDER[i]]){ top = bannerLayers[BANNER_ORDER[i]]; break; }
+  }
   b.onclick = null;
-  if(!msg){ b.classList.remove("on"); return; }
-  b.textContent = msg;
+  b.classList.remove("tap");
+  if(!top){ b.classList.remove("on"); b.textContent = ""; return; }
+  b.textContent = top.text;
+  if(top.onTap){ b.classList.add("tap"); b.onclick = top.onTap; }
   b.classList.add("on");
 }
+function setBanner(layer, text, onTap){
+  bannerLayers[layer] = text ? { text: text, onTap: onTap || null } : null;
+  paintBanner();
+}
+function banner(msg){ setBanner("error", msg || null); }
 
 /* a dialog that works inside a sandboxed frame, unlike confirm() */
 function askConfirm(title, body, yesLabel){
@@ -1766,18 +1779,27 @@ function queue(path, fn){
   chains.set(path, next);
   return next;
 }
+/* The codes this used to test — invalid_argument, quota_exceeded,
+   resource_exhausted, revoked — were artifact-runtime strings. PostgREST emits
+   none of them, so every branch was dead and the read-only banner had never
+   fired once. These are what actually arrives. */
 function dbErr(e){
-  var code = (e && e.code) || "unavailable";
-  if(code === "invalid_argument"){
+  var code = (e && e.code) || "";
+  var status = (e && e.status) || 0;
+  if(code === "offline"){
+    toast("Images need a connection. Your text saves now — add the photo when you're back.");
+  } else if(code === "queue_full"){
+    banner("There are too many unsaved changes on this device. Get back online before adding more.");
+  } else if(code === "not_loaded"){
+    toast("That isn't loaded yet. Give it a second and try again.");
+  } else if(code === "42501" || status === 401 || status === 403){
     S.canWrite = false;
     banner("You have read-only access to this board, so changes aren't saved.");
     render();
-  } else if(code === "quota_exceeded"){
-    toast("This board is full. Delete some tasks or notes to add more.");
-  } else if(code === "resource_exhausted"){
-    toast("Too many changes at once. Give it a second.");
-  } else if(code === "revoked"){
-    banner("Your access to this board changed. Reload to continue.");
+  } else if(code === "23505"){
+    toast("Something with that name already exists.");
+  } else if(code === "PGRST301" || code === "PGRST303"){
+    banner("Your sign-in expired. Reload to continue.");
   } else {
     toast("That change didn't save. Try again.");
   }
@@ -4371,9 +4393,11 @@ function updateCapture(){
   capInput.placeholder = target
     ? "Capture something for " + (projName(target) || "this project") + ". Enter saves it."
     : "Get it out of your head. Enter saves it.";
-  capHint.textContent = S.assets
-    ? "#tag anything · Shift+Enter for a new line · paste an image"
-    : "#tag anything · Shift+Enter for a new line";
+  capHint.textContent = navigator.onLine === false
+    ? "#tag anything · Shift+Enter for a new line · saves on this phone until you're back"
+    : S.assets
+      ? "#tag anything · Shift+Enter for a new line · paste an image"
+      : "#tag anything · Shift+Enter for a new line";
   fillCapturePickers();
 }
 function drawCapThumbs(){
@@ -4404,6 +4428,7 @@ function uploadImages(files, onId){
       else if(c === "unsupported_type") toast("That file type can't be attached.");
       else if(c === "quota_or_state") toast("Image storage is full for this board.");
       else if(c === "rate_limited") toast("Slow down a moment — too many uploads.");
+      else if(c === "offline") toast("Images need a connection. Your text saves now — add the photo when you're back.");
       else toast("That image didn't upload.");
     });
   });
@@ -5324,24 +5349,34 @@ function eraseAt(p){
   if(hit) inkRedraw();
 }
 
+/* The actual write, callable straight away so closing a page doesn't outrun it. */
+function writeInk(){
+  clearTimeout(ink.saveT);
+  ink.saveT = null;
+  if(!writable() || !ink.noteId || !S.db) return;
+  var noteId = ink.noteId;
+  var ids = Object.keys(ink.dirtyChunks);
+  if(!ids.length) return;
+  ink.dirtyChunks = {};
+  ids.forEach(function(cid){
+    var c = null;
+    for(var i=0;i<ink.chunks.length;i++) if(ink.chunks[i].id === cid) c = ink.chunks[i];
+    /* A chunk that is no longer in ink.chunks is one a snapshot replaced while
+       this save was pending — not a page someone erased. The old code deleted it
+       here, throwing away the very strokes it had been scheduled to write. */
+    if(!c) return;
+    var ref = S.db.doc("notes/"+noteId).collection("strokes").doc(cid);
+    queue("ink/"+noteId+"/"+cid, function(){
+      if(!c.strokes.length) return ref.delete();   // genuinely erased
+      return ref.set({ strokes: c.strokes, at: nowISO() });
+    });
+  });
+  patchNote(noteId, {});
+}
 function saveInk(){
   if(!writable() || !ink.noteId) return;
   clearTimeout(ink.saveT);
-  ink.saveT = setTimeout(function(){
-    var noteId = ink.noteId;
-    var ids = Object.keys(ink.dirtyChunks);
-    ink.dirtyChunks = {};
-    ids.forEach(function(cid){
-      var c = null;
-      for(var i=0;i<ink.chunks.length;i++) if(ink.chunks[i].id === cid) c = ink.chunks[i];
-      var ref = S.db.doc("notes/"+noteId).collection("strokes").doc(cid);
-      queue("ink/"+noteId+"/"+cid, function(){
-        if(!c || !c.strokes.length) return ref.delete();
-        return ref.set({ strokes: c.strokes, at: nowISO() });
-      });
-    });
-    patchNote(noteId, {});
-  }, 500);
+  ink.saveT = setTimeout(writeInk, 500);
 }
 
 function openInk(noteId){
@@ -5367,7 +5402,9 @@ function openInk(noteId){
 }
 function closeInk(){
   if(ink.unsub){ ink.unsub(); ink.unsub = null; }
-  clearTimeout(ink.saveT);
+  /* Write first. Cancelling the debounce here silently dropped whatever was
+     drawn in the half-second before the page was closed. */
+  writeInk();
   ink.noteId = null;
   ink.chunks = [];
   ink.live = null;
@@ -5643,6 +5680,22 @@ function docsToArray(snap){
   }
   S.db = db;
 
+  /* Anything that couldn't reach the server is on this device, waiting. Saying so
+     is what makes a force-quit with unsynced work survivable — otherwise the only
+     signal is silence. First time it happens in a stretch, say it once out loud. */
+  var toldOffline = false;
+  if(db.outbox) db.outbox(function(state){
+    if(state.pending){
+      if(!toldOffline){ toldOffline = true; toast("Saved on this phone. It'll sync when you're back."); }
+      setBanner("outbox", state.stuck
+        ? state.pending + " change" + (state.pending===1?"":"s") + " can't reach the server. Check your connection."
+        : state.pending + " change" + (state.pending===1?"":"s") + " waiting to sync.");
+    } else {
+      toldOffline = false;
+      setBanner("outbox", null);
+    }
+  });
+
   var got = {projects:false, spaces:false, tasks:false, notes:false, schedules:false, prospects:false};
   function mark(k){
     got[k] = true;
@@ -5714,11 +5767,8 @@ if("serviceWorker" in navigator){
          that didn't work. Say so instead, and let a tap take it. Never reload on
          its own: that would throw away whatever is half-typed. */
       function offerUpdate(){
-        var b = document.getElementById("banner");
-        if(!b) return;
-        b.textContent = "A new version of Slate is ready — tap to reload.";
-        b.classList.add("on","tap");
-        b.onclick = function(){ location.reload(); };
+        setBanner("update", "A new version of Slate is ready — tap to reload.",
+                  function(){ location.reload(); });
       }
       reg.addEventListener("updatefound", function(){
         var fresh = reg.installing;

@@ -164,6 +164,18 @@ project and carries your notes across.
 On a phone the layout switches below 720px: drawer rail, bottom tab bar, agenda instead of a
 month grid. iPads keep the rail and the grid.
 
+## Working with no signal
+
+Anything you write with a dead connection is kept on the device and sent when one comes
+back — captured notes, edits, ticks, deletes, handwriting. It looks saved because it *is*
+saved; a banner across the top says how many changes are still waiting, and it clears
+itself as they go. Force-quitting the app doesn't lose them.
+
+Two honest limits. **Photos need a connection** — the text of the note saves immediately
+and you're told to add the picture later. And **a cold start with no signal shows an empty
+app**: the page itself is cached but your data isn't, so there's nothing to show until it
+reconnects. Capturing into it still works and still saves.
+
 ## What works offline
 
 The shell is cached, so the app opens with no connection and anything already loaded stays
@@ -178,7 +190,7 @@ readable. Writes need the network — there's no offline write queue yet.
   nothing buzzes at the item's own time (the 8am reminder at 8am). That needs a `notify`
   flag per schedule and a sent-log keyed `(scheduleId, date)` — and more cron granularity
   than the Hobby plan's two once-daily jobs.
-- **Offline write queue.** Reads work offline; writes fail until you reconnect.
+- **Offline reads.** Writes survive a dead connection now; the data itself still isn't cached, so a cold start with no signal shows an empty app until it reconnects.
 
 `ARCHITECTURE.md` has notes on what each of these would take.
 
