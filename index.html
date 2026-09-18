@@ -3189,7 +3189,12 @@ function paintNotif(body){
         test.disabled = true;
         SlateStore.use("push").then(function(push){ return push.test(); })
           .then(function(res){
-            toast(res.sent ? "Test sent — check the notification." : "Nothing sent — no devices enabled.");
+            /* "nothing sent" and "sending failed" are different problems and the
+               whole point of this button is telling them apart. */
+            if(res.sent) toast("Test sent — check the notification.");
+            else if(res.failed) toast("The push service rejected it — see the Vercel logs.");
+            else if(res.pruned) toast("This device's subscription had expired. Turn notifications off and on again.");
+            else toast("Nothing sent — no devices enabled for you yet.");
           })
           .catch(function(e){ toast(e.message || "That didn't work."); })
           .then(function(){ test.disabled = false; });
@@ -4671,8 +4676,10 @@ $("#bottomnav").addEventListener("click", function(e){
   if(n === "projects"){ openRail(); return; }
   if(n === "dash"){ S.sel = "dash"; S.tag = null; render(); return; }
   if(n === "capture"){ S.sel = "capture"; S.tag = null; render(); return; }
-  /* board / calendar / notes need a project context */
-  if(S.sel === "capture" || S.sel === "unfiled") S.sel = "dash";
+  /* board / calendar / notes need a project context. "today" belongs here too:
+     it renders its own thing and ignores S.tab, so without this a tap on Board
+     from the page a notification just opened would do nothing at all. */
+  if(S.sel === "capture" || S.sel === "unfiled" || S.sel === "today") S.sel = "dash";
   S.tab = n;
   prefSet("tab", n);
   render();

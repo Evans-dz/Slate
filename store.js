@@ -110,6 +110,30 @@ window.SlateStore = (function () {
       (subs[col] || []).forEach(function (cb) { cb(snap); });
     }
 
+    /* Re-read every collection currently on screen and replace the cache with
+       what the server has. Postgres change events are not replayed, so anything
+       the other person did while this device was asleep or offline would stay
+       invisible until a reload — on a phone that backgrounds constantly, that's
+       most of the time. Replacing rather than merging is what makes their
+       deletions show up too. */
+    function resync() {
+      Object.keys(loaded).forEach(function (col) {
+        sb.from("docs").select("id,data").eq("collection", col).then(function (r) {
+          if (r.error) return;                       // offline; the next wake tries again
+          var fresh = {};
+          r.data.forEach(function (row) { fresh[row.id] = row.data; });
+          cache[col] = fresh;
+          emit(col);
+        });
+      });
+    }
+
+    var resyncT = null;
+    function resyncSoon() {                          // coalesce bursts of wake events
+      clearTimeout(resyncT);
+      resyncT = setTimeout(resync, 250);
+    }
+
     function watch() {
       if (channel) return;
       channel = sb
@@ -123,7 +147,32 @@ window.SlateStore = (function () {
           else cache[col][row.id] = row.data;
           emit(col);
         })
-        .subscribe();
+        .subscribe(function (status) {
+          /* A channel that errors or times out never comes back on its own, and
+             a silent dead channel looks exactly like "nobody changed anything".
+             Tear it down and rebuild; every fresh subscription re-syncs, which
+             also closes the gap where events were missed. */
+          if (status === "SUBSCRIBED") {
+            resyncSoon();
+          } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            if (!channel) return;
+            var dead = channel;
+            channel = null;
+            try { sb.removeChannel(dead); } catch (e) {}
+            setTimeout(watch, 2000);
+          }
+        });
+    }
+
+    /* Coming back to the foreground, or back onto a network, are the two moments
+       a phone has most likely missed changes. */
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) { watch(); resyncSoon(); }
+      });
+    }
+    if (typeof window !== "undefined") {
+      window.addEventListener("online", function () { watch(); resyncSoon(); });
     }
 
     function hydrate(col) {
@@ -261,9 +310,15 @@ window.SlateStore = (function () {
           return list.filter(function (p) { return p.name.toLowerCase().indexOf(lq) > -1; });
         });
       },
+      /* keyed by id, because that's how the render code reads it:
+         paintPeople does ps[node.dataset.uid] and the task sheet does ps[uid].
+         Returning an array here made every avatar and owner name resolve to
+         undefined and silently fall back to a blank. */
       profiles: function (ids) {
         return everyone().then(function (list) {
-          return list.filter(function (p) { return ids.indexOf(p.id) > -1; });
+          var byId = {};
+          list.forEach(function (p) { if (ids.indexOf(p.id) > -1) byId[p.id] = p; });
+          return byId;
         });
       }
     };
