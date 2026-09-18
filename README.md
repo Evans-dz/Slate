@@ -115,11 +115,15 @@ when it happens on someone's phone.
 **Testing the crons without waiting for the clock:**
 
 ```bash
-curl -H "Authorization: Bearer $CRON_SECRET" https://your-app.vercel.app/api/cron/morning
+curl -H "Authorization: Bearer $CRON_SECRET" "https://your-app.vercel.app/api/cron/morning?force=1"
 ```
 
-Same for `/api/cron/evening`. Both return a JSON summary (sent / failed / pruned, or
-why they skipped) and log the same line, which is what survives in the Vercel logs.
+Same for `/api/cron/evening`. `force=1` skips the Denver-hour check so the brief actually
+sends whatever time you run it; without it you'll just get `{"skipped":"not 7:00 in
+Denver"}`, which is the check doing its job. Both return a JSON summary (sent / failed /
+pruned, or why they skipped) and log the same line, which is what survives in the Vercel
+logs. **This really sends to every registered device** — it is the same code path the
+schedule uses, not a dry run.
 
 **When a brief doesn't arrive**, in the order worth checking:
 

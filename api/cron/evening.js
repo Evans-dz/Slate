@@ -15,9 +15,12 @@ module.exports = handler(async (req, res) => {
   if (!fromCron(req)) return res.status(401).json({ error: "Not from cron" });
 
   /* Registered at both 00:00 and 01:00 UTC so the 6pm Denver slot holds across
-     daylight time; the one that isn't 6pm there right now stops here. */
+     daylight time; the one that isn't 6pm there right now stops here. ?force=1
+     runs it anyway, for testing by hand — reaching this line already required
+     the cron secret. */
   const hour = brief.denverHour();
-  if (hour !== EVENING_HOUR) {
+  const force = String((req.query && req.query.force) || "") === "1";
+  if (!force && hour !== EVENING_HOUR) {
     return res.status(200).json({ skipped: "not " + EVENING_HOUR + ":00 in Denver", denverHour: hour });
   }
 

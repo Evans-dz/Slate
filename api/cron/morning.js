@@ -17,9 +17,12 @@ module.exports = handler(async (req, res) => {
 
   /* Two schedules are registered for this route, 13:00 and 14:00 UTC, because a
      single fixed one drifts an hour when Denver leaves daylight time. Whichever
-     one isn't 7am in Denver right now stops here. */
+     one isn't 7am in Denver right now stops here — unless ?force=1, which exists
+     so the brief can be tested by hand at any time. That needs no extra guard:
+     getting this far already required the cron secret. */
   const hour = brief.denverHour();
-  if (hour !== MORNING_HOUR) {
+  const force = String((req.query && req.query.force) || "") === "1";
+  if (!force && hour !== MORNING_HOUR) {
     return res.status(200).json({ skipped: "not " + MORNING_HOUR + ":00 in Denver", denverHour: hour });
   }
 
