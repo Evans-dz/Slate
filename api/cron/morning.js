@@ -31,10 +31,12 @@ module.exports = handler(async (req, res) => {
   const summary = { date: today.ymd, sent: 0, failed: 0, pruned: 0, quiet: 0 };
   for (const uid of Object.keys(byUser)) {
     const model = brief.morningModel(data, { ymd: today.ymd, uid: uid });
-    if (!model.events.length && !model.openCount) { summary.quiet++; continue; } // nothing to say
+    if (!model.pendingEvents.length && !model.openCount) { summary.quiet++; continue; } // nothing to say
     const r = await sendToSubscriptions(sb, byUser[uid], brief.formatMorning(model), 6 * 3600);
     summary.sent += r.sent; summary.failed += r.failed; summary.pruned += r.pruned;
   }
 
+  // the response body is only visible to whoever called; the log is what survives
+  console.log("morning brief", JSON.stringify(summary));
   return res.status(200).json(summary);
 });

@@ -111,7 +111,9 @@ async function sendToSubscriptions(sb, subs, payload, ttl) {
       );
       return { row, ok: true };
     } catch (e) {
-      return { row, ok: false, status: e && e.statusCode };
+      // the push service's own reason for refusing — the only clue when a
+      // notification never arrives, and it is nowhere else
+      return { row, ok: false, status: e && e.statusCode, detail: (e && (e.body || e.message)) || String(e) };
     }
   }));
 
@@ -124,9 +126,11 @@ async function sendToSubscriptions(sb, subs, payload, ttl) {
         .eq("endpoint", r.row.endpoint);
     } else if (r.status === 404 || r.status === 410) {
       summary.pruned++;
+      console.log("pruned expired subscription", r.row.endpoint.slice(0, 60));
       await sb.from("push_subscriptions").delete().eq("endpoint", r.row.endpoint);
     } else {
       summary.failed++;
+      console.error("push failed", r.status, r.detail, r.row.endpoint.slice(0, 60));
     }
   }));
   return summary;

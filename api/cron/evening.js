@@ -27,5 +27,7 @@ module.exports = handler(async (req, res) => {
   if (!model.count) return res.status(200).json({ date: today.ymd, skipped: "nothing completed" });
 
   const summary = await sendToSubscriptions(sb, subs.data, brief.formatEvening(model), 6 * 3600);
-  return res.status(200).json(Object.assign({ date: today.ymd, completed: model.count }, summary));
+  const out = Object.assign({ date: today.ymd, completed: model.count }, summary);
+  console.log("evening brief", JSON.stringify(out));
+  return res.status(200).json(out);
 });

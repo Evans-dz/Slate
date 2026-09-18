@@ -3176,7 +3176,15 @@ function paintNotif(body){
   }
 
   say("Checking this device…");
-  navigator.serviceWorker.ready.then(function(reg){
+  /* serviceWorker.ready resolves when a worker takes control and otherwise never
+     settles at all — it has no rejection path. If registration failed, waiting on
+     it alone leaves this menu on "Checking…" for good, so race it against a clock. */
+  Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise(function(_, reject){
+      setTimeout(function(){ reject(new Error("service worker never became ready")); }, 8000);
+    })
+  ]).then(function(reg){
     return reg.pushManager.getSubscription().then(function(sub){ return { reg: reg, sub: sub }; });
   }).then(function(got){
     body.textContent = "";
@@ -3244,7 +3252,11 @@ function paintNotif(body){
     body.appendChild(row);
   }).catch(function(){
     body.textContent = "";
-    say("Couldn't reach the service worker. Reload and try again.");
+    say(window.__slateSwError
+      ? "The service worker didn't install: " + window.__slateSwError +
+        " Notifications can't work until that does."
+      : "The service worker didn't start, so notifications can't be set up yet. " +
+        "Close Slate completely, open it again from the home screen icon, and try once more.");
   });
 }
 
@@ -3555,8 +3567,10 @@ function renderToday(){
 
   var wrap = el("div","todaywrap");
 
+  /* count what's outstanding, list everything — a finished one still shows,
+     struck through, the way the dashboard renders it */
   wrap.appendChild(fillCard(
-    dashCard("Events", morning.events.length),
+    dashCard("Events", morning.pendingEvents.length),
     morning.events.map(function(s){ return dashOccRow(s, today.ymd); }),
     "No events today."));
 
@@ -5609,7 +5623,11 @@ function docsToArray(snap){
 
 if("serviceWorker" in navigator){
   addEventListener("load", function(){
-    navigator.serviceWorker.register("/sw.js").catch(function(){});
+    /* Keep the reason: without it a failed registration is indistinguishable from
+       a slow one, and the notifications menu is left guessing. */
+    navigator.serviceWorker.register("/sw.js").catch(function(e){
+      window.__slateSwError = (e && e.message) || String(e);
+    });
   });
 }
 
