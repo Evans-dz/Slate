@@ -199,15 +199,20 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .pmeta-line a:hover{color:var(--accent-ink);border-bottom-color:var(--accent)}
 
 .viewswitch{
-  margin-left:auto;display:flex;gap:2px;align-self:center;
+  margin-left:auto;display:flex;gap:4px;align-self:center;
   padding-bottom:5px;flex:0 0 auto;
 }
+/* icon plus its name: these four switch the whole view, and as bare glyphs
+   nobody could tell ▣ from ◈ without hovering for the tooltip */
 .vbtn{
-  width:30px;height:26px;border-radius:4px;font-size:14px;line-height:1;
-  color:var(--muted);display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:center;gap:6px;
+  min-height:34px;padding:0 11px;border-radius:5px;
+  font-size:13px;line-height:1;white-space:nowrap;
+  color:var(--muted);border:1px solid transparent;
 }
+.vbtn .vico{font-size:14px;line-height:1}
 .vbtn:hover{background:var(--line-soft);color:var(--ink)}
-.vbtn.on{background:var(--accent-soft);color:var(--accent-ink)}
+.vbtn.on{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent)}
 .tab.tabadd{color:var(--muted);font-size:16px;padding:7px 11px}
 .tab.tabadd:hover{color:var(--accent-ink)}
 .tabnew{
@@ -1112,7 +1117,10 @@ tr:hover .rowx{opacity:1}
   .tabs::-webkit-scrollbar{display:none}
   .tab{padding:10px 13px;font-size:14px;flex:0 0 auto}
   .viewswitch{margin-left:12px;position:sticky;right:0;background:var(--paper);padding-left:6px}
-  .vbtn{width:36px;height:36px;font-size:15px}
+  /* back to square icons on a phone: the row already scrolls sideways, and the
+     bottom bar names these same views anyway */
+  .vbtn{width:36px;height:36px;padding:0;justify-content:center;font-size:15px}
+  .vbtn .vlabel{display:none}
   .pmeta-line{gap:6px 12px;font-size:13px}
   .docpage-head h2{font-size:20px}
   .docpage-head .btn{min-height:38px;padding:7px 14px}
@@ -2613,7 +2621,9 @@ function renderHead(){
     var views = el("div","viewswitch");
     [["board","▦","Board"],["list","☰","List"],
      ["calendar","▣","Calendar"],["notes","◈","Notes"]].forEach(function(v){
-      var vb = el("button","vbtn" + (!S.doc && S.tab === v[0] ? " on" : ""), v[1]);
+      var vb = el("button","vbtn" + (!S.doc && S.tab === v[0] ? " on" : ""));
+      vb.appendChild(el("span","vico", v[1]));
+      vb.appendChild(el("span","vlabel", v[2]));
       vb.title = v[2];
       vb.setAttribute("aria-label", v[2]);
       vb.onclick = function(){ S.doc = null; S.tab = v[0]; prefSet("tab", v[0]); render(); };
