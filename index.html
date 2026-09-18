@@ -726,10 +726,13 @@ tr:hover .rowx{opacity:1}
 .sbox h3{margin:0 0 14px;font-size:16px;font-weight:600;letter-spacing:-.01em}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
-.field input[type=text],.field input[type=time],.field input[type=date],.field select{
+.field input[type=text],.field input[type=time],.field input[type=date],.field select,
+.field textarea{
   width:100%;border:1px solid var(--line);border-radius:3px;
   padding:6px 9px;font-size:13.5px;background:var(--paper);
 }
+.field textarea{resize:vertical;min-height:72px;line-height:1.45}
+.hasnotes{color:var(--muted);font-size:13px;line-height:1;cursor:default}
 .field input:focus,.field select:focus{border-color:var(--accent);outline:none}
 .days{display:flex;gap:4px;flex-wrap:wrap}
 .daybtn{
@@ -1232,8 +1235,9 @@ tr:hover .rowx{opacity:1}
   #inkFoot .btn{min-height:38px}
   #inkHint{width:100%}
 
-  /* forms */
-  .field input[type=text],.field input[type=time],.field input[type=date],.field select{
+  /* forms — 16px or iOS zooms the page the moment one takes focus */
+  .field input[type=text],.field input[type=time],.field input[type=date],.field select,
+  .field textarea{
     font-size:16px;padding:9px 11px;min-height:42px;
   }
   .daybtn{width:44px;height:42px;font-size:13px}
@@ -1419,6 +1423,10 @@ tr:hover .rowx{opacity:1}
     <div class="field">
       <label for="tkOwner">Owner</label>
       <select id="tkOwner"></select>
+    </div>
+    <div class="field">
+      <label for="tkNotes">Notes</label>
+      <textarea id="tkNotes" rows="4" placeholder="Details, links, what you worked out — anything that belongs with this task."></textarea>
     </div>
     <button class="btn quiet" id="tkNote">Open the note this came from</button>
     <div class="crow">
@@ -2877,6 +2885,13 @@ function taskCard(t){
   if(S.sel === "dash" && t.projectId){
     var pn = projName(t.projectId);
     if(pn) foot.appendChild(el("span","chip proj", pn));
+  }
+  /* notes are only visible once the card is open, so say they're there */
+  if(t.notes){
+    var nm = el("span","hasnotes","≡");
+    nm.title = t.notes.length > 140 ? t.notes.slice(0,140) + "…" : t.notes;
+    nm.setAttribute("aria-label","Has notes");
+    foot.appendChild(nm);
   }
   if(t.due){
     foot.appendChild(el("span","chip due" + (isLate(t.due, taskDone(t) ? "done" : "") ? " late" : ""), fmtDate(t.due)));
@@ -4678,6 +4693,7 @@ function openTask(id){
   tkId = id;
   $("#tkHead").textContent = writable() ? "Task" : "Task (read only)";
   $("#tkName").value = t.title || "";
+  $("#tkNotes").value = t.notes || "";
   fillSelect($("#tkStatus"), columnsFor(t.projectId, t.spaceId).map(function(c){ return [c.id, c.name]; }), columnOf(t));
   $("#tkDue").value = t.due || "";
   fillSelect($("#tkProj"),
@@ -4710,7 +4726,7 @@ function openTask(id){
   $("#tkNote").style.display = src ? "" : "none";
 
   var ro = !writable();
-  ["tkName","tkStatus","tkDue","tkProj","tkSpace","tkOwner"].forEach(function(k){ $("#"+k).disabled = ro; });
+  ["tkName","tkNotes","tkStatus","tkDue","tkProj","tkSpace","tkOwner"].forEach(function(k){ $("#"+k).disabled = ro; });
   $("#tkSave").style.display = ro ? "none" : "";
   $("#tkDelete").style.display = ro ? "none" : "";
 
@@ -4734,6 +4750,7 @@ $("#tkSave").onclick = function(){
   if(!title){ $("#tkName").focus(); toast("Give the task a name."); return; }
   patchTask(tkId, {
     title: title,
+    notes: $("#tkNotes").value.trim() || null,
     status: $("#tkStatus").value,
     due: $("#tkDue").value || null,
     projectId: $("#tkProj").value || null,
