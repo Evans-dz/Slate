@@ -551,6 +551,7 @@ tr:hover .rowx{opacity:1}
   background:var(--accent-soft);color:var(--accent-ink);
   border-bottom:1px solid var(--line);
 }
+#banner.tap{cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 #banner.on{display:block}
 
 /* ---------- capture ---------- */
@@ -1672,6 +1673,10 @@ function toast(msg){
 }
 function banner(msg){
   var b = $("#banner");
+  /* the update notice borrows this strip and makes it clickable, so clear that
+     before showing an ordinary message through it */
+  b.classList.remove("tap");
+  b.onclick = null;
   if(!msg){ b.classList.remove("on"); return; }
   b.textContent = msg;
   b.classList.add("on");
@@ -5675,7 +5680,31 @@ if("serviceWorker" in navigator){
   addEventListener("load", function(){
     /* Keep the reason: without it a failed registration is indistinguishable from
        a slow one, and the notifications menu is left guessing. */
-    navigator.serviceWorker.register("/sw.js").catch(function(e){
+    navigator.serviceWorker.register("/sw.js").then(function(reg){
+      /* An installed PWA that's only been backgrounded never re-navigates, so it
+         can go on running a build from days ago — which looks exactly like a fix
+         that didn't work. Say so instead, and let a tap take it. Never reload on
+         its own: that would throw away whatever is half-typed. */
+      function offerUpdate(){
+        var b = document.getElementById("banner");
+        if(!b) return;
+        b.textContent = "A new version of Slate is ready — tap to reload.";
+        b.classList.add("on","tap");
+        b.onclick = function(){ location.reload(); };
+      }
+      reg.addEventListener("updatefound", function(){
+        var fresh = reg.installing;
+        if(!fresh) return;
+        fresh.addEventListener("statechange", function(){
+          // only when one was already in charge; on a first install there's nothing to replace
+          if(fresh.state === "installed" && navigator.serviceWorker.controller) offerUpdate();
+        });
+      });
+      // coming back to the app is the moment worth checking
+      document.addEventListener("visibilitychange", function(){
+        if(!document.hidden) reg.update().catch(function(){});
+      });
+    }).catch(function(e){
       window.__slateSwError = (e && e.message) || String(e);
     });
   });
