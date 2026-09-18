@@ -103,6 +103,11 @@ home-screen icon (iOS 16.4+), never from a Safari tab. Then tap the bell in the 
 bar → *Enable on this device*, and confirm with *Send a test*. Each person enables
 each of their own devices.
 
+**Use the production URL.** Vercel gives the project three addresses and only the short
+one is public; the `…-git-main-…` and per-deployment URLs sit behind Vercel
+Authentication and answer a redirect to a Vercel login, which is not an obvious failure
+when it happens on someone's phone.
+
 **Testing the crons without waiting for the clock:**
 
 ```bash
@@ -110,7 +115,19 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://your-app.vercel.app/api/cro
 ```
 
 Same for `/api/cron/evening`. Both return a JSON summary (sent / failed / pruned, or
-why they skipped) and that's also what shows in the Vercel cron logs.
+why they skipped) and log the same line, which is what survives in the Vercel logs.
+
+**When a brief doesn't arrive**, in the order worth checking:
+
+- `{"skipped":"no subscriptions"}` — no device is registered. The bell, on the phone.
+- `{"skipped":"weekend"}` or `"nothing completed"` — working as intended.
+- `401 Not from cron` — `CRON_SECRET` is missing from the Vercel environment, or the
+  deployment predates it being set. Env changes need a redeploy.
+- `500` naming a variable — that variable isn't set for this environment.
+- `sent` is non-zero but nothing appeared on the phone — the push service accepted it and
+  iOS dropped it. Usually the app was opened from Safari rather than the home-screen
+  icon, or notifications are off for it in iOS Settings.
+- `failed` is non-zero — the push service refused. The reason is in the Vercel log.
 
 ## Running it locally
 

@@ -32,6 +32,27 @@ sw.js                   service worker: caches the app shell, shows the push bri
 supabase/schema.sql     run once in the Supabase SQL editor
 ```
 
+### Two contracts in `store.js` worth knowing
+
+Both of these were broken in the port off the artifact runtime, both silently, and both
+cost real debugging.
+
+**`user.profiles(ids)` returns a map keyed by id, not an array.** Every caller reads it as
+`ps[someUuid]` — `paintPeople()` does it for each `[data-uid]` node, the task sheet does it
+for the owner dropdown. Returning an array made every lookup `undefined`, so avatars and
+owner names silently fell back to blank everywhere with no error. Keep it a map.
+
+**Realtime re-syncs; it doesn't just listen.** Postgres change events are never replayed,
+so anything the other person changed while a device was asleep, backgrounded or offline is
+simply missed — and on a phone that's most of the day. So the db layer re-reads every
+loaded collection whenever the channel subscribes, whenever the page returns to the
+foreground, and whenever the browser comes back online. It also watches the channel's
+status: an errored or timed-out channel never recovers on its own, so it's torn down and
+rebuilt, and the resubscribe closes the gap. The re-read *replaces* each collection rather
+than merging into it, which is what makes the other person's deletions disappear here too.
+
+Without these, two people editing at once looks like it works and quietly doesn't.
+
 ---
 
 ## Data
