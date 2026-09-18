@@ -2370,21 +2370,27 @@ function renderRail(){
     ni.value = S.newProjectText || "";
     ni.setAttribute("aria-label","New project name");
     ni.oninput = function(){ S.newProjectText = ni.value; };
+    /* One shot, like inlineEdit. Writes are queued through a promise, so the
+       re-render that removes this field happens a microtask later — meaning on
+       iOS, where the return key also dismisses the keyboard, blur fires while
+       the node is still connected and still holding the text. Without this flag
+       Enter creates the project and the blur right behind it creates it again. */
+    var committed = false;
+    function commitProject(save){
+      if(committed) return;
+      committed = true;
+      var v = ni.value.trim();
+      S.newProject = false; S.newProjectText = "";
+      if(save && v) createProject(v); else render();
+    }
     ni.onkeydown = function(e){
-      if(e.key === "Enter"){
-        var v = ni.value.trim();
-        S.newProject = false; S.newProjectText = "";
-        if(v) createProject(v); else render();
-      } else if(e.key === "Escape"){
-        S.newProject = false; S.newProjectText = ""; render();
-      }
+      if(e.key === "Enter"){ e.preventDefault(); commitProject(true); }
+      else if(e.key === "Escape"){ e.preventDefault(); commitProject(false); }
     };
     ni.onblur = function(){
       // a live re-render detaches this node; that isn't the user leaving the field
       if(!ni.isConnected) return;
-      var v = ni.value.trim();
-      S.newProject = false; S.newProjectText = "";
-      if(v) createProject(v); else render();
+      commitProject(true);
     };
     wrap.appendChild(ni);
     ps.appendChild(wrap);
@@ -2556,18 +2562,23 @@ function renderHead(){
         si.type = "text";
         si.placeholder = "Space name";
         si.setAttribute("aria-label","New space name");
+        /* one shot, for the same reason the new-project field is — see there */
+        var spaceCommitted = false;
+        var forProject = S.sel;
+        function commitSpace(save){
+          if(spaceCommitted) return;
+          spaceCommitted = true;
+          var v = si.value.trim();
+          S.newSpaceFor = null;
+          if(save && v) createSpace(forProject, v); else render();
+        }
         si.onkeydown = function(e){
-          if(e.key === "Enter"){
-            var v = si.value.trim();
-            S.newSpaceFor = null;
-            if(v) createSpace(S.sel, v); else render();
-          } else if(e.key === "Escape"){ S.newSpaceFor = null; render(); }
+          if(e.key === "Enter"){ e.preventDefault(); commitSpace(true); }
+          else if(e.key === "Escape"){ e.preventDefault(); commitSpace(false); }
         };
         si.onblur = function(){
           if(!si.isConnected) return;
-          var v = si.value.trim();
-          S.newSpaceFor = null;
-          if(v) createSpace(S.sel, v); else render();
+          commitSpace(true);
         };
         tabs.appendChild(si);
       } else {
