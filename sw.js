@@ -3,7 +3,7 @@
    connection, because Supabase requests carry auth and are never cached.
    Also receives the push briefs — see the handlers at the bottom. */
 
-var VERSION = "slate-v5";
+var VERSION = "slate-v6";
 /* "/index.html" is deliberately absent: cleanUrls redirects it to "/", so caching
    it stores a redirected response, and returning one of those for a navigation is
    a network error rather than a page. "/" precaches the same bytes. */
@@ -111,7 +111,9 @@ self.addEventListener("fetch", function (e) {
     return;
   }
 
-  // Icons and fonts genuinely don't change under the same URL: cache first.
+  /* Icons and fonts: cache first. They rarely change, but they are not
+     fingerprinted either — when an icon is redrawn under the same URL, bump
+     VERSION so activate drops the old cache and the new image is fetched. */
   if (url.origin === location.origin ||
       url.hostname === "fonts.googleapis.com" ||
       url.hostname === "fonts.gstatic.com") {

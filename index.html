@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#F4F2ED" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#141619" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#202329" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -32,82 +32,117 @@
 </script>
 <style>
 :root{
-  --paper:#F4F2ED;
-  --panel:#FFFFFF;
-  --note:#EFE9DB;
-  --note-edge:#DFD5BF;
-  --ink:#1B1A17;
-  --muted:#7C776C;
-  --line:#DEDAD1;
-  --line-soft:#E9E5DD;
-  --accent:#2C5849;
-  --accent-ink:#2C5849;
-  --accent-soft:#E1EAE5;
-  --danger:#8C3A2B;
-  --shadow:0 1px 1px rgba(27,26,23,.04), 0 2px 6px rgba(27,26,23,.05);
-  /* project hues: projectColor() supplies the hue, the theme supplies these */
-  --ph-s:44%; --ph-l:40%; --ph-ink-s:42%; --ph-ink-l:30%; --ph-soft-s:46%; --ph-soft-l:92%;
-  /* ---- token contract for the redesign: builders use these names, the palette
-     sets the values. Values here are provisional until the palette lands. ---- */
-  --panel-2:#F7F8FA;      /* a raised or secondary surface: table heads, hover, segmented tracks */
-  --ink-2:#3A404C;        /* secondary text, stronger than --muted */
-  --on-accent:#FFFFFF;    /* text and icons on an --accent fill */
-  --good:#1B7A45; --warn:#A15C00;   /* status only, always with an icon or label */
-  --scrim:rgba(20,22,28,.42);       /* behind sheets and dialogs */
-  --mark:#FFE9A8; --code-bg:#EEF0F4; --quote-bar:#C6CCD5;   /* docs: highlight, code, quote rule */
-  /* charts: deliberately NOT the accent, so the same chart looks the same on both
-     your devices whatever accent each of you picked. One validated blue ramp:
-     not started -> in progress -> done. */
-  --viz-1:#2a78d6; --viz-1-soft:rgba(42,120,214,.12);
-  --viz-todo:#86b6ef; --viz-doing:var(--viz-1); --viz-done:#104281;
-  --viz-grid:var(--line-soft); --viz-axis:var(--line); --viz-untracked:var(--line-soft); --crit:var(--danger);
+  color-scheme:light;
+  /* Colour system: "Slate Crisp". Cool neutral greys so white cards read clearly
+     on a grey page; every text/background pair is checked by
+     tools/validate-colours.js (ink >= 7:1, muted >= 4.5:1, borders >= 1.5:1,
+     controls >= 3:1). Change a value here and re-run it. */
+  /* surfaces */
+  --paper:#F4F5F7; --panel:#FFFFFF; --panel-2:#EFF1F4; --raised:#FFFFFF; --sunken:#EFF1F4;
+  --note:#FBF7EC; --note-edge:#D6C79B;
+  /* text: ink for reading, ink-2 secondary, muted for meta, faint for hints only */
+  --ink:#1B1E24; --ink-2:#3F4552; --muted:#5C6371; --faint:#838A97;
+  /* lines: soft for dividers, line for cards and columns, strong for controls you have to find */
+  --line:#C6CCD5; --line-soft:#E3E6EB; --line-strong:#868D9A;
+  /* accent: raw values for the default (Cobalt); [data-accent] swaps the raw set,
+     and each theme block maps --accent* onto its -l or -d half */
+  --acc-l:#2F5FD9; --acc-ink-l:#2449B8; --acc-soft-l:#E8EEFD; --on-acc-l:#FFFFFF;
+  --acc-d:#3E68E0; --acc-ink-d:#A3B8FF; --acc-soft-d:#263355; --on-acc-d:#FFFFFF;
+  --accent:var(--acc-l); --accent-ink:var(--acc-ink-l); --accent-soft:var(--acc-soft-l); --on-accent:var(--on-acc-l);
+  /* status — always paired with an icon or a label, never colour alone */
+  --danger:#C42B2B; --danger-soft:#FDECEC; --on-danger:#FFFFFF;
+  --good:#177A41; --good-soft:#E4F4EA; --warn:#965A00; --warn-soft:#FDF0DB;
+  /* docs */
+  --mark:#FFE58A; --code-bg:#F1F3F6; --quote-bar:#868D9A;
+  /* charts: deliberately NOT the accent, so a chart looks the same on both of your
+     devices whatever accent each of you picked. One validated blue ramp for
+     not started -> in progress -> done, plus eight categorical slots. The ramp's
+     pale end is stepped so it clears 2:1 on every surface a bar can sit on
+     (paper, panel, sunken, raised) in both themes — check with the dataviz
+     validator's --ordinal mode against each surface if you move it. */
+  --viz-1:#2A78D6; --viz-1-soft:rgba(42,120,214,.12); --viz-todo:#6DA7EC; --viz-done:#104281;
+  --chart-1:#2E62C9; --chart-2:#A74A04; --chart-3:#AE4090; --chart-4:#40A138;
+  --chart-5:#067396; --chart-6:#AC7809; --chart-7:#7F62D5; --chart-8:#129E8E; --chart-other:#868D9A;
+  /* aliases: declared once here, they resolve against whichever theme is active */
+  --viz-doing:var(--viz-1); --viz-grid:var(--line-soft); --viz-axis:var(--line);
+  --viz-untracked:var(--line-soft); --crit:var(--danger);
+  /* project colours: projectColor() supplies an OKLCH hue and chroma, the theme
+     supplies lightness — so every project is equally bright, and a theme switch
+     repaints them with no re-render */
+  --ph-l:0.56; --ph-ink-l:0.44; --ph-soft-l:0.945;
+  /* depth */
+  --scrim:rgba(17,20,26,.40);
+  --shadow:0 1px 1px rgba(17,20,26,.04), 0 2px 6px rgba(17,20,26,.06);
+  --shadow-md:0 10px 26px rgba(17,20,26,.14);
+  --shadow-lg:0 18px 44px rgba(17,20,26,.22);
   --radius:5px;
   --ui:"Archivo",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --serif:"Newsreader",Georgia,"Times New Roman",serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --paper:#141619;
-    --panel:#1C1F23;
-    --note:#241F17;
-    --note-edge:#3B3325;
-    --ink:#E8E6E0;
-    --muted:#94918A;
-    --line:#2D3137;
-    --line-soft:#24272C;
-    --accent:#84B9A4;
-    --accent-ink:#9CCBB7;
-    --accent-soft:#22322C;
-    --danger:#D08878;
-    --shadow:0 1px 1px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.28);
-    --ph-s:38%; --ph-l:58%; --ph-ink-s:42%; --ph-ink-l:72%; --ph-soft-s:30%; --ph-soft-l:18%;
-    --panel-2:#272A31; --ink-2:#C9CDD5; --on-accent:#FFFFFF;
-    --good:#5FC48A; --warn:#E2A94A; --scrim:rgba(0,0,0,.55);
-    --mark:#5A4A12; --code-bg:#2A2E36; --quote-bar:#444A55;
-    --viz-1:#3987e5; --viz-1-soft:rgba(57,135,229,.18);
-    --viz-todo:#184f95; --viz-doing:var(--viz-1); --viz-done:#9ec5f4;
+    color-scheme:dark;
+    --paper:#1A1C20; --panel:#202329; --panel-2:#2B2F37; --raised:#272B32; --sunken:#1C1E23;
+    --note:#2A2822; --note-edge:#4A4536;
+    --ink:#E8EAEE; --ink-2:#C5CAD3; --muted:#9CA3AF; --faint:#767D8A;
+    --line:#444A55; --line-soft:#2E3239; --line-strong:#737A87;
+    --accent:var(--acc-d); --accent-ink:var(--acc-ink-d); --accent-soft:var(--acc-soft-d); --on-accent:var(--on-acc-d);
+    --danger:#F2857A; --danger-soft:#3B2426; --on-danger:#1A1C20;
+    --good:#52C48C; --good-soft:#1B3328; --warn:#E3A342; --warn-soft:#3A2E1A;
+    --mark:#574710; --code-bg:#1C1E23; --quote-bar:#737A87;
+    --viz-1:#3987E5; --viz-1-soft:rgba(57,135,229,.18); --viz-todo:#1C5CAB; --viz-done:#9EC5F4;
+    --chart-1:#3F75DD; --chart-2:#C05708; --chart-3:#B84999; --chart-4:#4CAD43;
+    --chart-5:#059BC9; --chart-6:#B88213; --chart-7:#987CF2; --chart-8:#0F9485; --chart-other:#737A87;
+    --ph-l:0.68; --ph-ink-l:0.82; --ph-soft-l:0.31;
+    --scrim:rgba(6,8,11,.58);
+    --shadow:0 1px 1px rgba(0,0,0,.24), 0 2px 8px rgba(0,0,0,.24);
+    --shadow-md:0 10px 28px rgba(0,0,0,.42);
+    --shadow-lg:0 18px 48px rgba(0,0,0,.52);
   }
 }
 :root[data-theme="dark"]{
-  --paper:#141619;
-  --panel:#1C1F23;
-  --note:#241F17;
-  --note-edge:#3B3325;
-  --ink:#E8E6E0;
-  --muted:#94918A;
-  --line:#2D3137;
-  --line-soft:#24272C;
-  --accent:#84B9A4;
-  --accent-ink:#9CCBB7;
-  --accent-soft:#22322C;
-  --danger:#D08878;
-  --shadow:0 1px 1px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.28);
-  --ph-s:38%; --ph-l:58%; --ph-ink-s:42%; --ph-ink-l:72%; --ph-soft-s:30%; --ph-soft-l:18%;
-  --panel-2:#272A31; --ink-2:#C9CDD5; --on-accent:#FFFFFF;
-  --good:#5FC48A; --warn:#E2A94A; --scrim:rgba(0,0,0,.55);
-  --mark:#5A4A12; --code-bg:#2A2E36; --quote-bar:#444A55;
-  --viz-1:#3987e5; --viz-1-soft:rgba(57,135,229,.18);
-  --viz-todo:#184f95; --viz-doing:var(--viz-1); --viz-done:#9ec5f4;
+  color-scheme:dark;
+  --paper:#1A1C20; --panel:#202329; --panel-2:#2B2F37; --raised:#272B32; --sunken:#1C1E23;
+  --note:#2A2822; --note-edge:#4A4536;
+  --ink:#E8EAEE; --ink-2:#C5CAD3; --muted:#9CA3AF; --faint:#767D8A;
+  --line:#444A55; --line-soft:#2E3239; --line-strong:#737A87;
+  --accent:var(--acc-d); --accent-ink:var(--acc-ink-d); --accent-soft:var(--acc-soft-d); --on-accent:var(--on-acc-d);
+  --danger:#F2857A; --danger-soft:#3B2426; --on-danger:#1A1C20;
+  --good:#52C48C; --good-soft:#1B3328; --warn:#E3A342; --warn-soft:#3A2E1A;
+  --mark:#574710; --code-bg:#1C1E23; --quote-bar:#737A87;
+  --viz-1:#3987E5; --viz-1-soft:rgba(57,135,229,.18); --viz-todo:#1C5CAB; --viz-done:#9EC5F4;
+  --chart-1:#3F75DD; --chart-2:#C05708; --chart-3:#B84999; --chart-4:#4CAD43;
+  --chart-5:#059BC9; --chart-6:#B88213; --chart-7:#987CF2; --chart-8:#0F9485; --chart-other:#737A87;
+  --ph-l:0.68; --ph-ink-l:0.82; --ph-soft-l:0.31;
+  --scrim:rgba(6,8,11,.58);
+  --shadow:0 1px 1px rgba(0,0,0,.24), 0 2px 8px rgba(0,0,0,.24);
+  --shadow-md:0 10px 28px rgba(0,0,0,.42);
+  --shadow-lg:0 18px 48px rgba(0,0,0,.52);
+}
+/* selectable accents (account menu): raw values only — the theme blocks map them */
+:root[data-accent="violet"]{
+  --acc-l:#6A45D6; --acc-ink-l:#5733C0; --acc-soft-l:#EFEAFD; --on-acc-l:#FFFFFF;
+  --acc-d:#7856E6; --acc-ink-d:#C3B3FF; --acc-soft-d:#2F2852; --on-acc-d:#FFFFFF;
+}
+:root[data-accent="teal"]{
+  --acc-l:#0E7780; --acc-ink-l:#0B636B; --acc-soft-l:#DFF2F3; --on-acc-l:#FFFFFF;
+  --acc-d:#0E7C86; --acc-ink-d:#6FD2DA; --acc-soft-d:#17363A; --on-acc-d:#FFFFFF;
+}
+:root[data-accent="ember"]{
+  --acc-l:#C2410C; --acc-ink-l:#A8380A; --acc-soft-l:#FDEDE4; --on-acc-l:#FFFFFF;
+  --acc-d:#C2440F; --acc-ink-d:#FFAE85; --acc-soft-d:#3D281E; --on-acc-d:#FFFFFF;
+}
+:root[data-accent="rose"]{
+  --acc-l:#C0265E; --acc-ink-l:#A61F50; --acc-soft-l:#FCE7EF; --on-acc-l:#FFFFFF;
+  --acc-d:#CC3068; --acc-ink-d:#FFA3C3; --acc-soft-d:#3F2231; --on-acc-d:#FFFFFF;
+}
+:root[data-accent="forest"]{
+  --acc-l:#1B7A45; --acc-ink-l:#16673A; --acc-soft-l:#E3F3E9; --on-acc-l:#FFFFFF;
+  --acc-d:#1C7D47; --acc-ink-d:#7ED6A3; --acc-soft-d:#1B3427; --on-acc-d:#FFFFFF;
+}
+:root[data-accent="graphite"]{
+  --acc-l:#3D4350; --acc-ink-l:#2F3440; --acc-soft-l:#ECEEF2; --on-acc-l:#FFFFFF;
+  --acc-d:#687080; --acc-ink-d:#D3D8E0; --acc-soft-d:#31353D; --on-acc-d:#FFFFFF;
 }
 
 *{box-sizing:border-box}
@@ -133,8 +168,9 @@ body{
 }
 button,input,select,textarea{font:inherit;color:inherit;touch-action:manipulation}
 button{cursor:pointer;background:none;border:0;padding:0}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
-::placeholder{color:var(--muted);opacity:.75}
+:focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px;border-radius:3px}
+::selection{background:var(--accent-soft);color:var(--ink)}
+::placeholder{color:var(--faint);opacity:1}
 
 /* touch devices: never hide an action behind hover */
 @media (hover:none){
@@ -167,7 +203,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
 
 #search{
   flex:1;max-width:340px;margin-left:auto;
-  border:1px solid var(--line);background:var(--paper);
+  border:1px solid var(--line-strong);background:var(--paper);
   border-radius:var(--radius);padding:6px 10px;font-size:13px;
 }
 #search:focus{border-color:var(--accent);outline:none}
@@ -200,7 +236,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
   padding:5px 14px;font-size:13.5px;text-align:left;
   border-left:2px solid transparent;color:var(--ink);
 }
-.rail-item:hover{background:var(--line-soft)}
+.rail-item:hover{background:var(--panel-2)}
 .rail-item.on{border-left-color:var(--accent);background:var(--accent-soft);font-weight:500}
 .rail-item .dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto;background:var(--muted)}
 .rail-item .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
@@ -235,7 +271,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
   margin-top:10px;padding-top:9px;border-top:1px solid var(--note-edge);
 }
 .triage select{
-  border:1px solid var(--note-edge);background:var(--panel);
+  border:1px solid var(--line-strong);background:var(--panel);
   border-radius:3px;padding:4px 7px;font-size:12px;font-family:var(--ui);
   max-width:100%;
 }
@@ -305,8 +341,8 @@ button{cursor:pointer;background:none;border:0;padding:0}
   padding:5px 11px;font-size:13px;background:var(--panel);
 }
 .btn:hover{border-color:var(--accent);color:var(--accent-ink)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--panel)}
-.btn.primary:hover{opacity:.88;color:var(--panel);border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{box-shadow:0 0 0 3px var(--accent-soft);color:var(--on-accent);border-color:var(--accent)}
 .btn.quiet{border-color:transparent;color:var(--muted)}
 .btn.quiet:hover{border-color:var(--line);color:var(--ink)}
 .btn.danger:hover{border-color:var(--danger);color:var(--danger)}
@@ -328,7 +364,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
   /* flexes so all four columns fit an iPad in landscape, and widens a little on a
      big monitor, but never gets too narrow to read a card */
   flex:1 1 0;min-width:216px;max-width:300px;
-  background:var(--panel);
+  background:var(--sunken);
   border:1px solid var(--line);border-radius:var(--radius);
   display:flex;flex-direction:column;max-height:calc(100dvh - 230px);
 }
@@ -337,7 +373,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
   display:flex;align-items:center;gap:8px;padding:9px 11px;
   border-bottom:1px solid var(--line-soft);
 }
-.col-head .bar{width:18px;height:3px;border-radius:2px;background:var(--accent);opacity:.85}
+.col-head .bar{width:18px;height:3px;border-radius:2px;background:var(--accent)}
 .col-head .nm{font-size:13px;font-weight:500}
 .col-head .n{margin-left:auto;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 .col-body{padding:8px;display:flex;flex-direction:column;gap:7px;overflow-y:auto;min-height:44px}
@@ -350,24 +386,24 @@ button{cursor:pointer;background:none;border:0;padding:0}
 
 .card{
   position:relative;
-  background:var(--paper);border:1px solid var(--line);
+  background:var(--raised);border:1px solid var(--line);
   border-radius:var(--radius);padding:8px 10px 8px 22px;cursor:pointer;
   box-shadow:var(--shadow);
 }
 .card .grip{
   position:absolute;left:0;top:0;bottom:0;width:20px;
   display:flex;align-items:center;justify-content:center;
-  color:var(--muted);
-  cursor:grab;touch-action:none;opacity:.45;
+  color:var(--faint);
+  cursor:grab;touch-action:none;
   border-radius:var(--radius) 0 0 var(--radius);
 }
 .card .grip:hover{opacity:1;background:var(--line-soft)}
 .card .grip:active{cursor:grabbing}
-@media (hover:none){ .card .grip{opacity:.8;width:26px} .card{padding-left:28px} }
+@media (hover:none){ .card .grip{width:26px} .card{padding-left:28px} }
 .card.dragging{opacity:.32}
 .dragghost{
   position:fixed;z-index:95;pointer-events:none;
-  box-shadow:0 12px 28px rgba(20,19,17,.28);
+  box-shadow:var(--shadow-lg);
   transform:rotate(1.4deg);opacity:.96;
 }
 body.dragging-now{user-select:none;-webkit-user-select:none}
@@ -375,13 +411,13 @@ body.dragging-now{user-select:none;-webkit-user-select:none}
 /* task sheet reuses the schedule dialog shell */
 #projDlg{
   position:fixed;inset:0;z-index:78;display:none;
-  background:rgba(20,19,17,.36);padding:9vh 16px 16px;overflow-y:auto;
+  background:var(--scrim);padding:9vh 16px 16px;overflow-y:auto;
 }
 #projDlg.on{display:block}
 
 #prospectDlg{
   position:fixed;inset:0;z-index:77;display:none;
-  background:rgba(20,19,17,.36);padding:9vh 16px 16px;overflow-y:auto;
+  background:var(--scrim);padding:9vh 16px 16px;overflow-y:auto;
 }
 #prospectDlg.on{display:block}
 #prNote{
@@ -393,7 +429,7 @@ body.dragging-now{user-select:none;-webkit-user-select:none}
 
 #taskDlg{
   position:fixed;inset:0;z-index:76;display:none;
-  background:rgba(20,19,17,.36);padding:9vh 16px 16px;overflow-y:auto;
+  background:var(--scrim);padding:9vh 16px 16px;overflow-y:auto;
 }
 #taskDlg.on{display:block}
 .card .ttl{font-size:13.5px;line-height:1.35;word-break:break-word}
@@ -454,8 +490,8 @@ tr:hover .rowx{opacity:1}
   line-height:1.25;letter-spacing:-.005em;word-break:break-word;
 }
 .note .nb{
-  font-family:var(--serif);font-size:14px;line-height:1.5;color:var(--ink);
-  opacity:.78;flex:1;overflow:hidden;
+  font-family:var(--serif);font-size:14px;line-height:1.5;color:var(--ink-2);
+  flex:1;overflow:hidden;
   display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;
   white-space:pre-wrap;word-break:break-word;
 }
@@ -481,14 +517,14 @@ tr:hover .rowx{opacity:1}
 /* ---------- note editor ---------- */
 #overlay{
   position:fixed;inset:0;z-index:60;display:none;
-  background:rgba(20,19,17,.36);
+  background:var(--scrim);
   padding:24px 16px;overflow-y:auto;
 }
 #overlay.on{display:block}
 #editor{
   max-width:680px;margin:0 auto;background:var(--note);
   border:1px solid var(--note-edge);border-radius:4px 16px 4px 4px;
-  box-shadow:0 18px 44px rgba(20,19,17,.24);
+  box-shadow:var(--shadow-lg);
   padding:20px 22px 16px;display:flex;flex-direction:column;gap:10px;
 }
 #edTitle{
@@ -530,27 +566,27 @@ tr:hover .rowx{opacity:1}
 /* ---------- confirm ---------- */
 #confirm{
   position:fixed;inset:0;z-index:80;display:none;
-  background:rgba(20,19,17,.36);padding:22vh 16px 16px;
+  background:var(--scrim);padding:22vh 16px 16px;
 }
 #confirm.on{display:block}
 .cbox{
   max-width:400px;margin:0 auto;background:var(--panel);
   border:1px solid var(--line);border-radius:var(--radius);
-  box-shadow:0 18px 44px rgba(20,19,17,.26);padding:18px 20px 16px;
+  box-shadow:var(--shadow-lg);padding:18px 20px 16px;
 }
 .cbox h3{
   margin:0 0 6px;font-size:16px;font-weight:600;letter-spacing:-.01em;
 }
 .cbox p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.5}
 .crow{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-.btn.solid-danger{background:var(--danger);border-color:var(--danger);color:var(--panel)}
-.btn.solid-danger:hover{opacity:.88;color:var(--panel);border-color:var(--danger)}
+.btn.solid-danger{background:var(--danger);border-color:var(--danger);color:var(--on-danger)}
+.btn.solid-danger:hover{box-shadow:0 0 0 3px var(--danger-soft);color:var(--on-danger);border-color:var(--danger)}
 
 /* ---------- assignee menu ---------- */
 #amenu{
   position:absolute;z-index:70;display:none;min-width:212px;
-  background:var(--panel);border:1px solid var(--line);
-  border-radius:var(--radius);box-shadow:0 10px 26px rgba(20,19,17,.18);
+  background:var(--raised);border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:var(--shadow-md);
   padding:6px;
 }
 #amenu.on{display:block}
@@ -572,12 +608,12 @@ tr:hover .rowx{opacity:1}
   display:flex;align-items:center;justify-content:center;color:var(--muted);
 }
 #bell:hover{color:var(--ink);background:var(--line-soft)}
-#bell.on{color:var(--accent)}
+#bell.on{color:var(--accent-ink)}
 #bell svg{width:16px;height:16px;display:block}
 #nmenu,#umenu{
   position:absolute;z-index:70;display:none;width:min(88vw,290px);
-  background:var(--panel);border:1px solid var(--line);
-  border-radius:var(--radius);box-shadow:0 10px 26px rgba(20,19,17,.18);
+  background:var(--raised);border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:var(--shadow-md);
   padding:11px 12px 12px;
 }
 #nmenu.on,#umenu.on{display:block}
@@ -602,13 +638,16 @@ tr:hover .rowx{opacity:1}
 }
 .seg button:hover{color:var(--ink)}
 .seg button.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
-.swatches{display:flex;gap:8px;flex-wrap:wrap}
-.swatch{
+/* "accsw", not "swatch": the whiteboard's pen-colour buttons already own .swatch,
+   and sharing the name would restyle them — the same collision that once shrank
+   the whiteboard to 320px when its editor borrowed the kanban's .board */
+.accsws{display:flex;gap:8px;flex-wrap:wrap}
+.accsw{
   width:28px;height:28px;border-radius:50%;position:relative;
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);
 }
-.swatch.on{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--ink)}
-.swatch .ico{position:absolute;inset:0;margin:auto;width:14px;height:14px;stroke-width:2.8}
+.accsw.on{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--ink)}
+.accsw .ico{position:absolute;inset:0;margin:auto;width:14px;height:14px;stroke-width:2.8}
 #umenu .signout{
   display:flex;align-items:center;gap:8px;width:100%;padding:8px 6px;margin-top:2px;
   border-top:1px solid var(--line);border-radius:0;color:var(--ink);font-size:13.5px;
@@ -648,7 +687,7 @@ tr:hover .rowx{opacity:1}
 #capFoot{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
 #capHint{font-size:11.5px;color:var(--muted)}
 #capProj,#capSpace{
-  border:1px solid var(--note-edge);background:transparent;
+  border:1px solid var(--line-strong);background:transparent;
   border-radius:3px;padding:3px 6px;font-size:12px;font-family:var(--ui);
   max-width:46%;
 }
@@ -675,7 +714,7 @@ tr:hover .rowx{opacity:1}
   border:1px solid var(--line);color:var(--muted);background:transparent;
 }
 .tagchip:hover{border-color:var(--accent);color:var(--accent-ink)}
-.tagchip.on{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.tagchip.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .tagref{color:var(--accent-ink);font-weight:500;cursor:pointer}
 .tagref:hover{text-decoration:underline}
 
@@ -794,20 +833,20 @@ tr:hover .rowx{opacity:1}
 /* ---------- schedule dialog ---------- */
 #schedDlg{
   position:fixed;inset:0;z-index:75;display:none;
-  background:rgba(20,19,17,.36);padding:9vh 16px 16px;overflow-y:auto;
+  background:var(--scrim);padding:9vh 16px 16px;overflow-y:auto;
 }
 #schedDlg.on{display:block}
 .sbox{
   max-width:470px;margin:0 auto;background:var(--panel);
   border:1px solid var(--line);border-radius:var(--radius);
-  box-shadow:0 18px 44px rgba(20,19,17,.26);padding:20px 22px 18px;
+  box-shadow:var(--shadow-lg);padding:20px 22px 18px;
 }
 .sbox h3{margin:0 0 14px;font-size:16px;font-weight:600;letter-spacing:-.01em}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
 .field input[type=text],.field input[type=time],.field input[type=date],.field select,
 .field textarea{
-  width:100%;border:1px solid var(--line);border-radius:3px;
+  width:100%;border:1px solid var(--line-strong);border-radius:3px;
   padding:6px 9px;font-size:13.5px;background:var(--paper);
 }
 .field textarea{resize:vertical;min-height:72px;line-height:1.45}
@@ -818,7 +857,7 @@ tr:hover .rowx{opacity:1}
   width:35px;height:31px;border:1px solid var(--line);border-radius:3px;
   font-size:12px;color:var(--muted);
 }
-.daybtn.on{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.daybtn.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .two{display:flex;gap:10px}
 .two .field{flex:1}
 
@@ -871,7 +910,7 @@ tr:hover .rowx{opacity:1}
   border:1px solid var(--line);border-radius:var(--radius);
   padding:4px 10px;font-size:12.5px;color:var(--muted);
 }
-#inkbar .tool.on{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+#inkbar .tool.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 #inkbar .sep{width:1px;height:20px;background:var(--line);margin:0 3px}
 .swatch{
   width:21px;height:21px;border-radius:50%;border:2px solid transparent;
@@ -929,13 +968,13 @@ tr:hover .rowx{opacity:1}
 #slateLogin .lsub{margin:6px 0 20px;font-size:13px;color:var(--muted)}
 #slateLogin label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
 #slateLogin input{
-  width:100%;border:1px solid var(--line);border-radius:3px;background:var(--paper);
+  width:100%;border:1px solid var(--line-strong);border-radius:3px;background:var(--paper);
   padding:10px 11px;font-size:16px;margin-bottom:14px;min-height:44px;
 }
 #slateLogin input:focus{border-color:var(--accent);outline:none}
 #slateLogin button{
   width:100%;background:var(--accent);border:1px solid var(--accent);
-  border-radius:var(--radius);color:var(--panel);
+  border-radius:var(--radius);color:var(--on-accent);
   padding:11px;font-size:15px;font-weight:500;min-height:46px;
 }
 #slateLogin button:disabled{opacity:.6}
@@ -1027,7 +1066,7 @@ tr:hover .rowx{opacity:1}
   background:var(--panel);border:1px solid var(--line);
   border-radius:var(--radius);padding:9px 11px;margin-bottom:6px;
 }
-.prow.is-cold{opacity:.6}
+.prow.is-cold, .prow.is-cold *{color:var(--muted)}
 .pmain{flex:1;min-width:0;text-align:left;display:flex;flex-direction:column;gap:3px}
 .pco{font-size:14px;font-weight:500;word-break:break-word}
 .pmeta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}
@@ -1169,7 +1208,7 @@ tr:hover .rowx{opacity:1}
   #rail{
     position:fixed;top:0;left:0;bottom:0;width:min(84vw,300px);z-index:50;
     transform:translateX(-100%);transition:transform .2s ease;
-    box-shadow:0 0 40px rgba(20,19,17,.28);
+    box-shadow:var(--shadow-lg);
     padding-top:calc(14px + env(safe-area-inset-top));
     padding-bottom:calc(28px + env(safe-area-inset-bottom));
     overscroll-behavior:contain;
@@ -1177,7 +1216,7 @@ tr:hover .rowx{opacity:1}
   #rail.open{transform:none}
   #railScrim{
     display:none;position:fixed;inset:0;z-index:45;
-    background:rgba(20,19,17,.34);
+    background:var(--scrim);
   }
   #railScrim.on{display:block}
 
@@ -1722,18 +1761,44 @@ function hueOf(projectId){
   var p = findProject(projectId);
   return p ? projectHue(p.colorIndex || 0) : null;
 }
+/* Project colours use oklch() so every hue is equally bright, and the golden
+   angle spaces them evenly by eye — in HSL, brightness swung 2.4-3.2x across
+   hues and projects #2 and #7 were near-identical greens. Lightness comes from
+   the theme (the --ph-*-l tokens), so a theme switch repaints every project
+   colour without a render(); render() rebuilds the page, which must never happen
+   under someone typing. Chroma depends on the hue but not the theme: it is the
+   most that stays inside sRGB at BOTH themes' lightness, so PH_L must match the
+   tokens. */
+var PH_L = { dot:[0.56, 0.68], ink:[0.44, 0.82], soft:[0.945, 0.31] };   /* [light, dark] */
+var PH_CAP = { dot:0.15, ink:0.13, soft:0.045 };
+var phChroma = {};
+function phInSrgb(L, C, h){
+  var a = C * Math.cos(h * Math.PI / 180), b = C * Math.sin(h * Math.PI / 180);
+  var l = L + 0.3963377774 * a + 0.2158037573 * b,
+      m = L - 0.1055613458 * a - 0.0638541728 * b,
+      s = L - 0.0894841775 * a - 1.2914855480 * b;
+  l = l * l * l; m = m * m * m; s = s * s * s;
+  var R =  4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+      G = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+      B = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
+  return R >= 0 && R <= 1 && G >= 0 && G <= 1 && B >= 0 && B <= 1;
+}
+function projectChroma(kind, h){
+  var key = kind + h;
+  if(phChroma[key] != null) return phChroma[key];
+  var L = PH_L[kind], lo = 0, hi = 0.4, i, mid;
+  for(i = 0; i < 20; i++){
+    mid = (lo + hi) / 2;
+    if(phInSrgb(L[0], mid, h) && phInSrgb(L[1], mid, h)) lo = mid; else hi = mid;
+  }
+  return (phChroma[key] = Math.round(Math.min(PH_CAP[kind], lo * 0.92) * 1000) / 1000);
+}
 function projectColor(projectId, kind){
   var h = hueOf(projectId);
   if(h === null) return null;
-  /* The hue is the project's; saturation and lightness belong to the theme and
-     live in the token block. Returning var() references rather than resolved
-     numbers means a theme switch repaints every project colour at once — the old
-     version froze light-or-dark at render time, so dots stayed light after iOS
-     switched to dark at sunset. */
+  var k = kind === "ink" || kind === "soft" ? kind : "dot";
   var hue = Math.round(h * 10) / 10;
-  if(kind === "ink")  return "hsl(" + hue + " var(--ph-ink-s) var(--ph-ink-l))";
-  if(kind === "soft") return "hsl(" + hue + " var(--ph-soft-s) var(--ph-soft-l))";
-  return "hsl(" + hue + " var(--ph-s) var(--ph-l))";
+  return "oklch(var(--ph-" + (k === "dot" ? "" : k + "-") + "l) " + projectChroma(k, hue) + " " + hue + ")";
 }
 /* A project's name as a chip in the project's own colour, so a cross-project
    list reads by project the way the rail dots and calendar already do — they
@@ -3568,10 +3633,11 @@ function applyAppearance(){
   /* iOS tints the status bar from theme-color, and the two tags in <head> are
      gated on the SYSTEM scheme — so a forced theme has to overwrite both or the
      bar keeps the system's colour above a page in the other one. */
-  var paper = getComputedStyle(d).getPropertyValue("--paper").trim();
+  /* the status bar sits directly above #topbar, which is --panel, not --paper */
+  var bar = getComputedStyle(d).getPropertyValue("--panel").trim();
   Array.prototype.forEach.call(document.querySelectorAll('meta[name="theme-color"]'), function(m){
     if(!m.dataset.base) m.dataset.base = m.getAttribute("content");
-    m.setAttribute("content", (t === "light" || t === "dark") ? paper : m.dataset.base);
+    m.setAttribute("content", (t === "light" || t === "dark") ? bar : m.dataset.base);
   });
 }
 
@@ -3607,13 +3673,13 @@ function openUserMenu(){
 
   var ac = el("div","sect");
   ac.appendChild(el("h4", null, "Accent"));
-  var sw = el("div","swatches");
+  var sw = el("div","accsws");
   sw.setAttribute("role","radiogroup"); sw.setAttribute("aria-label","Accent colour");
   var curA = prefGet("accent", DEFAULT_ACCENT), dark = effectiveDark();
   ACCENTS.forEach(function(a){
-    var b = el("button","swatch" + (curA === a.id ? " on" : ""));
+    var b = el("button","accsw" + (curA === a.id ? " on" : ""));
     b.style.background = dark ? a.dark : a.light;
-    b.style.color = "#fff";
+    b.style.color = (dark ? a.onDark : a.onLight) || "var(--on-accent)";
     b.setAttribute("role","radio"); b.setAttribute("aria-checked", curA === a.id ? "true" : "false");
     b.setAttribute("aria-label", a.label); b.title = a.label;
     if(curA === a.id) b.appendChild(ico("check"));
@@ -5518,7 +5584,7 @@ function inkRedraw(){
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0,0,INK_W,INK_H);
   /* faint ruled lines to write on */
-  ctx.strokeStyle = "rgba(44,88,73,.10)";
+  ctx.strokeStyle = "rgba(60,72,92,.13)";
   ctx.lineWidth = 1;
   for(var y=90;y<INK_H;y+=54){
     ctx.beginPath(); ctx.moveTo(40,y); ctx.lineTo(INK_W-40,y); ctx.stroke();
