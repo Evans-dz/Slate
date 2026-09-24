@@ -1053,9 +1053,15 @@ tr:hover .rowx{opacity:1}
 .fmt.md{margin-left:auto;font-family:var(--ui);font-size:12.5px;font-weight:500;color:var(--muted)}
 .fmt.md.on{color:var(--accent-ink)}
 .fmt.done{display:none}
+/* a conflict pauses saving; the bar is the one thing still in view while typing
+   further down a doc on a phone, so it says so there too */
+.fmt.unsaved{display:none;gap:5px;color:var(--warn);font-size:12.5px}
+#editor.conflict .fmt.unsaved{display:inline-flex}
+#editor.conflict .fmt.md{margin-left:6px}
+#editor.conflict .fmt.unsaved{margin-left:auto}
 .fmtsep{width:1px;height:20px;background:var(--line);margin:0 3px;flex:0 0 auto}
 /* Markdown view: the bar keeps only its way back */
-#editor.doc.md #edTools > .fmt:not(.md),#editor.doc.md #edTools > .fmtsep{display:none}
+#editor.doc.md #edTools > .fmt:not(.md):not(.unsaved),#editor.doc.md #edTools > .fmtsep{display:none}
 #edTools.linking > .fmt,#edTools.linking > .fmtsep{display:none}
 #edTools.linking #edLinkRow{display:flex;flex:1;align-items:center;gap:6px;min-width:0}
 #edLinkUrl{
@@ -1124,6 +1130,10 @@ tr:hover .rowx{opacity:1}
   line-height:inherit!important;letter-spacing:inherit!important;
 }
 #edRich span[style*="background"]{background-color:transparent!important}
+/* a heading's weight carried into a paragraph by a merge isn't bold (docmd reads
+   it as plain), so it mustn't look bold either */
+#edRich p span[style*="font-weight: 600"],#edRich li span[style*="font-weight: 600"],
+#edRich blockquote span[style*="font-weight: 600"]{font-weight:inherit!important}
 /* inline code as the toolbar applies it (a <font face>), and as Chrome sometimes
    rewrites a <code>; both are read back as code */
 #edRich font[face="monospace"],#edRich span[style*="monospace"]{
@@ -1980,6 +1990,14 @@ body.dragging-now .board{scroll-snap-type:none}
   #editor.kbd #edToolsWrap::after{display:none}
   .fmt{min-width:40px;height:40px}
   .fmt.done{display:inline-flex;color:var(--accent-ink)}
+  /* the checklist box stays 16px to look at but takes a 38px finger: the extra is
+     a transparent border, the visible edge an inset ring */
+  #edRich li[data-task]::before{
+    width:38px;height:38px;left:calc(-1.5em - 11px);top:calc(.32em - 11px);
+    border:11px solid transparent;background-clip:padding-box;border-radius:15px;
+    box-shadow:inset 0 0 0 1.5px var(--muted);
+  }
+  #edRich li[data-task="1"]::before{border-color:transparent;box-shadow:inset 0 0 0 1.5px var(--accent)}
   .fmt.md{margin-left:6px}
   #edLinkUrl{font-size:16px;min-height:38px}
   #edLinkRow .btn{min-height:38px}
@@ -2215,6 +2233,7 @@ body.dragging-now .board{scroll-snap-type:none}
         <span class="fmtsep"></span>
         <button type="button" class="fmt" data-fmt="undo" aria-label="Undo" title="Undo (⌘Z)"><svg class="ico" aria-hidden="true"><use href="#i-undo"/></svg></button>
         <button type="button" class="fmt" data-fmt="redo" aria-label="Redo" title="Redo (⌘⇧Z)"><svg class="ico" aria-hidden="true"><use href="#i-redo"/></svg></button>
+        <button type="button" class="fmt unsaved" data-fmt="unsaved" title="Someone else changed this doc: pick a version"><svg class="ico sm" aria-hidden="true"><use href="#i-alert"/></svg><span>Not saved</span></button>
         <button type="button" class="fmt md" data-fmt="md" aria-pressed="false" title="Show the markdown this doc is stored as">Markdown</button>
         <button type="button" class="fmt done" data-fmt="done">Done</button>
         <div id="edLinkRow">
@@ -7679,17 +7698,26 @@ function openNote(id, fresh){
   ed.surface = isDoc && window.SlateDocMd && prefGet("docView", "rich") !== "markdown" ? "rich" : "text";
   ed.base = n.body || ""; ed.baseTitle = n.title || "";
   ed.edited = false; ed.known = {}; ed.known[n.updatedAt || ""] = true;
+  ed.baseAt = n.updatedAt || "";
+  /* this device's own save still on its way: open what it will write */
+  var qs = queuedSave[id];
+  if(qs && (!n.updatedAt || qs.at > n.updatedAt)){
+    ed.baseAt = qs.at;
+    if(qs.body !== undefined) ed.base = qs.body || "";
+    if(qs.title !== undefined) ed.baseTitle = qs.title || "";
+    ed.known[qs.at] = true;
+  }
   ed.conflict = ed.held = ed.mine = ed.range = ed.after = null;
   dirty = false;
   clearTimeout(saveT);
 
-  edTitle.value = n.title || "";
+  edTitle.value = ed.baseTitle;
   edTitle.placeholder = isDoc ? "Name this doc"
                       : isBoard ? "Name this page" : "Name this note";
   edTitle.disabled = edBody.disabled = edProj.disabled = !writable();
   freshRich();
   if(ed.surface === "rich"){ loadRich(ed.base); edBody.value = ""; }
-  else edBody.value = n.body || "";
+  else edBody.value = ed.base;
 
   /* which parts show for this kind */
   $("#inkbar").style.display = isBoard ? "" : "none";
@@ -7714,6 +7742,26 @@ function openNote(id, fresh){
   $("#edDelete").style.display = writable() ? "" : "none";
   edStatus.textContent = writable() ? ("Edited " + relTime(n.updatedAt)) : "Read only";
 
+  /* words saved to this device when the app was last put away, that never made
+     it to the server: put them back, or ask if the note has changed since */
+  var dr = !isBoard && writable() ? readDraft(id) : null;
+  if(dr && typeof dr.body === "string"){
+    if(dr.body === ed.base && (dr.title || "") === ed.baseTitle) dropDraft(id);
+    else {
+      edTitle.value = dr.title || "";
+      loadSurface(dr.body);
+      ed.edited = true;
+      if((n.updatedAt || "") > (dr.base || "")){      // changed on the server since: their call
+        dirty = true;
+        ed.conflict = n;
+        paintConflict();
+        edStatus.textContent = "Not saved yet";
+      } else {
+        markDirty();
+      }
+    }
+  }
+
   overlay.classList.add("on");
   document.body.style.overflow = "hidden";
 
@@ -7730,7 +7778,8 @@ function closeNote(){
     edConflict.classList.remove("flash"); void edConflict.offsetWidth; edConflict.classList.add("flash");
     return;
   }
-  if(dirty) flushNote();
+  if(dirty) flushNote();                 // drops the device copy once it's saved
+  else if(S.openNote) dropDraft(S.openNote);   // nothing unsaved: e.g. they chose theirs
   closeLinkRow(false);
   closeInk();
   S.openNote = null;
@@ -7801,11 +7850,17 @@ function flushNote(){
   dirty = false;
   ed.base = body; ed.baseTitle = title; ed.edited = false;
   return saveNote(id, { title: title, body: body }).then(function(ok){
+    if(ok){ var d = readDraft(id); if(d && d.body === body && d.title === title) dropDraft(id); }
     if(S.openNote !== id) return;
     if(ok){ if(!dirty) edStatus.textContent = "Saved"; }
     else { dirty = true; edStatus.textContent = "Not saved"; }
   });
 }
+/* The newest save of each note that hasn't reached the store yet. Reopening a
+   doc while its closing save still waits behind an earlier one used to load the
+   older text, then take that save's echo for someone else's change — and "Keep
+   mine" wrote the older text back over the last words typed. */
+var queuedSave = {};
 /* patchNote's write, except the editor learns whether it failed: queue() hands
    an error to dbErr and resolves anyway, and a save that didn't happen must not
    say "Saved" or leave the editor believing it has nothing left to send. */
@@ -7813,11 +7868,26 @@ function saveNote(id, patch){
   if(!writable()) return Promise.resolve(false);
   patch.updatedAt = nowISO();
   patch.updatedBy = S.uid || null;
-  if(id === S.openNote) ed.known[patch.updatedAt] = true;
+  if(id === S.openNote){ ed.known[patch.updatedAt] = true; if(patch.body !== undefined) ed.baseAt = patch.updatedAt; }
+  var at = patch.updatedAt;
+  if(patch.body !== undefined || patch.title !== undefined){
+    var prev = queuedSave[id] || {};
+    queuedSave[id] = {
+      at: at,
+      body: patch.body !== undefined ? patch.body : prev.body,
+      title: patch.title !== undefined ? patch.title : prev.title
+    };
+  }
   var failed = false;
   return queue("notes/"+id, function(){
     return S.db.doc("notes/"+id).update(patch).catch(function(e){ failed = true; throw e; });
-  }).then(function(){ return !failed; });
+  }).then(function(){
+    if(queuedSave[id] && queuedSave[id].at === at) delete queuedSave[id];
+    return !failed;
+  }, function(e){
+    if(queuedSave[id] && queuedSave[id].at === at) delete queuedSave[id];
+    throw e;
+  });
 }
 edTitle.addEventListener("input", markDirty);
 edBody.addEventListener("input", markDirty);
@@ -7905,9 +7975,25 @@ document.addEventListener("keydown", function(e){
 /* Leaving the app is when the last 700ms of typing is most at risk: iOS pauses
    timers the moment an installed app is swiped away and may never fire blur. */
 function saveOnLeave(){
-  if(!S.openNote || !dirty || ed.conflict) return;
+  if(!S.openNote || !dirty || ed.kind === "board") return;
+  /* The save below can sit behind an autosave still in flight, so for a moment
+     the newest words exist only in a promise — and iOS may freeze or kill the
+     app right now. A copy on the device survives that; the next open of this
+     note offers it back (openNote). A conflict isn't saved at all, so it goes
+     to the device copy only. */
+  var body = bodyNow();
+  if(typeof body === "string"){
+    prefSet("draft:" + S.openNote, JSON.stringify({ title: edTitle.value, body: body, base: ed.baseAt || "", at: nowISO() }));
+  }
+  if(ed.conflict) return;
   flushNote();
   if(S.db && S.db.flushNow) S.db.flushNow().catch(function(){});
+}
+function readDraft(id){
+  try{ return JSON.parse(prefGet("draft:" + id, "null")); }catch(e){ return null; }
+}
+function dropDraft(id){
+  try{ localStorage.removeItem("slate:draft:" + id); }catch(e){}
 }
 document.addEventListener("visibilitychange", function(){ if(document.hidden) saveOnLeave(); });
 window.addEventListener("pagehide", saveOnLeave);
@@ -7937,8 +8023,15 @@ function edSync(n){
 }
 function edTake(n){
   ed.held = ed.conflict = null;
+  ed.baseAt = n.updatedAt || "";
   ed.base = n.body || ""; ed.baseTitle = n.title || ""; ed.edited = false;
-  if(document.activeElement !== edTitle) edTitle.value = ed.baseTitle;
+  /* their title goes in even while the title field has focus — skipping it left
+     the old name in the field, and the next save quietly wrote it back */
+  if(edTitle.value !== ed.baseTitle){
+    var f = document.activeElement === edTitle, a0 = edTitle.selectionStart, a1 = edTitle.selectionEnd;
+    edTitle.value = ed.baseTitle;
+    if(f){ try{ edTitle.setSelectionRange(Math.min(a0, edTitle.value.length), Math.min(a1, edTitle.value.length)); }catch(e){} }
+  }
   loadSurface(ed.base);
   if(S.docMode === "read" && isDocOpen()) renderDocRead();
   edStatus.textContent = "Updated " + relTime(n.updatedAt);
@@ -7956,6 +8049,7 @@ function whoName(uid, cb){
   S.user.profiles([uid]).then(function(ps){ if(ps && ps[uid] && ps[uid].name) cb(ps[uid].name); }).catch(function(){});
 }
 function paintConflict(){
+  edEditor.classList.toggle("conflict", !!ed.conflict);
   edConflict.textContent = "";
   edConflict.classList.remove("warn", "flash");
   var n = ed.conflict || ed.held;
@@ -8165,6 +8259,11 @@ function freshRich(){
   edRich.parentNode.replaceChild(next, edRich);
   edRich = next;
   wireRich(edRich);
+  /* the old element had focus, and its blur handler ignores a surface that's
+     been replaced — so "typing" (which hides the phone footer) was never
+     cleared, leaving no Close after See theirs / Put mine back */
+  edEditor.classList.remove("typing");
+  dockTools();
 }
 function loadRich(md){
   edRich.appendChild(SlateDocMd.toDom(SlateDocMd.parse(md), { editor: true }));
@@ -8299,8 +8398,21 @@ function planReturn(soft){
   var at = around(blk, r);
   if(tag === "PRE"){
     if(!soft && r.collapsed && at.head === "" && at.after === "" && /\n$/.test(at.before)){
-      // Return on an empty last line leaves the code block
-      return function(){ moveSel("backward", 1, true); exec("insertParagraph"); exec("formatBlock", "<p>"); caretGap(null); };
+      /* Return on an empty last line leaves the code block. insertParagraph from
+         inside a <pre> put the new line INSIDE it in Chromium, so everything typed
+         after stayed code. Instead: drop the empty line and put a fresh paragraph
+         straight after the block, the way afterRule() does for a rule. */
+      return function(){
+        moveSel("backward", 1, true); exec("delete");
+        var p = document.createElement("p");
+        p.appendChild(document.createElement("br"));
+        edRich.insertBefore(p, blk.nextSibling);
+        var sel = window.getSelection(), rr = document.createRange();
+        rr.setStart(p, 0); rr.collapse(true);
+        sel.removeAllRanges(); sel.addRange(rr);
+        caretGap(null);
+        richChanged();
+      };
     }
     return function(){ exec("insertLineBreak"); };
   }
@@ -8431,7 +8543,7 @@ function paintTools(){
   var heading = st && /^h\d$/.test(st.block);
   Array.prototype.forEach.call(edTools.querySelectorAll(".fmt"), function(b){
     var f = b.dataset.fmt, on = false, off = false;
-    if(f === "md" || f === "done") return;
+    if(f === "md" || f === "done" || f === "unsaved") return;
     if(st){
       if(/^h[123]$/.test(f)) on = st.block === f;
       else if(f === "b"){ on = st.b && !heading; off = heading || st.pre; }
@@ -8634,6 +8746,12 @@ function toggleTaskAtCaret(){
 }
 function runFmt(f){
   if(f === "md"){ toggleMarkdown(); return; }
+  if(f === "unsaved"){
+    if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    edConflict.scrollIntoView({ block:"nearest" });
+    edConflict.classList.remove("flash"); void edConflict.offsetWidth; edConflict.classList.add("flash");
+    return;
+  }
   if(!richLive()) return;
   if(f === "done"){ edRich.blur(); return; }
   if(f === "link"){ openLinkRow(); return; }
@@ -8693,7 +8811,7 @@ function onRichKey(e){
 function onRichBox(e){
   var li = e.target.closest && e.target.closest("li[data-task]");
   if(!li || e.target !== li || !richLive()) return;
-  if(e.clientX > li.getBoundingClientRect().left + 1) return;
+  if(e.clientX > li.getBoundingClientRect().left + 3) return;
   e.preventDefault();
   li.setAttribute("data-task", li.getAttribute("data-task") === "1" ? "0" : "1");
   richChanged();
@@ -8800,6 +8918,12 @@ function pasteInto(e, html, text){
   var blocks = blocksFrom(html, text);
   if(blocks){
     e.preventDefault();
+    /* pasted code starting mid-line would have its first line merged into this
+       one's text, and lose its code-ness: start it on a line of its own */
+    if(blocks.length && blocks[0].t === "code" && r && r.collapsed){
+      var cb = blockAt(r.startContainer), ca = cb && around(cb, r);
+      if(ca && ca.line.trim()) exec("insertParagraph");
+    }
     if(insertBlocks(blocks)) return;
   }
   if(text){ e.preventDefault(); exec("insertText", text.replace(/\r/g, "")); }
@@ -8835,7 +8959,15 @@ function onRichCopy(e, cut){
   var r = selRange();
   if(!r || r.collapsed || !e.clipboardData) return;
   var box = document.createElement("div");
-  box.appendChild(r.cloneContents());
+  /* inside one code block the fragment has no <pre> around it, and its lines
+     would be read (and pasted back) as paragraphs, blank lines collapsed */
+  var pre = upTo(r.commonAncestorContainer, function(x){ return x.nodeName === "PRE"; });
+  if(pre){
+    var w = document.createElement("pre");
+    if(pre.getAttribute("data-lang")) w.setAttribute("data-lang", pre.getAttribute("data-lang"));
+    w.appendChild(r.cloneContents());
+    box.appendChild(w);
+  } else box.appendChild(r.cloneContents());
   var blocks = SlateDocMd.fromDom(box, "live");
   if(!blocks.length) return;
   var html = document.createElement("div");
