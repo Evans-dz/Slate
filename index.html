@@ -661,11 +661,15 @@ tr:hover .rowx{opacity:1}
   position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
   background:var(--ink);color:var(--paper);font-size:13px;
   padding:8px 14px;border-radius:var(--radius);z-index:90;
-  opacity:0;pointer-events:none;transition:opacity .16s;max-width:88vw;
+  opacity:0;pointer-events:none;max-width:88vw;
+  /* hidden, not just transparent, once it has faded: a see-through Undo button
+     still took taps and Tab focus, and brought a deleted task back later */
+  visibility:hidden;transition:opacity .16s,visibility 0s linear .16s;
 }
-#toast.on{opacity:1}
+#toast.on{opacity:1;visibility:visible;transition-delay:0s}
+#toast.act{display:flex;align-items:center;gap:14px}
 /* a toast that offers an action (Undo) has to be tappable while it's up */
-#toast.act{pointer-events:auto;display:flex;align-items:center;gap:14px}
+#toast.on.act{pointer-events:auto}
 .toastbtn{
   color:var(--paper);font-weight:600;text-decoration:underline;text-underline-offset:3px;
   padding:6px 4px;margin:-6px -4px;min-height:32px;
@@ -712,6 +716,7 @@ tr:hover .rowx{opacity:1}
   border:1px solid var(--note-edge);overflow:hidden;background:var(--paper);
 }
 .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb.up{display:flex;align-items:center;justify-content:center;font-size:10.5px;color:var(--muted)}
 .thumb button{
   position:absolute;top:1px;right:1px;width:17px;height:17px;
   border-radius:50%;background:rgba(20,19,17,.72);color:#fff;
@@ -2560,7 +2565,7 @@ var S = {
   tab:"board",
   q:"",
   tag:null,
-  capImages:[],
+  capBatch:{ ids:[], pending:0, waits:[], noteId:null },   // the photos in the capture box
   capProj:null, capSpace:null,   // capture box pickers; cleared after every save
   doc:null,                      // a doc opened as a tab inside its project
   todaySec:null,                 // section the Today page should scroll to, from a notification link
@@ -2638,12 +2643,15 @@ function toast(msg, action){
   t.classList.toggle("act", !!action);
   if(action){
     var b = el("button","toastbtn", action.label);
-    b.onclick = function(){ clearTimeout(toastT); t.classList.remove("on"); action.fn(); };
+    b.onclick = function(){
+      b.onclick = null;                    // one undo per toast
+      clearTimeout(toastT); t.classList.remove("on", "act"); action.fn();
+    };
     t.appendChild(b);
   }
   t.classList.add("on");
   clearTimeout(toastT);
-  toastT = setTimeout(function(){ t.classList.remove("on"); }, action ? 6000 : 2600);
+  toastT = setTimeout(function(){ t.classList.remove("on", "act"); }, action ? 6000 : 2600);
 }
 /* One strip, three things that want it. Highest wins, and a lower one never
    erases a higher one — the update notice in particular carries a click handler
@@ -3095,7 +3103,7 @@ function createProject(name){
       createdAt: nowISO(),
       createdBy: S.uid || null
     });
-  }).then(function(){ S.sel = id; S.tab = "board"; render(); });
+  }).then(function(){ goView(id, "board"); });
 }
 function deleteProject(id){
   if(!writable()) return;
@@ -3348,9 +3356,8 @@ function convertProspect(id){
     });
   }).then(function(){
     deleteProspect(id);
-    S.sel = pid; S.space = null; S.tab = "board";
+    goView(pid, "board");
     toast("Welcome aboard, " + (p.company || "new client"));
-    render();
   });
 }
 
@@ -3561,7 +3568,9 @@ function renderHead(){
   headEl.appendChild(row);
 
   if(S.sel === "dash"){
-    renderDashHead();
+    /* a search replaces the dashboard's body, and its results ignore the lens and
+       range — so those controls go while it's up */
+    if(!S.q) renderDashHead();
     return;
   }
   if(S.sel === "all"){
@@ -4927,7 +4936,7 @@ function dashOccRow(s, dateStr){
   if(sn) meta.appendChild(el("span","chip", sn));
   main.appendChild(meta);
   main.onclick = function(){
-    if(s.projectId) goView(s.projectId, "calendar");
+    if(s.projectId) calGo(s.projectId, dateStr);
   };
   row.appendChild(main);
   return row;
@@ -5662,7 +5671,7 @@ function wNext(m){
   var items = m.soon.map(function(t){ return { d: t.due, t: t }; })
     .concat(m.chaseSoon.map(function(p){ return { d: p.next, p: p }; }));
   items.sort(function(a, b){ return a.d < b.d ? -1 : a.d > b.d ? 1 : 0; });
-  var toCal = function(){ goView("all", "calendar"); };
+  var toCal = function(){ calGo("all", m.todayS); };
   var card = wcard({ id: "wc-next", title: "Next 7 days", count: items.length,
     sub: m.who ? lensText(m.who) + " · chases are shared" : "Everyone",
     action: { label: "Calendar", run: toCal } });
@@ -5678,7 +5687,7 @@ function wNext(m){
         last = it.d;
         var h = el("button","dgroup", relDay(it.d, m.todayS) + " · " + perDay[it.d]);
         h.title = "Open the calendar";
-        h.onclick = toCal;
+        h.onclick = (function(d){ return function(){ calGo("all", d); }; })(it.d);
         list.appendChild(h);
       }
       list.appendChild(it.t
@@ -6428,16 +6437,35 @@ function schedWhen(s){
   return days.map(function(d){ return DOW[d]; }).join(" ") || "No days set";
 }
 
+/* open a calendar on a given day, not whatever month it was last left on */
+function calGo(sel, ds){
+  S.calMonth = calMonthOf(ds);
+  S.calDay = ds;
+  S.calAdd = null;
+  goView(sel, "calendar");
+}
+/* A typed-but-unsaved task in the add field is saved before any calendar
+   navigation throws the field away. On touch, the tap on another day renders
+   before the field's blur gets to save, and the words simply vanished. */
+function calFlushAdd(){
+  var st = S.calAdd;
+  S.calAdd = null;
+  if(st && st.sel === S.sel && st.text && st.text.trim()){
+    var v = st.text.trim();
+    st.text = "";                      // the field's own blur must not save it again
+    calAddTask(st.day, v, currentProject() || st.proj || null);
+  }
+}
 function calShowMonth(m){
   S.calMonth = new Date(m.getFullYear(), m.getMonth(), 1);
   S.calDay = calDefaultDay(S.calMonth, calToday());
-  S.calAdd = null;
+  calFlushAdd();
   render();
 }
 /* a day from a neighbouring month's spill-over brings that month into view */
 function calSelect(ds, focus){
   S.calMonth = calMonthOf(ds);
-  if(S.calDay !== ds) S.calAdd = null;
+  if(S.calDay !== ds) calFlushAdd();
   S.calDay = ds;
   S.calFocus = !!focus;
   render();
@@ -6533,7 +6561,7 @@ function calBar(m, proj){
     var t = calToday();
     S.calMonth = calMonthOf(t);
     S.calDay = t;
-    S.calAdd = null;
+    calFlushAdd();
     render();
   };
   var next = icoBtn("nav","right","Next month");
@@ -6633,7 +6661,7 @@ function calChip(it, inMonth){
     e.stopPropagation();
     /* select its day too, so closing the sheet leaves you looking at it — but not
        from a neighbouring month's spill-over, which would swap the month under you */
-    if(inMonth && S.calDay !== it.ds){ S.calDay = it.ds; S.calAdd = null; render(); }
+    if(inMonth && S.calDay !== it.ds){ S.calDay = it.ds; calFlushAdd(); render(); }
     calOpenItem(it);
   };
   return o;
@@ -6816,7 +6844,7 @@ function calAddForm(box, ds, proj, st, todayS){
   var closed = false, cancelling = false;
   function save(){
     var v = inp.value.trim();
-    if(!v) return;
+    if(!v || !st.text) return;         // empty, or already saved by calFlushAdd
     /* cleared before the write, so the blur that iOS fires right behind Enter
        finds nothing left to save — the same trap commitProject guards against */
     inp.value = ""; st.text = "";
@@ -7082,8 +7110,9 @@ function updateCapture(){
   fillCapturePickers();
 }
 function drawCapThumbs(){
+  var batch = S.capBatch;
   capThumbs.textContent = "";
-  S.capImages.forEach(function(id){
+  batch.ids.forEach(function(id){
     var w = el("div","thumb");
     var im = document.createElement("img");
     im.src = SlateStore.blobUrl(id); im.alt = "";
@@ -7091,19 +7120,26 @@ function drawCapThumbs(){
     var x = el("button"); x.appendChild(ico("x","sm"));
     x.setAttribute("aria-label","Remove image");
     x.onclick = function(){
-      S.capImages = S.capImages.filter(function(i){ return i !== id; });
+      batch.ids = batch.ids.filter(function(i){ return i !== id; });
       drawCapThumbs();
       if(S.assets) S.assets.delete(id).catch(function(){});
     };
     w.appendChild(x);
     capThumbs.appendChild(w);
   });
+  for(var i = 0; i < batch.pending; i++){
+    var w = el("div","thumb up");
+    w.appendChild(el("span", null, "Uploading"));
+    capThumbs.appendChild(w);
+  }
 }
+/* one promise per image; each settles once that upload is done or has failed */
 function uploadImages(files, onId){
-  if(!S.assets || !files || !files.length) return;
+  if(!S.assets || !files || !files.length) return [];
+  var out = [];
   Array.prototype.slice.call(files).forEach(function(f){
     if(!/^image\//.test(f.type)) return;
-    S.assets.upload(f).then(function(r){ onId(r.id); }).catch(function(e){
+    out.push(S.assets.upload(f).then(function(r){ onId(r.id); }).catch(function(e){
       var c = (e && e.code) || "";
       if(c === "too_large") toast("That image is too big. 20 MB is the limit.");
       else if(c === "unsupported_type") toast("That file type can't be attached.");
@@ -7111,28 +7147,67 @@ function uploadImages(files, onId){
       else if(c === "rate_limited") toast("Slow down a moment — too many uploads.");
       else if(c === "offline") toast("Images need a connection. Your text saves now — add the photo when you're back.");
       else toast("That image didn't upload.");
+    }));
+  });
+  return out;
+}
+/* Photos belong to the capture they were picked for. An upload still running
+   when Enter is pressed used to land in the NEXT note, because it pushed into
+   whatever the capture box held by the time it finished. Now each upload
+   carries its batch: if that batch's note has already been written, the photo
+   is added to that note; otherwise it waits in the box as before. */
+function capAddFiles(files){
+  var batch = S.capBatch;
+  var waits = uploadImages(files, function(id){
+    if(batch.noteId){
+      var n = findNote(batch.noteId);
+      var imgs = ((n && n.images) || []).slice();
+      if(imgs.indexOf(id) === -1) imgs.push(id);
+      patchNote(batch.noteId, { images: imgs });
+    } else {
+      batch.ids.push(id);
+    }
+  });
+  batch.pending += waits.length;
+  waits.forEach(function(w){
+    w.then(function(){
+      batch.pending--;
+      if(batch === S.capBatch) drawCapThumbs();
     });
   });
+  batch.waits = batch.waits.concat(waits);
+  drawCapThumbs();
 }
 function doCapture(){
   var text = capInput.value;
-  if(!text.trim() && !S.capImages.length) return;
-  var imgs = S.capImages.slice();
+  var batch = S.capBatch;
+  if(!text.trim() && !batch.ids.length && !batch.pending) return;
   var proj = captureProject();
   var space = proj ? (S.capSpace || null) : null;
+  S.capBatch = { ids:[], pending:0, waits:[], noteId:null };
   capInput.value = "";
-  S.capImages = [];
   drawCapThumbs();
   autosize(capInput);
   /* every note is filed deliberately, so the pickers start empty again */
   resetCapturePickers();
-  captureNote(text, imgs, proj, space).then(function(){
+  /* A photo alone, still uploading, has nothing to save yet: wait for it. With
+     any text the note is written now, so the words are safe even if the upload
+     never finishes, and late photos join it as they land. */
+  var ready = (!text.trim() && !batch.ids.length)
+    ? Promise.all(batch.waits)
+    : Promise.resolve();
+  ready.then(function(){
+    var before = captureNote.lastId;
+    var p = captureNote(text, batch.ids.slice(), proj, space);
+    // lastId only moves when a note was actually written (not for a failed photo alone)
+    batch.noteId = captureNote.lastId !== before ? captureNote.lastId : null;
+    return p;
+  }).then(function(){
     /* filing it into a project puts it on that board's first column too, with the
        note kept whole behind the card */
     if(!proj) return;
-    var noteId = captureNote.lastId;
-    var n = null;
-    for(var i=0;i<S.notes.length;i++) if(S.notes[i].id === noteId) n = S.notes[i];
+    var noteId = batch.noteId;
+    var n = findNote(noteId);
     if(!n) return;
     createTask(taskTitleFor(n), null, proj, space, noteId);
     toast("Saved, and added to " + (columnName(proj, space, firstColumnId(proj, space)) || "the board"));
@@ -7155,7 +7230,7 @@ capInput.addEventListener("keydown", function(e){
 capInput.addEventListener("paste", function(e){
   var items = e.clipboardData && e.clipboardData.files;
   if(items && items.length && S.assets){
-    uploadImages(items, function(id){ S.capImages.push(id); drawCapThumbs(); });
+    capAddFiles(items);
   }
 });
 capSave.addEventListener("click", doCapture);
@@ -7163,7 +7238,7 @@ capSave.addEventListener("click", doCapture);
    came in by paste or drag-and-drop */
 $("#capFile").addEventListener("change", function(e){
   var files = e.target.files;
-  if(files && files.length) uploadImages(files, function(id){ S.capImages.push(id); drawCapThumbs(); });
+  if(files && files.length) capAddFiles(files);
   e.target.value = "";              // the same photo can be picked again
 });
 ["dragenter","dragover"].forEach(function(ev){
@@ -7177,7 +7252,7 @@ $("#capFile").addEventListener("change", function(e){
 });
 capEl.addEventListener("drop", function(e){
   if(e.dataTransfer && e.dataTransfer.files && S.assets){
-    uploadImages(e.dataTransfer.files, function(id){ S.capImages.push(id); drawCapThumbs(); });
+    capAddFiles(e.dataTransfer.files);
   }
 });
 
@@ -7335,6 +7410,7 @@ prospectDlg.onmousedown = function(e){ if(e.target === prospectDlg){ saveProspec
 
 /* ============ task sheet ============ */
 var taskDlg = $("#taskDlg"), tkId = null, tkOwnerIds = [];
+var tkBase = null;   // the sheet's fields as they were when it opened
 
 function findTask(id){
   for(var i=0;i<S.tasks.length;i++) if(S.tasks[i].id === id) return S.tasks[i];
@@ -7403,18 +7479,14 @@ function openTask(id){
   $("#tkSave").style.display = ro ? "none" : "";
   $("#tkDelete").style.display = ro ? "none" : "";
 
+  tkBase = tkForm();
   taskDlg.classList.add("on");
   if(!ro && isPhone()) $("#tkName").focus();
 }
-/* What the sheet would write, compared with what the task holds — only a real
-   difference is worth a write. Status is compared against columnOf(), not the
-   raw field, because a status matching no column is shown as the first one and
-   would otherwise register as a change every time the sheet closed. */
-function tkPending(){
-  var t = findTask(tkId);
-  if(!t || !writable()) return null;
-  var want = {
-    title: $("#tkName").value.trim() || t.title || "",   // an emptied name keeps the old one
+/* What the sheet shows, in the shape of a task patch. */
+function tkForm(){
+  return {
+    title: $("#tkName").value.trim(),
     notes: $("#tkNotes").value.trim() || null,
     status: $("#tkStatus").value,
     due: $("#tkDue").value || null,
@@ -7422,12 +7494,27 @@ function tkPending(){
     spaceId: $("#tkSpace").value || null,
     assignee: $("#tkOwner").value || null
   };
+}
+/* What the sheet would write: only fields the user changed since the sheet
+   opened (tkBase), and only where that still differs from the task now.
+   Diffing against the live task alone counted every field the other person
+   changed while the sheet was open as an edit here, so merely closing the
+   sheet wrote the stale copy back — un-finishing a task Zac had just ticked.
+   Status is compared as columnOf(), not the raw field, because a status
+   matching no column is shown as the first one. */
+function tkPending(){
+  var t = findTask(tkId);
+  if(!t || !writable() || !tkBase) return null;
+  var want = tkForm();
+  if(!want.title) want.title = tkBase.title;   // an emptied name keeps the old one
   var have = {
     title: t.title || "", notes: t.notes || null, status: columnOf(t), due: t.due || null,
     projectId: t.projectId || null, spaceId: t.spaceId || null, assignee: t.assignee || null
   };
   var changed = {};
-  Object.keys(want).forEach(function(k){ if(want[k] !== have[k]) changed[k] = want[k]; });
+  Object.keys(want).forEach(function(k){
+    if(want[k] !== tkBase[k] && want[k] !== have[k]) changed[k] = want[k];
+  });
   return Object.keys(changed).length ? changed : null;
 }
 /* Every way out of the sheet keeps what was typed — Close, tapping outside,
@@ -7439,6 +7526,7 @@ function closeTask(save){
   }
   taskDlg.classList.remove("on");
   tkId = null;
+  tkBase = null;
 }
 
 $("#tkProj").onchange = tkSyncSpaces;
@@ -9394,10 +9482,10 @@ if("serviceWorker" in navigator){
     try{
       var q = new URL(m.url, location.origin).searchParams;
       if(q.get("view") === "today"){
-        S.sel = "today";
-        S.todaySec = q.get("sec");
         S.q = "";
-        render();
+        $("#search").value = "";
+        S.todaySec = q.get("sec");
+        goView("today");
       }
     }catch(err){}
   });
@@ -9473,7 +9561,24 @@ function docsToArray(snap){
   function mark(k){
     got[k] = true;
     if(got.projects && got.spaces && got.tasks && got.notes && got.schedules && got.prospects) S.ready = true;
+    if(S.ready && holdForTyping()) return;
     render();
+  }
+  /* The calendar's add field is rebuilt by every render, and on an iPhone
+     rebuilding a focused input drops the keyboard mid-word — and the other
+     person's autosaves arrive about once per pause in their typing. So their
+     changes wait until this field loses focus, then draw in one go. */
+  var held = false;
+  function holdForTyping(){
+    var a = document.activeElement;
+    if(!a || !a.classList || !a.classList.contains("cpinput")) return false;
+    if(!held){
+      held = true;
+      a.addEventListener("blur", function(){
+        setTimeout(function(){ held = false; render(); }, 0);
+      }, { once:true });
+    }
+    return true;
   }
 
   db.collection("projects").onSnapshot(function(snap){

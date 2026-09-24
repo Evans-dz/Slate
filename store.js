@@ -345,12 +345,36 @@ window.SlateStore = (function () {
               });
             });
           }, Promise.resolve()).then(function () {
+            return ok && pendingCount() ? pruneMirror() : null;
+          }).then(function () {
             if (!pendingCount()) { backoff = 2000; resyncSoon(); return; }
             // what's left arrived during this pass, after its snapshot was taken
             if (ok) { setTimeout(function () { scheduleFlush(0); }, 1000); return; }
             backoff = Math.min(60000, Math.round(backoff * 1.8));
             setTimeout(function () { scheduleFlush(0); }, backoff);
           });
+        })
+        .catch(function () {});
+    }
+
+    /* A Safari tab and the installed app share this IndexedDB, so the other one
+       can send and delete a record this one still mirrors in `pending`. That
+       entry would never clear: the banner stuck on "1 change waiting", realtime
+       ignored for that document, and this pass re-run every second. The mirror
+       is only ever set after its put() commits, so a mirrored entry with no
+       record behind it has been sent by someone — forget it. */
+    function pruneMirror() {
+      return idbDo("outbox", "readonly", function (s) { return s.getAllKeys(); })
+        .then(function (keys) {
+          var have = {};
+          (keys || []).forEach(function (k) { have[k] = true; });
+          Object.keys(pending).forEach(function (col) {
+            Object.keys(pending[col]).forEach(function (id) {
+              if (!have[col + " " + id]) delete pending[col][id];
+            });
+            if (!Object.keys(pending[col]).length) delete pending[col];
+          });
+          report();
         })
         .catch(function () {});
     }

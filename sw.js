@@ -59,7 +59,8 @@ function cacheFirst(req) {
    hanging for a minute rather than failing. Past the timeout, the cached copy
    answers and the fetch keeps going in the background to refresh the cache. */
 var NET_TIMEOUT = 4000;
-function networkFirst(req) {
+var staleClients = {};   // client id -> true when that page's HTML came from the cache
+function networkFirst(req, timeout, onCache) {
   var fresh = fetch(req).then(function (res) {
     if (res.ok) {
       var copy = res.clone();
@@ -69,17 +70,17 @@ function networkFirst(req) {
   });
   fresh.catch(function () {});        // may lose the race and fail later, unobserved
   var timedOut = new Promise(function (resolve, reject) {
-    setTimeout(function () { reject(new Error("slow")); }, NET_TIMEOUT);
+    setTimeout(function () { reject(new Error("slow")); }, timeout || NET_TIMEOUT);
   });
   return Promise.race([fresh, timedOut]).catch(function () {
     /* Offline. A push deep link is "/?view=today", which matches no cache key on
        its own — caches.match is query-sensitive — so fall back through the same
        URL ignoring its query, then to the shell. */
     return caches.match(req).then(function (hit) {
-      if (hit) return hit;
+      if (hit) { if (onCache) onCache(); return hit; }
       return caches.match(req, { ignoreSearch: true }).then(function (h2) {
-        if (h2) return h2;
-        if (req.mode === "navigate") return caches.match("/");
+        if (h2) { if (onCache) onCache(); return h2; }
+        if (req.mode === "navigate") { if (onCache) onCache(); return caches.match("/"); }
         return fresh;                    // nothing cached: wait for the network after all
       });
     });
@@ -95,9 +96,15 @@ self.addEventListener("fetch", function (e) {
   // Supabase: auth-bearing and live. Never cache, never serve stale.
   if (url.hostname.indexOf("supabase.co") > -1) return;
 
-  // Navigations: network first so a new deploy lands, cache as the offline fallback.
+  /* Navigations: network first so a new deploy lands, cache as the offline
+     fallback. Which one answered is remembered per page, so that page's code
+     comes from the same place: on one bar of signal the big HTML can miss the
+     timeout while the small store.js makes it, and the page and its platform
+     layer would come from two different builds. */
   if (req.mode === "navigate") {
-    e.respondWith(networkFirst(req));
+    var cid = e.resultingClientId;
+    if (cid) delete staleClients[cid];
+    e.respondWith(networkFirst(req, NET_TIMEOUT, function () { if (cid) staleClients[cid] = true; }));
     return;
   }
 
@@ -108,7 +115,10 @@ self.addEventListener("fetch", function (e) {
      two different builds. Nothing here is fingerprinted, so nothing here can be
      trusted to be immutable. */
   if (url.origin === location.origin && !/^\/icons\//.test(url.pathname)) {
-    e.respondWith(networkFirst(req));
+    if (e.clientId && staleClients[e.clientId]) { e.respondWith(cacheFirst(req)); return; }
+    /* a page that loaded fresh had a working network a moment ago: give its code
+       longer before falling back to a cached copy from another build */
+    e.respondWith(networkFirst(req, e.clientId ? 10000 : NET_TIMEOUT));
     return;
   }
 
