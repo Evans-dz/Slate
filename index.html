@@ -129,11 +129,12 @@
   --acc-d:#0E7C86; --acc-ink-d:#6FD2DA; --acc-soft-d:#17363A; --on-acc-d:#FFFFFF;
 }
 :root[data-accent="ember"]{
-  --acc-l:#C2410C; --acc-ink-l:#A8380A; --acc-soft-l:#FDEDE4; --on-acc-l:#FFFFFF;
-  --acc-d:#C2440F; --acc-ink-d:#FFAE85; --acc-soft-d:#3D281E; --on-acc-d:#FFFFFF;
+  /* amber-leaning, so an Ember accent never reads as --danger beside a late date */
+  --acc-l:#A85A0A; --acc-ink-l:#8F4A0A; --acc-soft-l:#FEF1E1; --on-acc-l:#FFFFFF;
+  --acc-d:#B45309; --acc-ink-d:#FCC27A; --acc-soft-d:#3D2A1A; --on-acc-d:#FFFFFF;
 }
 :root[data-accent="rose"]{
-  --acc-l:#C0265E; --acc-ink-l:#A61F50; --acc-soft-l:#FCE7EF; --on-acc-l:#FFFFFF;
+  --acc-l:#B3196E; --acc-ink-l:#9A1560; --acc-soft-l:#FCE7EF; --on-acc-l:#FFFFFF;
   --acc-d:#CC3068; --acc-ink-d:#FFA3C3; --acc-soft-d:#3F2231; --on-acc-d:#FFFFFF;
 }
 :root[data-accent="forest"]{
@@ -289,6 +290,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .viewswitch{
   margin-left:auto;display:flex;gap:4px;align-self:center;
   padding-bottom:5px;flex:0 0 auto;
+  position:sticky;right:0;background:var(--paper);padding-left:10px;
 }
 /* icon plus its name: these four switch the whole view, and as bare glyphs
    nobody could tell ▣ from ◈ without hovering for the tooltip */
@@ -329,7 +331,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
   letter-spacing:-.015em;
 }
 .docpage-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
-.docpage-head .btn{margin-left:auto}
+.docpage-acts{margin-left:auto;display:flex;gap:8px;align-items:center}
 .docpage{
   display:flex;flex-direction:column;gap:10px;max-width:760px;
 }
@@ -345,13 +347,20 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .btn:hover{border-color:var(--accent);color:var(--accent-ink)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .btn.primary:hover{box-shadow:0 0 0 3px var(--accent-soft);color:var(--on-accent);border-color:var(--accent)}
-.btn.quiet{border-color:transparent;color:var(--muted)}
+.btn.quiet{border-color:transparent;color:var(--muted);background:transparent}
 .btn.quiet:hover{border-color:var(--line);color:var(--ink)}
 .btn.danger:hover{border-color:var(--danger);color:var(--danger)}
 
-.tabs{display:flex;gap:2px;margin:16px 0 0;border-bottom:1px solid var(--line);align-items:flex-end}
+/* The row scrolls sideways at every width, with the view switch pinned at its
+   right end: spaces plus doc tabs ran off an iPad portrait screen (744-834px)
+   and pushed Calendar and Notes out of reach. */
+.tabs{
+  display:flex;gap:2px;margin:16px 0 0;border-bottom:1px solid var(--line);align-items:flex-end;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none}
 .tab{
-  padding:7px 12px;font-size:13.5px;color:var(--muted);
+  padding:7px 12px;font-size:13.5px;color:var(--muted);white-space:nowrap;flex:0 0 auto;
   border-bottom:2px solid transparent;margin-bottom:-1px;
 }
 .tab:hover{color:var(--ink)}
@@ -546,7 +555,7 @@ tr:hover .rowx{opacity:1}
   border-top:1px solid var(--note-edge);padding-top:11px;margin-top:4px;
   font-size:12.5px;color:var(--muted);
 }
-#edProj{
+#edProj,#edSpace{
   border:1px solid var(--note-edge);background:transparent;
   border-radius:3px;padding:4px 7px;font-size:12.5px;font-family:var(--ui);
 }
@@ -646,9 +655,9 @@ tr:hover .rowx{opacity:1}
 .accsws{display:flex;gap:8px;flex-wrap:wrap}
 .accsw{
   width:28px;height:28px;border-radius:50%;position:relative;
-  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);
+  box-shadow:inset 0 0 0 1px var(--line-strong);
 }
-.accsw.on{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--ink)}
+.accsw.on{box-shadow:0 0 0 2px var(--raised),0 0 0 4px var(--ink)}
 .accsw .ico{position:absolute;inset:0;margin:auto;width:14px;height:14px;stroke-width:2.8}
 #umenu .signout{
   display:flex;align-items:center;gap:8px;width:100%;padding:8px 6px;margin-top:2px;
@@ -702,13 +711,17 @@ tr:hover .rowx{opacity:1}
    real tap on it, more reliably than from a scripted click() */
 .capphoto{display:inline-flex;align-items:center;gap:6px;cursor:pointer;position:relative}
 .capphoto input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.capphoto[hidden]{display:none}
+/* focus lands on the invisible input, so the label wears the ring */
+.capphoto:focus-within{outline:2px solid var(--accent-ink);outline-offset:2px}
+.capacts{margin-left:auto;display:flex;gap:8px;align-items:center}
 #capProj,#capSpace{
   border:1px solid var(--line-strong);background:transparent;
   border-radius:3px;padding:3px 6px;font-size:12px;font-family:var(--ui);
   max-width:46%;
 }
 #capProj:focus,#capSpace:focus{border-color:var(--accent);outline:none}
-#capFoot .btn{margin-left:auto;padding:3px 10px;font-size:12.5px}
+#capFoot .btn{padding:3px 10px;font-size:12.5px}
 #capThumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 #capThumbs:empty{margin:0}
 .thumb{
@@ -837,6 +850,8 @@ tr:hover .rowx{opacity:1}
 .calday:hover{background:var(--panel-2)}
 .calday.off{background:var(--paper)}
 .calday.sel{box-shadow:inset 0 0 0 2px var(--accent)}
+/* the ring needs the plain panel under it: on the hover wash it fell below 3:1 in dark */
+.calday.sel:hover{background:var(--panel)}
 .calday .chead{display:flex;align-items:center;gap:4px;min-width:0}
 .calday .dn{
   flex:0 0 auto;display:flex;flex-direction:column;align-items:center;
@@ -848,7 +863,7 @@ tr:hover .rowx{opacity:1}
   font-size:12.5px;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink-2);
 }
 .calday .dn:hover .dnum{background:var(--line-soft)}
-.calday.off .dnum{color:var(--faint)}
+.calday.off .dnum{color:var(--muted)}
 .calday.today .dnum,
 .calday.today .dn:hover .dnum{background:var(--accent);color:var(--on-accent);font-weight:600;opacity:1}
 .calday .dots{display:none}
@@ -864,6 +879,7 @@ tr:hover .rowx{opacity:1}
 .occ.done{background:var(--line-soft);border-color:transparent;color:var(--muted);text-decoration:line-through}
 .occ.task.done{background:transparent}
 .occ.late{background:transparent;border-color:var(--danger);color:var(--danger)}
+.occ .late-ico{width:11px;height:11px;flex:0 0 auto;stroke-width:2.2}
 .calday .cmore{
   margin-left:auto;min-width:0;padding:2px 6px;border-radius:4px;
   font-size:11px;font-weight:500;line-height:1.3;color:var(--muted);
@@ -926,9 +942,9 @@ tr:hover .rowx{opacity:1}
 .cpform{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:2px}
 .cpinput{
   flex:1 1 100%;min-width:0;padding:6px 9px;font-size:13.5px;
-  border:1px solid var(--accent);border-radius:var(--radius);background:var(--paper);
+  border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);
 }
-.cpinput:focus{outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.cpinput:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .cpproj{
   flex:1 1 120px;min-width:0;padding:5px 7px;font-size:13px;
   border:1px solid var(--line);border-radius:var(--radius);background:var(--paper);
@@ -1001,7 +1017,7 @@ tr:hover .rowx{opacity:1}
 #editor.doc #edBody{min-height:440px;font-size:15.5px}
 #editor.doc #edRule{background:var(--line)}
 #editor.doc #edFoot{border-top-color:var(--line)}
-#editor.doc #edProj{border-color:var(--line)}
+#editor.doc #edProj,#editor.doc #edSpace{border-color:var(--line)}
 .modeswitch{display:flex;gap:2px;margin-right:auto}
 .modeswitch button{
   font-size:12px;padding:3px 9px;border-radius:3px;color:var(--muted);
@@ -1112,6 +1128,7 @@ tr:hover .rowx{opacity:1}
   border:solid var(--on-accent);border-width:0 2px 2px 0;transform:rotate(45deg);
 }
 #edRich li[data-task="1"]{color:var(--muted)}
+#edRich li[data-task="1"] span[style*="rgb(255, 229, 102)"],#edRich li[data-task="1"] span[style*="rgb(255,229,102)"]{color:var(--ink-2)!important}
 #edRich li[data-task="1"] li{color:var(--ink)}
 #edRich blockquote{margin-left:0;margin-right:0;padding-left:14px;border-left:3px solid var(--quote-bar);color:var(--ink-2)}
 #edRich pre{
@@ -1175,14 +1192,18 @@ tr:hover .rowx{opacity:1}
 .blkhr{padding-right:0}
 .blk hr{border:0;border-top:1px solid var(--line);margin:10px 0}
 .blk mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 .08em}
+/* a ticked item is --muted, which is too faint on --mark in dark mode */
+.blk li.task.done mark{color:var(--ink-2)}
 .blk code{
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em;
   background:var(--code-bg);border-radius:3px;padding:.08em .3em;
 }
 .blk pre{background:var(--code-bg);border-color:var(--line-soft)}
-.blk a.mdlink{color:var(--accent-ink);text-underline-offset:2px}
+/* every link in a doc, including bare URLs made live by richText, not only
+   [text](url) ones — those were the browser's own blue and purple */
+.blk a{color:var(--accent-ink);text-underline-offset:2px}
 .blk.heading .blkcopy{top:12px}
-.docpage-head .btn + .btn{margin-left:0}
+
 
 /* ---------- whiteboard ---------- */
 /* NOT ".board" — that's the kanban container at the top of this file, and sharing
@@ -1736,6 +1757,9 @@ body.dragging-now .board{scroll-snap-type:none}
 /* narrow tablets: ~500-600px of content (the calendar's narrow rules live in its
    own section) */
 @media (max-width:900px) and (min-width:721px){
+  /* iPad portrait: the view buttons go back to icons so the tabs keep the room */
+  .vbtn{width:36px;height:36px;padding:0;justify-content:center}
+  .vbtn .vlabel{display:none}
   /* ---- dashboard (redesign): ~500-600px of content ---- */
   .dtiles{grid-template-columns:repeat(2,minmax(0,1fr))}
   .dband2{grid-template-columns:minmax(0,1fr)}
@@ -1752,12 +1776,13 @@ body.dragging-now .board{scroll-snap-type:none}
   #rail{
     position:fixed;top:0;left:0;bottom:0;width:min(84vw,300px);z-index:50;
     transform:translateX(-100%);transition:transform .2s ease;
-    box-shadow:var(--shadow-lg);
+    /* no shadow while closed: its blur spilled a grey band down the page's left edge */
+    box-shadow:none;
     padding-top:calc(14px + env(safe-area-inset-top));
     padding-bottom:calc(28px + env(safe-area-inset-bottom));
     overscroll-behavior:contain;
   }
-  #rail.open{transform:none}
+  #rail.open{transform:none;box-shadow:var(--shadow-lg)}
   #railScrim{
     display:none;position:fixed;inset:0;z-index:45;
     background:var(--scrim);
@@ -1785,7 +1810,7 @@ body.dragging-now .board{scroll-snap-type:none}
   #capture{margin:12px 15px 0;padding:11px 13px 10px}
   #capInput{font-size:16px;min-height:40px}
   #capFoot .btn{padding:8px 15px;font-size:14px;min-height:38px}
-  #capProj,#capSpace{font-size:16px;padding:7px 8px;min-height:38px;flex:1 1 40%;max-width:none}
+  #capProj,#capSpace{font-size:16px;padding:7px 8px;min-height:38px;flex:1 1 40%;max-width:none;min-width:0}
   #capHint{flex:1 1 100%;order:9}
   .thumb button{width:26px;height:26px;font-size:15px;line-height:26px;top:3px;right:3px}
   #mainbody{padding:14px 15px 28px}
@@ -1797,10 +1822,8 @@ body.dragging-now .board{scroll-snap-type:none}
   .head-actions .btn{min-height:38px;padding:7px 13px;font-size:13.5px}
   .title-row{gap:8px}
 
-  .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-  .tabs::-webkit-scrollbar{display:none}
-  .tab{padding:10px 13px;font-size:14px;flex:0 0 auto}
-  .viewswitch{margin-left:12px;position:sticky;right:0;background:var(--paper);padding-left:6px}
+  .tab{padding:10px 13px;font-size:14px}
+  .viewswitch{margin-left:12px;padding-left:6px}
   /* back to square icons on a phone: the row already scrolls sideways, and the
      bottom bar names these same views anyway */
   .vbtn{width:36px;height:36px;padding:0;justify-content:center;font-size:15px}
@@ -1849,9 +1872,15 @@ body.dragging-now .board{scroll-snap-type:none}
   .dtick::after,.dassign::after{content:"";position:absolute;inset:-9px}
   .dspace{width:22px}
   .dpick{min-height:38px;padding-left:12px}
-  .dpick button{width:34px;height:34px}
+  .dpick button{width:38px;height:38px}
   .dchip{min-height:38px;font-size:13.5px;padding-left:13px}
-  .dchip button{width:34px;height:34px}
+  .dchip button{width:38px;height:38px}
+  /* account menu: finger-sized, and the seven swatches still fit one row — each
+     keeps its 28px look with a 38px target around it */
+  #umenu .seg button{min-height:38px}
+  #umenu .signout{min-height:42px}
+  .accsws{gap:10px}
+  .accsw::after{content:"";position:absolute;inset:-5px}
   /* projects: name and % / a full-width bar / the numbers as one line */
   .pth{display:none}
   .ptr{grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;padding:11px 4px;font-size:14.5px}
@@ -1919,7 +1948,9 @@ body.dragging-now .board{scroll-snap-type:none}
   .calday .dots{display:flex;align-items:center;justify-content:center;gap:3px;height:6px}
   .calday .dot{width:6px;height:6px;border-radius:50%;background:var(--cp,var(--muted))}
   .calday .dot.done{opacity:.35}
-  .calday .dot.late{background:var(--danger)}
+  /* a diamond, not a dot: a shape as well as a colour, since red sits close to
+     some project hues (and to others under colour-blindness) */
+  .calday .dot.late{background:var(--danger);border-radius:1px;transform:rotate(45deg) scale(.9)}
   .calday .dot.over{background:transparent;box-shadow:inset 0 0 0 1px var(--muted)}
   .calday.off .dots{opacity:.5}
   .calpanel{padding:13px 10px 8px}
@@ -2044,6 +2075,7 @@ body.dragging-now .board{scroll-snap-type:none}
 
   #toast{bottom:calc(76px + env(safe-area-inset-bottom));font-size:14px;padding:10px 16px}
   .inline-edit,.rail-new input,.rail-sub input{font-size:16px;padding:7px 9px}
+  .tabnew{font-size:16px;min-height:38px}
   .rail-item{padding-top:9px;padding-bottom:9px;font-size:15px}
   .rail-sub .rail-item{font-size:14.5px}
   .rail-addspace{padding-top:9px;padding-bottom:9px;font-size:14px}
@@ -2146,11 +2178,13 @@ body.dragging-now .board{scroll-snap-type:none}
           <select id="capProj" aria-label="File this note under a project"></select>
           <select id="capSpace" aria-label="File this note under a space"></select>
           <span id="capHint">#tag anything · Shift+Enter for a new line · paste an image</span>
-          <label class="btn quiet capphoto" id="capPhoto" hidden>
-            <svg class="ico sm" aria-hidden="true"><use href="#i-camera"/></svg><span>Photo</span>
-            <input type="file" id="capFile" accept="image/*" multiple>
-          </label>
-          <button class="btn" id="capSave">Save</button>
+          <span class="capacts">
+            <label class="btn quiet capphoto" id="capPhoto" hidden>
+              <svg class="ico sm" aria-hidden="true"><use href="#i-camera"/></svg><span>Photo</span>
+              <input type="file" id="capFile" accept="image/*" multiple>
+            </label>
+            <button class="btn" id="capSave">Save</button>
+          </span>
         </div>
       </div>
       <div id="mainbody"></div>
@@ -3666,6 +3700,8 @@ function renderHead(){
         si.type = "text";
         si.placeholder = "Space name";
         si.setAttribute("aria-label","New space name");
+        si.value = S.newSpaceText || "";          // survives a live re-render
+        si.oninput = function(){ S.newSpaceText = si.value; };
         /* one shot, for the same reason the new-project field is — see there */
         var spaceCommitted = false;
         var forProject = S.sel;
@@ -3674,6 +3710,7 @@ function renderHead(){
           spaceCommitted = true;
           var v = si.value.trim();
           S.newSpaceFor = null;
+          S.newSpaceText = "";
           if(save && v) createSpace(forProject, v); else render();
         }
         si.onkeydown = function(e){
@@ -4553,8 +4590,8 @@ var ACCENTS = [
   { id:"cobalt",   label:"Cobalt",   light:"#2F5FD9", dark:"#3E68E0" },
   { id:"violet",   label:"Violet",   light:"#6A45D6", dark:"#7856E6" },
   { id:"teal",     label:"Teal",     light:"#0E7780", dark:"#0E7C86" },
-  { id:"ember",    label:"Ember",    light:"#C2410C", dark:"#C2440F" },
-  { id:"rose",     label:"Rose",     light:"#C0265E", dark:"#CC3068" },
+  { id:"ember",    label:"Ember",    light:"#A85A0A", dark:"#B45309" },
+  { id:"rose",     label:"Rose",     light:"#B3196E", dark:"#CC3068" },
   { id:"forest",   label:"Forest",   light:"#1B7A45", dark:"#1C7D47" },
   { id:"graphite", label:"Graphite", light:"#3D4350", dark:"#687080" }
 ];
@@ -4583,7 +4620,25 @@ function applyAppearance(){
   });
 }
 
-function openUserMenu(){
+/* A radio group the keyboard can drive: one tab stop (the checked option) and
+   arrow keys to move, like dashSeg(). Picking rebuilds the menu, so focus is
+   handed back by key (data-fkey) rather than to a node that no longer exists. */
+function umRadios(group, items){
+  items.forEach(function(it, i){
+    var b = it.b;
+    b.tabIndex = it.on ? 0 : -1;
+    b.dataset.fkey = it.key;
+    b.onkeydown = function(e){
+      var d = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1
+            : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+      if(!d) return;
+      e.preventDefault();
+      var nx = items[(i + d + items.length) % items.length];
+      nx.pick(nx.key);
+    };
+  });
+}
+function openUserMenu(focusKey){
   umenu.textContent = "";
   var r = whoBtn.getBoundingClientRect();
   var w = Math.min(window.innerWidth * 0.88, 290);
@@ -4602,14 +4657,17 @@ function openUserMenu(){
   th.appendChild(el("h4", null, "Theme"));
   var seg = el("div","seg");
   seg.setAttribute("role","radiogroup"); seg.setAttribute("aria-label","Theme");
-  var cur = prefGet("theme","system");
+  var cur = prefGet("theme","system"), themeItems = [];
   [["system","monitor","System"],["light","sun","Light"],["dark","moon","Dark"]].forEach(function(o){
     var b = el("button", cur === o[0] ? "on" : "");
     b.setAttribute("role","radio"); b.setAttribute("aria-checked", cur === o[0] ? "true" : "false");
     b.appendChild(ico(o[1],"sm")); b.appendChild(document.createTextNode(o[2]));
-    b.onclick = function(){ prefSet("theme", o[0]); applyAppearance(); openUserMenu(); };
+    var pick = function(key){ prefSet("theme", o[0]); applyAppearance(); openUserMenu(key); };
+    b.onclick = function(){ pick("um-theme-" + o[0]); };
+    themeItems.push({ b: b, on: cur === o[0], key: "um-theme-" + o[0], pick: pick });
     seg.appendChild(b);
   });
+  umRadios(seg, themeItems);
   th.appendChild(seg);
   umenu.appendChild(th);
 
@@ -4617,7 +4675,7 @@ function openUserMenu(){
   ac.appendChild(el("h4", null, "Accent"));
   var sw = el("div","accsws");
   sw.setAttribute("role","radiogroup"); sw.setAttribute("aria-label","Accent colour");
-  var curA = prefGet("accent", DEFAULT_ACCENT), dark = effectiveDark();
+  var curA = prefGet("accent", DEFAULT_ACCENT), dark = effectiveDark(), accItems = [];
   ACCENTS.forEach(function(a){
     var b = el("button","accsw" + (curA === a.id ? " on" : ""));
     b.style.background = dark ? a.dark : a.light;
@@ -4625,9 +4683,12 @@ function openUserMenu(){
     b.setAttribute("role","radio"); b.setAttribute("aria-checked", curA === a.id ? "true" : "false");
     b.setAttribute("aria-label", a.label); b.title = a.label;
     if(curA === a.id) b.appendChild(ico("check"));
-    b.onclick = function(){ prefSet("accent", a.id); applyAppearance(); openUserMenu(); };
+    var pick = function(key){ prefSet("accent", a.id); applyAppearance(); openUserMenu(key); };
+    b.onclick = function(){ pick("um-acc-" + a.id); };
+    accItems.push({ b: b, on: curA === a.id, key: "um-acc-" + a.id, pick: pick });
     sw.appendChild(b);
   });
+  umRadios(sw, accItems);
   ac.appendChild(sw);
   umenu.appendChild(ac);
 
@@ -4640,6 +4701,13 @@ function openUserMenu(){
   umenu.classList.add("on");
   whoBtn.setAttribute("aria-expanded","true");
   setTimeout(function(){ document.addEventListener("mousedown", outsideUser); }, 0);
+  /* opened from the keyboard, or rebuilt after a pick: focus goes into the menu */
+  if(focusKey){
+    var f = focusKey === "first"
+      ? umenu.querySelector('[role="radio"][tabindex="0"]')
+      : umenu.querySelector('[data-fkey="' + focusKey + '"]');
+    if(f) f.focus();
+  }
 }
 function outsideUser(e){
   if(!umenu.contains(e.target) && !whoBtn.contains(e.target)) closeUserMenu();
@@ -4649,9 +4717,9 @@ function closeUserMenu(){
   whoBtn.setAttribute("aria-expanded","false");
   document.removeEventListener("mousedown", outsideUser);
 }
-whoBtn.onclick = function(){
+whoBtn.onclick = function(e){
   if(umenu.classList.contains("on")) closeUserMenu();
-  else openUserMenu();
+  else openUserMenu(e && e.detail === 0 ? "first" : null);   // detail 0: Enter or Space, not a click
 };
 
 /* Signing out doesn't delete unsynced writes — the outbox keeps them on this
@@ -4734,16 +4802,19 @@ function renderDocPage(){
   if(sn) meta.appendChild(el("span","chip", sn));
   meta.appendChild(el("span",null,"Edited " + relTime(n.updatedAt)));
   head.appendChild(meta);
+  /* one group, so on a phone the pair wraps together and stays at the right */
+  var acts = el("div","docpage-acts");
   if(n.body && n.body.trim()){
     var all = el("button","btn quiet","Copy all");
     all.onclick = function(){ copyText(docPlain(n.body), all); };
-    head.appendChild(all);
+    acts.appendChild(all);
   }
   if(writable()){
     var edit = el("button","btn","Edit");
     edit.onclick = function(){ openNote(n.id); };
-    head.appendChild(edit);
+    acts.appendChild(edit);
   }
+  if(acts.firstChild) head.appendChild(acts);
   bodyEl.appendChild(head);
 
   var page = el("div","docpage");
@@ -6087,6 +6158,17 @@ function wProjects(m){
       String(a.p.name||"").localeCompare(String(b.p.name||""));
   });
 
+  /* the bar's three blues need a key, and on phones the column header is hidden */
+  var lgd = el("div","lgd");
+  lgd.setAttribute("aria-hidden","true");
+  [["done","Done"],["doing","In progress"],["todo","Not started"]].forEach(function(l){
+    var sw = el("span");
+    sw.appendChild(el("i","s-" + l[0]));
+    sw.appendChild(document.createTextNode(l[1]));
+    lgd.appendChild(sw);
+  });
+  card.appendChild(lgd);
+
   var tbl = el("div","ptable");
   var th = el("div","pth");
   th.setAttribute("aria-hidden","true");
@@ -6623,8 +6705,10 @@ function calCell(ds, m, items, todayS){
   dn.tabIndex = isSel ? 0 : -1;
   dn.setAttribute("aria-pressed", isSel ? "true" : "false");
   if(isToday) dn.setAttribute("aria-current","date");
+  var lateN = items.filter(function(it){ return it.late; }).length;
   dn.setAttribute("aria-label", calLongLabel(ds, todayS) + (isToday ? ", today" : "") +
-    (items.length ? ", " + items.length + (items.length === 1 ? " item" : " items") : ""));
+    (items.length ? ", " + items.length + (items.length === 1 ? " item" : " items") : "") +
+    (lateN ? ", " + lateN + " overdue" : ""));
   dn.appendChild(el("span","dnum", String(d.getDate())));
   var dots = el("span","dots");
   shown.slice(0,3).forEach(function(it){
@@ -6673,9 +6757,12 @@ function calChip(it, inMonth){
   var o = el("button","occ" + (isTask ? " task" : "") + (it.done ? " done" : "") + (it.late ? " late" : ""));
   o.type = "button";
   if(!it.done && !it.late) tintOcc(o, it.pid, isTask);
+  // overdue says so with a mark, not red alone — red sits close to some project hues
+  if(it.late) o.appendChild(ico("alert","sm late-ico"));
   if(!isTask && it.time) o.appendChild(el("span","tm", fmtTime(it.time)));
   o.appendChild(el("span","ot", title));
   o.title = title + (it.late ? " — overdue" : it.done ? " — done" : "");
+  if(it.late || it.done) o.setAttribute("aria-label", title + (it.late ? ", overdue" : ", done"));
   o.onclick = function(e){
     e.stopPropagation();
     /* select its day too, so closing the sheet leaves you looking at it — but not
@@ -9566,6 +9653,16 @@ function render(){
   if(wasCompose){
     var inp = bodyEl.querySelector('.col[data-status="'+wasCompose+'"] .addtask');
     if(inp){ inp.value = S.composing.text; inp.focus(); }
+  }
+  /* the new-space field sits in a row that scrolls sideways under the pinned
+     view buttons: bring it into view, with the keyboard */
+  if(S.newSpaceFor){
+    var ns = headEl.querySelector(".tabnew");
+    if(ns && document.activeElement !== ns){
+      ns.focus({ preventScroll:true });
+      try{ ns.setSelectionRange(ns.value.length, ns.value.length); }catch(e){}
+      ns.scrollIntoView({ block:"nearest", inline:"center" });
+    }
   }
   if(S.newProject){
     var np = railEl.querySelector(".rail-new input");

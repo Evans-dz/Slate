@@ -193,6 +193,7 @@ function head(t){ rows.push(""); rows.push("== " + t); }
   check(m,"ink on panel-2 (hover, table head)",            T.ink,T.panel2,7);
   check(m,"ink on note",             T.ink,T.note,7);
   check(m,"ink on mark (highlight)", T.ink,T.mark,7);
+  check(m,"ink2 on mark (ticked item's highlight)",T.ink2,T.mark,4.5);
   check(m,"ink on codeBg",           T.ink,T.codeBg,7);
   check(m,"paper on ink (toast)",    T.paper,T.ink,7);
   check(m,"ink2 on panel",           T.ink2,T.panel,7);
@@ -223,6 +224,7 @@ function head(t){ rows.push(""); rows.push("== " + t); }
   check(m,"lineSoft vs panel (divider)",T.lineSoft,T.panel,1.15);
   check(m,"lineStrong vs panel (control ring)",T.lineStrong,T.panel,3);
   check(m,"lineStrong vs raised",    T.lineStrong,T.raised,3);
+  check(m,"lineStrong vs paper (input border)",T.lineStrong,T.paper,3);
   check(m,"panel vs paper (surface step)",T.panel,T.paper,1.05);
   check(m,"raised vs sunken (card on column)",T.raised,T.sunken,1.08);
   check(m,"good fill vs line-soft track",       T.good,T.lineSoft,3);
@@ -257,6 +259,9 @@ ACCENTS.forEach(function(a, i){
     check(m,"focus ring accentInk vs sunken",  A.accentInk,T.sunken,3);
     check(m,"focus ring accentInk vs note",    A.accentInk,T.note,3);
     check(m,"focus ring accentInk vs panel-2",   A.accentInk,T.panel2,3);
+    /* an accent-coloured control beside a red late date must not read as a warning */
+    check(m,"accent apart from danger (dE, not contrast)",null,null,8,dE(A.accent,T.danger));
+    check(m,"accentInk apart from danger (dE)",null,null,8,dE(A.accentInk,T.danger));
   });
 });
 var dflt = rgb(ACCENTS[0].light.accent);
