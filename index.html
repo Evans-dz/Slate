@@ -792,53 +792,170 @@ tr:hover .rowx{opacity:1}
 .rail-item:hover .spacex{opacity:1}
 .spacex:hover{color:var(--danger)}
 
-/* ---------- calendar ---------- */
-.calbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.calbar .mon{font-size:16px;font-weight:600;letter-spacing:-.01em;min-width:150px}
+/* ---------- calendar ----------
+   One DOM at every width: a month grid beside (or above) a panel for the selected
+   day. Above 720px each cell carries its date and up to three chips; the phone
+   half, further down in the phone block, hides the chips and turns each cell into
+   a date with dots, iPhone Calendar style. Colours are tokens only — project
+   colours arrive as inline hsl(var()) strings or through --cp. */
+.calbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.calbar .mon{
+  margin:0 auto 0 0;min-width:0;
+  font-size:19px;font-weight:600;letter-spacing:-.015em;line-height:1.25;
+}
+.calnav{display:flex;align-items:center;gap:4px}
 .calbar .nav{
-  border:1px solid var(--line);border-radius:var(--radius);
-  width:30px;height:30px;color:var(--muted);
+  border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);
+  width:32px;height:32px;color:var(--ink-2);
   display:inline-flex;align-items:center;justify-content:center;
 }
 .calbar .nav:hover{border-color:var(--accent);color:var(--accent-ink)}
+.calbar .todaybtn{height:32px;padding:0 12px}
+.calbar .btn.primary{margin-left:6px}
+
+.calwrap{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
 .calgrid{
   display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
   border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
   background:var(--line);gap:1px;
 }
 .caldow{
-  background:var(--panel);padding:6px 8px;font-size:11.5px;color:var(--muted);
+  background:var(--panel-2);padding:6px 8px;
+  font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);
 }
 .calday{
-  background:var(--panel);min-height:108px;padding:5px 6px 7px;
-  display:flex;flex-direction:column;gap:3px;
+  background:var(--panel);min-width:0;min-height:100px;padding:5px 5px 6px;
+  display:flex;flex-direction:column;gap:3px;cursor:pointer;
 }
+.calday:hover{background:var(--panel-2)}
 .calday.off{background:var(--paper)}
-.calday.off .dn{opacity:.4}
-.calday .dn{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
-.calday.today .dn{
-  color:var(--panel);background:var(--accent);border-radius:9px;
-  padding:0 6px;align-self:flex-start;font-weight:500;
+.calday.sel{box-shadow:inset 0 0 0 2px var(--accent)}
+.calday .chead{display:flex;align-items:center;gap:4px;min-width:0}
+.calday .dn{
+  flex:0 0 auto;display:flex;flex-direction:column;align-items:center;
+  border-radius:11px;
 }
+.calday .dnum{
+  display:flex;align-items:center;justify-content:center;
+  min-width:22px;height:22px;padding:0 6px;border-radius:11px;
+  font-size:12.5px;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink-2);
+}
+.calday .dn:hover .dnum{background:var(--line-soft)}
+.calday.off .dnum{color:var(--muted);opacity:.6}
+.calday.today .dnum,
+.calday.today .dn:hover .dnum{background:var(--accent);color:var(--on-accent);font-weight:600;opacity:1}
+.calday .dots{display:none}
 .occ{
-  display:flex;align-items:center;gap:5px;width:100%;text-align:left;
-  font-size:11.5px;line-height:1.3;padding:3px 5px;border-radius:3px;
-  background:var(--accent-soft);color:var(--accent-ink);
+  display:flex;align-items:center;gap:5px;width:100%;min-width:0;text-align:left;
+  font-size:11.5px;line-height:1.25;padding:1px 6px;border-radius:4px;
+  border:1px solid transparent;background:var(--accent-soft);color:var(--accent-ink);
 }
-.occ:hover{filter:brightness(.97)}
+.occ:hover{filter:brightness(.96)}
 .occ .tm{font-variant-numeric:tabular-nums;opacity:.75;flex:0 0 auto}
-.occ .ot{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.occ.done{background:var(--line-soft);color:var(--muted);text-decoration:line-through}
-.occ.task{background:transparent;border:1px solid var(--line);color:var(--ink)}
-.occ.task.late{border-color:var(--danger);color:var(--danger)}
-.schedlist{margin-top:22px;max-width:620px}
+.occ .ot{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.occ.task{background:transparent;border-color:var(--line);color:var(--ink)}
+.occ.done{background:var(--line-soft);border-color:transparent;color:var(--muted);text-decoration:line-through}
+.occ.task.done{background:transparent}
+.occ.late{background:transparent;border-color:var(--danger);color:var(--danger)}
+.calday .cmore{
+  margin-left:auto;min-width:0;padding:2px 6px;border-radius:4px;
+  font-size:11px;font-weight:500;line-height:1.3;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.calday .cmore:hover{color:var(--ink);background:var(--line-soft)}
+/* a finger on an iPad needs a little more chip than a pointer does */
+@media (hover:none){ .occ{min-height:22px} }
+@media (max-width:900px) and (min-width:721px){ .calday{padding:4px} .caldow{padding:5px 6px} }
+/* where a column drops under ~100px, the title needs the room more than the time,
+   and "+2 more" says enough as "+2" */
+@media (max-width:900px), (min-width:1100px) and (max-width:1279px){
+  .occ .tm,.calday .cmore .w{display:none}
+}
+@media (min-width:1100px){ .calwrap{grid-template-columns:minmax(0,1fr) 288px} }
+
+.calpanel{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:13px 12px 10px;min-width:0;
+}
+.cphead{padding:0 2px 8px}
+.cphead h3{margin:0;font-size:15.5px;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+.cpsub{margin-top:2px;font-size:12px;color:var(--muted)}
+.cpsub .now{color:var(--accent-ink);font-weight:600}
+.cplist{display:flex;flex-direction:column;gap:1px}
+.cpempty{padding:4px 2px 6px;font-size:13px;color:var(--muted)}
+.cprow{display:flex;align-items:flex-start;border-radius:var(--radius)}
+.cprow:hover{background:var(--panel-2)}
+.cprow .ctick{
+  flex:0 0 auto;width:34px;height:34px;
+  display:flex;align-items:center;justify-content:center;border-radius:50%;
+}
+.cprow .ctick:disabled{cursor:default}
+/* the ring wears the project's colour, so a day's list reads by project too */
+.cprow .ring{
+  width:19px;height:19px;border-radius:50%;border:1.6px solid var(--cp,var(--muted));
+  display:flex;align-items:center;justify-content:center;color:transparent;
+}
+.cprow .ring .ico{width:12px;height:12px;stroke-width:2.6}
+.cprow .ctick:hover .ring{background:var(--accent-soft)}
+.cprow.done .ring{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.cprow .cmain{
+  flex:1;min-width:0;text-align:left;
+  display:flex;flex-direction:column;gap:3px;padding:7px 6px 7px 2px;
+}
+.cprow .ct{font-size:13.5px;line-height:1.35;word-break:break-word}
+.cprow.done .ct{color:var(--muted);text-decoration:line-through}
+.cprow .cmeta{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;font-size:11.5px;color:var(--muted)}
+.cprow .ctime{color:var(--ink-2);font-variant-numeric:tabular-nums}
+.cprow .crep{display:inline-flex;align-items:center;gap:3px}
+.cprow .crep .ico{width:12px;height:12px}
+.cprow .clate{color:var(--danger);font-weight:500}
+.cprow img.av{width:18px;height:18px;border-radius:50%;display:block;flex:0 0 auto;margin:9px 6px 0 0}
+.cpadd{margin-top:6px;padding-top:6px;border-top:1px solid var(--line-soft)}
+.cpaddbtn{
+  display:flex;align-items:center;gap:7px;width:100%;min-height:34px;padding:5px 8px;
+  border-radius:var(--radius);font-size:13px;color:var(--muted);text-align:left;
+}
+.cpaddbtn:hover{color:var(--accent-ink);background:var(--accent-soft)}
+.cpform{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:2px}
+.cpinput{
+  flex:1 1 100%;min-width:0;padding:6px 9px;font-size:13.5px;
+  border:1px solid var(--accent);border-radius:var(--radius);background:var(--paper);
+}
+.cpinput:focus{outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.cpproj{
+  flex:1 1 120px;min-width:0;padding:5px 7px;font-size:13px;
+  border:1px solid var(--line);border-radius:var(--radius);background:var(--paper);
+}
+.cpproj:focus{border-color:var(--accent);outline:none}
+.cpform .btn.primary{margin-left:auto}
+.cpx{
+  width:30px;height:30px;border-radius:var(--radius);color:var(--muted);
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.cpx:hover{color:var(--ink);background:var(--line-soft)}
+
+.schedlist{margin-top:22px;max-width:640px}
+.schedhead{display:flex;align-items:center;gap:10px;margin:0 0 9px;min-height:30px}
+.schedhead h3{
+  display:flex;align-items:center;gap:7px;margin:0;
+  font-size:12.5px;font-weight:500;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;
+}
+.schedhead .addsched{display:none;margin-left:auto}
+.schedhead .n{
+  font-size:11.5px;font-variant-numeric:tabular-nums;text-transform:none;
+  background:var(--line-soft);border-radius:9px;padding:1px 7px;
+}
 .schedrow{
   display:flex;align-items:center;gap:10px;padding:8px 10px;
   border:1px solid var(--line);border-radius:var(--radius);
   background:var(--panel);margin-bottom:7px;
 }
-.schedrow .sn{font-size:13.5px;flex:1;min-width:0;word-break:break-word}
-.schedrow .sw{font-size:12px;color:var(--muted);flex:0 0 auto}
+.schedrow .sdot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;background:var(--cp,var(--muted))}
+.schedrow .sbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.schedrow .sn{font-size:13.5px;word-break:break-word}
+.schedrow .smeta{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;font-size:12px;color:var(--muted)}
+.schednote{margin:0;font-size:13px;color:var(--muted);line-height:1.5;max-width:560px}
+/* ---------- end calendar ---------- */
 
 /* ---------- schedule dialog ---------- */
 #schedDlg{
@@ -1144,36 +1261,6 @@ tr:hover .rowx{opacity:1}
 }
 .dgroup:first-child{margin-top:2px;padding-top:0;border-top:0}
 
-/* agenda is phone-only */
-.agenda{display:none}
-.agday{margin-bottom:16px}
-.agday h4{
-  margin:0 0 7px;font-size:12px;font-weight:500;color:var(--muted);
-  display:flex;align-items:center;gap:9px;
-}
-.agday h4::after{content:"";flex:1;height:1px;background:var(--line)}
-.agday.is-today h4{color:var(--accent-ink)}
-.agrow{
-  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
-  padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius);
-  background:var(--panel);margin-bottom:7px;min-height:48px;
-}
-.agrow .tm{
-  font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;
-  flex:0 0 58px;
-}
-.agrow .ot{flex:1;font-size:14.5px;word-break:break-word}
-.agrow.done{opacity:.55}
-.agrow.done .ot{text-decoration:line-through}
-.agrow .tick{
-  width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);
-  flex:0 0 auto;display:flex;align-items:center;justify-content:center;
-  color:transparent;
-}
-.agrow .tick .ico{width:13px;height:13px;stroke-width:2.6}
-.agrow.done .tick{background:var(--accent);border-color:var(--accent);color:var(--panel)}
-.agempty{font-size:13px;color:var(--muted);padding:6px 0 2px}
-
 /* ---------- bottom nav (phones) ---------- */
 #bottomnav{
   display:none;
@@ -1200,16 +1287,6 @@ tr:hover .rowx{opacity:1}
   .col{scroll-snap-align:start}
   #mainhead{padding:18px 18px 0}
   #mainbody{padding:16px 18px 40px}
-  .calday{min-height:88px}
-  .occ{font-size:11px;padding:3px 4px;gap:4px}
-}
-
-/* narrow tablets: the month grid has ~70px per column, so the time label goes
-   and the title takes the room */
-@media (max-width:900px) and (min-width:721px){
-  .occ .tm{display:none}
-  .calday{min-height:76px;padding:4px 4px 6px}
-  .caldow{padding:5px 5px;font-size:11px}
 }
 
 /* ---------- phone ---------- */
@@ -1320,12 +1397,62 @@ tr:hover .rowx{opacity:1}
   .fitem{padding:13px 14px 11px}
   .tagchip{display:inline-flex;align-items:center;min-height:38px;padding:0 14px;font-size:13px}
 
-  /* calendar becomes an agenda — a 7-col grid is unreadable here */
-  .calgrid{display:none}
-  .agenda{display:block}
-  .calbar .mon{font-size:17px;flex:1;min-width:0}
-  .calbar .nav{width:38px;height:38px;font-size:17px}
+  /* ---- calendar (phone) ----
+     A 7-column month still fits at 320px once cells carry only a date and dots;
+     the chips don't, so they go, and the selected day's panel below lists them
+     with room for a thumb. The cell's date button fills it: that's the target. */
+  .calbar{gap:6px;margin-bottom:8px}
+  .calbar .mon{font-size:20px}
+  .calbar .nav{width:38px;height:38px}
   .calbar .btn{min-height:38px}
+  .calbar .todaybtn{height:38px}
+  .calbar .addsched{display:none}
+  .schedhead .addsched{display:inline-flex;align-items:center;min-height:38px;padding:0 14px;font-size:14px}
+  .calwrap{gap:12px}
+  .calgrid{background:transparent;border:0;border-radius:0;gap:0;overflow:visible}
+  .caldow{background:transparent;padding:0 0 5px;text-align:center;font-size:10.5px;letter-spacing:.02em}
+  .calday{
+    min-height:0;padding:0;gap:0;cursor:default;
+    background:transparent;border-top:1px solid var(--line-soft);
+  }
+  .calday:hover,.calday.off{background:transparent}
+  .calday.sel{box-shadow:none}
+  .calday .occ,.calday .cmore{display:none}
+  .calday .dn{
+    flex:1 1 auto;justify-content:flex-start;gap:3px;
+    min-height:50px;padding:5px 0 4px;border-radius:6px;
+  }
+  .calday .dnum{width:32px;height:32px;min-width:0;padding:0;border-radius:50%;font-size:16px}
+  .calday .dn:hover .dnum{background:transparent}
+  .calday.sel:not(.today) .dnum{box-shadow:inset 0 0 0 2px var(--accent);color:var(--accent-ink);font-weight:600}
+  /* today is always filled, so selecting it adds a halo rather than a ring */
+  .calday.today.sel .dnum{box-shadow:0 0 0 2px var(--paper),0 0 0 4px var(--accent)}
+  .calday .dots{display:flex;align-items:center;justify-content:center;gap:3px;height:6px}
+  .calday .dot{width:6px;height:6px;border-radius:50%;background:var(--cp,var(--muted))}
+  .calday .dot.done{opacity:.35}
+  .calday .dot.late{background:var(--danger)}
+  .calday .dot.over{background:transparent;box-shadow:inset 0 0 0 1px var(--muted)}
+  .calday.off .dots{opacity:.5}
+  .calpanel{padding:13px 10px 8px}
+  .cphead h3{font-size:17px}
+  .cpsub{font-size:13px}
+  .cprow .ctick{width:44px;height:44px}
+  .cprow .ring{width:22px;height:22px}
+  .cprow .cmain{min-height:44px;justify-content:center;padding:9px 6px 9px 2px}
+  .cprow .ct{font-size:15px}
+  .cprow img.av{width:22px;height:22px;margin-top:11px}
+  .cprow .cmeta{font-size:12.5px}
+  .cpempty{font-size:14px}
+  .cpaddbtn{min-height:44px;font-size:15px}
+  .cpinput,.cpproj{font-size:16px;min-height:42px;padding:8px 10px}
+  .cpform .btn{min-height:42px;padding:8px 16px;font-size:14px}
+  .cpx{width:42px;height:42px}
+  .schedrow{padding:10px 8px 10px 12px}
+  .schedrow .sn{font-size:15px}
+  .schedrow .smeta{font-size:13px}
+  .schedrow .btn{min-height:38px}
+  .schednote{font-size:14px}
+  /* ---- end calendar (phone) ---- */
 
   #bottomnav{display:flex}
 
@@ -1411,7 +1538,6 @@ tr:hover .rowx{opacity:1}
   /* Delete project is often the only header action, and stretching it makes the
      most destructive control the largest target on the screen */
   .head-actions .btn.danger{flex:0 0 auto}
-  .calbar .btn.primary{width:100%;margin-left:0}
 }
 
 /* very narrow phones */
@@ -1456,6 +1582,7 @@ tr:hover .rowx{opacity:1}
   <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
   <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2.5 4.5 13.5H12L11 21.5l8.5-11H12Z"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2.5 3.5 3.5L17 9.5"/><path d="M3.5 11.5V10a4 4 0 0 1 4-4h13"/><path d="M7 21.5 3.5 18 7 14.5"/><path d="M20.5 12.5V14a4 4 0 0 1-4 4h-13"/></symbol>
 </svg>
 
 <div id="shell">
@@ -1868,6 +1995,10 @@ var S = {
   todaySec:null,                 // section the Today page should scroll to, from a notification link
   triage:{},                     // noteId -> project chosen mid-triage, before a space is picked
   calMonth:null,          // Date on the 1st of the shown month
+  calDay:null,            // "YYYY-MM-DD" selected in the calendar; Denver today by default
+  calAdd:null,            // {day, sel, text, focus, proj} while adding a task on a date
+  calAddProj:null,        // project last picked for a cross-project add
+  calFocus:false, calReveal:false,   // one-shot: refocus the selected day / scroll its panel in
   newSpaceFor:null,
   editSched:null,
   docMode:"write",
@@ -2396,7 +2527,8 @@ function deleteProject(id){
   });
 }
 
-function createTask(title, status, projectId, spaceId, noteId){
+/* due is optional: the calendar creates a task on the day it was added from */
+function createTask(title, status, projectId, spaceId, noteId, due){
   if(!writable() || !String(title||"").trim()) return;
   var id = uid();
   status = status || firstColumnId(projectId, spaceId);
@@ -2411,7 +2543,7 @@ function createTask(title, status, projectId, spaceId, noteId){
       projectId: projectId || null,
       spaceId: spaceId || null,
       assignee: null,
-      due: null,
+      due: due || null,
       noteId: noteId || null,
       order: maxOrder + 1,
       createdAt: nowISO(),
@@ -4413,6 +4545,7 @@ function feedItem(n){
 
 /* ============ render: calendar ============ */
 var DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+var DOW_LONG = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 var MONTHS = ["January","February","March","April","May","June","July",
               "August","September","October","November","December"];
 
@@ -4455,177 +4588,530 @@ function occursOn(s, date){
   return days.indexOf(date.getDay()) !== -1;
 }
 
+/* The calendar's today is Denver's, like the dashboard, the Today page and both
+   briefs. A tick here writes schedule.done[date] under the key they all read, so
+   on a laptop left in another timezone the device clock would tick a different
+   day of the same schedule than the phone does. */
+function calToday(){ return SlateBrief.denverToday().ymd; }
+function calMonthOf(ds){
+  var d = parseYmd(ds);
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+/* a month opens on today if today is in it, otherwise on its 1st */
+function calDefaultDay(m, todayS){
+  var first = ymd(m);
+  return first.slice(0,7) === todayS.slice(0,7) ? todayS : first;
+}
+function calLongLabel(ds, todayS){
+  var d = parseYmd(ds);
+  return DOW_LONG[d.getDay()] + ", " + MONTHS[d.getMonth()] + " " + d.getDate() +
+    (ds.slice(0,4) !== todayS.slice(0,4) ? ", " + d.getFullYear() : "");
+}
+function calRelative(ds, todayS){
+  var n = Math.round((parseYmd(ds) - parseYmd(todayS)) / 86400000);
+  if(n === 0) return "Today";
+  if(n === 1) return "Tomorrow";
+  if(n === -1) return "Yesterday";
+  return n > 0 ? "In " + n + " days" : (-n) + " days ago";
+}
+function schedWhen(s){
+  if(s.freq === "daily") return "Every day";
+  if(s.freq === "monthly") return "Day " + (s.dayOfMonth || 1) + " each month";
+  var days = (s.days || []).slice().sort();
+  var key = days.join(",");
+  if(key === "1,2,3,4,5") return "Weekdays";
+  if(key === "0,6") return "Weekends";
+  if(days.length === 7) return "Every day";
+  return days.map(function(d){ return DOW[d]; }).join(" ") || "No days set";
+}
+
+function calShowMonth(m){
+  S.calMonth = new Date(m.getFullYear(), m.getMonth(), 1);
+  S.calDay = calDefaultDay(S.calMonth, calToday());
+  S.calAdd = null;
+  render();
+}
+/* a day from a neighbouring month's spill-over brings that month into view */
+function calSelect(ds, focus){
+  S.calMonth = calMonthOf(ds);
+  if(S.calDay !== ds) S.calAdd = null;
+  S.calDay = ds;
+  S.calFocus = !!focus;
+  render();
+}
+function calOpenItem(it){
+  if(it.kind === "task") openTask(it.t.id);
+  else openSchedule(it.s);
+}
+
+/* Everything on each of the 42 visible days, worked out once per render rather
+   than once per cell per item. Tasks come first — they're the day's all-day
+   items, already in board order — then repeating items in time order, which is
+   how visibleSchedules() sorts them. */
+function calIndex(days, scheds, tasks, todayS){
+  var by = {};
+  days.forEach(function(ds){ by[ds] = []; });
+  tasks.forEach(function(t){
+    var list = by[t.due];
+    if(!list) return;
+    var done = taskDone(t);
+    list.push({ kind:"task", t:t, ds:t.due, pid:t.projectId || null, time:"",
+                done:done, late:!done && t.due < todayS });
+  });
+  scheds.forEach(function(s){
+    days.forEach(function(ds){
+      if(!SlateBrief.occursOn(s, ds)) return;
+      by[ds].push({ kind:"sched", s:s, ds:ds, pid:s.projectId || null, time:s.time || "",
+                    done:!!(s.done && s.done[ds]), late:false });
+    });
+  });
+  return by;
+}
+
+var CAL_CAP = 3;                 // chips per cell above 720px; the rest become "+N more"
+var CAL_KEYS = { ArrowLeft:-1, ArrowRight:1, ArrowUp:-7, ArrowDown:7 };
+var calPendingFocus = null;
+
 function renderCalendar(){
-  if(!S.calMonth){
-    var now = new Date();
-    S.calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  }
+  var todayS = calToday();
+  if(!S.calMonth) S.calMonth = calMonthOf(todayS);
   var m = S.calMonth;
+  if(!S.calDay || S.calDay.slice(0,7) !== ymd(m).slice(0,7)) S.calDay = calDefaultDay(m, todayS);
+  var proj = currentProject();
+  calPendingFocus = null;
 
-  var bar = el("div","calbar");
-  var prev = el("button","nav"); prev.appendChild(ico("left"));
-  prev.setAttribute("aria-label","Previous month");
-  prev.onclick = function(){ S.calMonth = new Date(m.getFullYear(), m.getMonth()-1, 1); render(); };
-  var next = el("button","nav"); next.appendChild(ico("right"));
-  next.setAttribute("aria-label","Next month");
-  next.onclick = function(){ S.calMonth = new Date(m.getFullYear(), m.getMonth()+1, 1); render(); };
-  bar.appendChild(prev);
-  bar.appendChild(next);
-  bar.appendChild(el("span","mon", MONTHS[m.getMonth()] + " " + m.getFullYear()));
-  var today = el("button","btn quiet","Today");
-  today.onclick = function(){
-    var n = new Date();
-    S.calMonth = new Date(n.getFullYear(), n.getMonth(), 1);
-    render();
-  };
-  bar.appendChild(today);
-  if(writable() && currentProject()){
-    var addS = el("button","btn primary","New repeating item");
-    addS.style.marginLeft = "auto";
-    addS.onclick = function(){ openSchedule(null); };
-    bar.appendChild(addS);
-  }
-  bodyEl.appendChild(bar);
-
+  var lead = new Date(m.getFullYear(), m.getMonth(), 1).getDay();
+  var days = [];
+  for(var i=0;i<42;i++) days.push(ymd(new Date(m.getFullYear(), m.getMonth(), 1 - lead + i)));
   var scheds = visibleSchedules();
-  var tasks = visibleTasks().filter(function(t){ return t.due; });
-  var todayStr = ymd(new Date());
+  var byDay = calIndex(days, scheds, visibleTasks().filter(function(t){ return t.due; }), todayS);
 
+  var wrap = el("div","cal");
+  wrap.appendChild(calBar(m, proj));
+
+  var body = el("div","calwrap");
   var grid = el("div","calgrid");
   DOW.forEach(function(d){ grid.appendChild(el("div","caldow", d)); });
+  days.forEach(function(ds){ grid.appendChild(calCell(ds, m, byDay[ds], todayS)); });
+  calSwipe(grid, m);
+  body.appendChild(grid);
+  var panel = calDayPanel(S.calDay, byDay[S.calDay] || [], todayS, proj);
+  body.appendChild(panel);
+  wrap.appendChild(body);
+  wrap.appendChild(calRepeating(scheds, proj));
+  bodyEl.appendChild(wrap);
 
-  var first = new Date(m.getFullYear(), m.getMonth(), 1);
-  var cur = new Date(first);
-  cur.setDate(1 - first.getDay());
-  for(var i=0;i<42;i++){
-    grid.appendChild(calCell(new Date(cur), m, scheds, tasks, todayStr));
-    cur.setDate(cur.getDate() + 1);
+  if(S.calFocus){
+    S.calFocus = false;
+    var dn = grid.querySelector('.dn[data-day="' + S.calDay + '"]');
+    if(dn) dn.focus({ preventScroll:true });
   }
-  bodyEl.appendChild(grid);
-  bodyEl.appendChild(calAgenda(m, scheds, tasks, todayStr));
-
-  if(scheds.length){
-    var list = el("div","schedlist");
-    scheds.forEach(function(s){
-      var r = el("div","schedrow");
-      r.appendChild(el("span","sn", s.title || "Untitled"));
-      var when = s.freq === "daily" ? "Every day"
-        : s.freq === "monthly" ? "Day " + (s.dayOfMonth || 1) + " each month"
-        : (s.days || []).map(function(d){ return DOW[d]; }).join(" ") || "No days set";
-      r.appendChild(el("span","sw", when + " · " + fmtTime(s.time)));
-      if(s.spaceId){
-        var sn = spaceName(s.spaceId);
-        if(sn) r.appendChild(el("span","chip proj", sn));
-      }
-      if(writable()){
-        var ed = el("button","btn quiet","Edit");
-        ed.onclick = function(){ openSchedule(s); };
-        r.appendChild(ed);
-      }
-      list.appendChild(r);
-    });
-    bodyEl.appendChild(list);
-  } else if(!currentProject()){
-    bodyEl.appendChild(emptyBlock("No repeating items yet",
-      "Open a project to set one up — like Instagram posts, Monday to Friday at 8am.", null));
+  /* "+N more" on an iPad lands in a panel that sits below the grid */
+  if(S.calReveal){
+    S.calReveal = false;
+    panel.scrollIntoView({ block:"nearest" });
+  }
+  if(calPendingFocus){
+    var inp = calPendingFocus;
+    calPendingFocus = null;
+    inp.focus({ preventScroll:true });
+    try{ inp.setSelectionRange(inp.value.length, inp.value.length); }catch(e){}
   }
 }
 
-/* one day cell — its own function so each handler keeps its own date */
-function calCell(d, m, scheds, tasks, todayStr){
-  var ds = ymd(d);
+function calBar(m, proj){
+  var bar = el("div","calbar");
+  bar.appendChild(el("h2","mon", MONTHS[m.getMonth()] + " " + m.getFullYear()));
+  var nav = el("div","calnav");
+  var prev = icoBtn("nav","left","Previous month");
+  prev.onclick = function(){ calShowMonth(new Date(m.getFullYear(), m.getMonth()-1, 1)); };
+  var today = el("button","btn todaybtn","Today");
+  today.onclick = function(){
+    var t = calToday();
+    S.calMonth = calMonthOf(t);
+    S.calDay = t;
+    S.calAdd = null;
+    render();
+  };
+  var next = icoBtn("nav","right","Next month");
+  next.onclick = function(){ calShowMonth(new Date(m.getFullYear(), m.getMonth()+1, 1)); };
+  nav.appendChild(prev);
+  nav.appendChild(today);
+  nav.appendChild(next);
+  bar.appendChild(nav);
+  if(writable() && proj) bar.appendChild(calNewSchedBtn("btn primary addsched"));
+  return bar;
+}
+/* Beside the month title above 720px. On a phone it would be a full-width bar
+   between the title and the grid, for the rarest thing done here, so there it
+   moves down to head the list of repeating items instead. */
+function calNewSchedBtn(cls){
+  var b = el("button", cls, "New repeating item");
+  b.onclick = function(){ openSchedule(null); };
+  return b;
+}
+
+/* One cell serves every width. Above 720px it shows the date and up to CAL_CAP
+   chips; on a phone the chips are hidden and the date button fills the cell,
+   with a dot per item beneath the number. Keeping one DOM means rotating an iPad
+   across the breakpoint needs no re-render. */
+function calCell(ds, m, items, todayS){
+  var d = parseYmd(ds);
   var inMonth = d.getMonth() === m.getMonth();
-  var cell = el("div","calday" + (inMonth ? "" : " off") + (ds === todayStr ? " today" : ""));
-  cell.appendChild(el("div","dn", String(d.getDate())));
+  var isToday = ds === todayS, isSel = ds === S.calDay;
+  var cell = el("div","calday" + (inMonth ? "" : " off") + (isToday ? " today" : "") + (isSel ? " sel" : ""));
+  cell.onclick = function(){ calSelect(ds, true); };
 
-  scheds.forEach(function(s){
-    if(!occursOn(s, d)) return;
-    var done = !!(s.done && s.done[ds]);
-    var o = el("button","occ" + (done ? " done" : ""));
-    if(!done) tintOcc(o, s.projectId);
-    o.appendChild(el("span","tm", fmtTime(s.time)));
-    o.appendChild(el("span","ot", s.title || "Untitled"));
-    o.title = (s.title || "Untitled") + " — click to mark it done, double-click to edit";
-    o.onclick = function(){ toggleOccurrence(s, ds); };
-    o.ondblclick = function(){ openSchedule(s); };
-    cell.appendChild(o);
-  });
+  /* open work first, so a capped cell shows what still needs doing */
+  var shown = items.filter(function(it){ return !it.done; })
+    .concat(items.filter(function(it){ return it.done; }));
 
-  tasks.forEach(function(t){
-    if(t.due !== ds) return;
-    var o = el("button","occ task" + (taskDone(t) ? " done" : "") +
-                        (isLate(t.due, taskDone(t) ? "done" : "") ? " late" : ""));
-    if(!taskDone(t) && !isLate(t.due, "")) tintOcc(o, t.projectId, true);
-    o.appendChild(el("span","ot", t.title || "Untitled"));
-    o.title = "Task due — click to toggle done";
-    o.onclick = function(){ patchTask(t.id, { status: taskDone(t) ? firstColumnId(t.projectId, t.spaceId) : doneColumnId(t.projectId, t.spaceId) }); };
-    cell.appendChild(o);
+  var dn = el("button","dn");
+  dn.type = "button";
+  dn.dataset.day = ds;
+  /* one tab stop for the whole month; the arrow keys walk the days */
+  dn.tabIndex = isSel ? 0 : -1;
+  dn.setAttribute("aria-pressed", isSel ? "true" : "false");
+  if(isToday) dn.setAttribute("aria-current","date");
+  dn.setAttribute("aria-label", calLongLabel(ds, todayS) + (isToday ? ", today" : "") +
+    (items.length ? ", " + items.length + (items.length === 1 ? " item" : " items") : ""));
+  dn.appendChild(el("span","dnum", String(d.getDate())));
+  var dots = el("span","dots");
+  shown.slice(0,3).forEach(function(it){
+    var dot = el("i","dot" + (it.late ? " late" : it.done ? " done" : ""));
+    var c = projectColor(it.pid);
+    if(c) dot.style.setProperty("--cp", c);
+    dots.appendChild(dot);
   });
+  if(shown.length > 3) dots.appendChild(el("i","dot over"));
+  dn.appendChild(dots);
+  dn.onclick = function(e){ e.stopPropagation(); calSelect(ds, true); };
+  dn.onkeydown = function(e){
+    if(!CAL_KEYS.hasOwnProperty(e.key)) return;
+    e.preventDefault();
+    var to = parseYmd(ds);
+    to.setDate(to.getDate() + CAL_KEYS[e.key]);
+    calSelect(ymd(to), true);
+  };
+  /* "+N more" shares the date's row, so a full cell is no taller than three
+     chips and a whole month fits a laptop screen */
+  var head = el("div","chead");
+  head.appendChild(dn);
+  if(shown.length > CAL_CAP){
+    var extra = shown.length - CAL_CAP;
+    var more = el("button","cmore", "+" + extra);
+    more.appendChild(el("span","w"," more"));
+    more.type = "button";
+    more.setAttribute("aria-label", extra + " more on " + calLongLabel(ds, todayS));
+    more.onclick = function(e){
+      e.stopPropagation();
+      S.calReveal = true;
+      calSelect(ds, false);
+    };
+    head.appendChild(more);
+  }
+  cell.appendChild(head);
+  shown.slice(0, CAL_CAP).forEach(function(it){ cell.appendChild(calChip(it, inMonth)); });
   return cell;
 }
 
-/* the phone view of a month: a scrollable agenda, only days that have something */
-function calAgenda(m, scheds, tasks, todayStr){
-  var wrap = el("div","agenda");
-  var days = new Date(m.getFullYear(), m.getMonth()+1, 0).getDate();
-  var any = false;
-
-  for(var i=1;i<=days;i++){
-    var d = new Date(m.getFullYear(), m.getMonth(), i);
-    var ds = ymd(d);
-    var items = [];
-
-    scheds.forEach(function(s){
-      if(occursOn(s, d)) items.push({kind:"sched", s:s, time:s.time || "", ds:ds});
-    });
-    tasks.forEach(function(t){
-      if(t.due === ds) items.push({kind:"task", t:t, time:"", ds:ds});
-    });
-    if(!items.length) continue;
-    any = true;
-    items.sort(function(a,b){ return String(a.time).localeCompare(String(b.time)); });
-
-    var sec = el("div","agday" + (ds === todayStr ? " is-today" : ""));
-    var h = document.createElement("h4");
-    h.textContent = DOW[d.getDay()] + " " + d.getDate() + (ds === todayStr ? " · today" : "");
-    sec.appendChild(h);
-    items.forEach(function(it){ sec.appendChild(agendaRow(it)); });
-    wrap.appendChild(sec);
-  }
-
-  if(!any){
-    wrap.appendChild(el("div","agempty",
-      "Nothing scheduled this month. Add a repeating item and it fills in from here."));
-  }
-  return wrap;
+/* A tap on an item opens it. It used to complete it, which on a phone meant a
+   curious tap finished a task; completing now needs the tick in the day panel. */
+function calChip(it, inMonth){
+  var isTask = it.kind === "task";
+  var title = (isTask ? it.t.title : it.s.title) || "Untitled";
+  var o = el("button","occ" + (isTask ? " task" : "") + (it.done ? " done" : "") + (it.late ? " late" : ""));
+  o.type = "button";
+  if(!it.done && !it.late) tintOcc(o, it.pid, isTask);
+  if(!isTask && it.time) o.appendChild(el("span","tm", fmtTime(it.time)));
+  o.appendChild(el("span","ot", title));
+  o.title = title + (it.late ? " — overdue" : it.done ? " — done" : "");
+  o.onclick = function(e){
+    e.stopPropagation();
+    /* select its day too, so closing the sheet leaves you looking at it — but not
+       from a neighbouring month's spill-over, which would swap the month under you */
+    if(inMonth && S.calDay !== it.ds){ S.calDay = it.ds; S.calAdd = null; render(); }
+    calOpenItem(it);
+  };
+  return o;
 }
 
-function agendaRow(it){
-  if(it.kind === "sched"){
-    var done = !!(it.s.done && it.s.done[it.ds]);
-    var r = el("button","agrow" + (done ? " done" : ""));
-    var tick = el("span","tick"); tick.appendChild(ico("check","sm"));
-    r.appendChild(tick);
-    r.appendChild(el("span","ot", it.s.title || "Untitled"));
-    r.appendChild(el("span","tm", fmtTime(it.s.time)));
-    r.onclick = function(){ toggleOccurrence(it.s, it.ds); };
-    return r;
+/* Horizontal swipe on the grid changes month, as in iPhone Calendar. Passive
+   listeners, and only a clearly sideways, quick gesture counts, so scrolling the
+   page past the grid never flips the month by accident. */
+function calSwipe(grid, m){
+  var x0 = null, y0 = 0, t0 = 0;
+  grid.addEventListener("touchstart", function(e){
+    if(e.touches.length !== 1){ x0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+  }, { passive:true });
+  grid.addEventListener("touchend", function(e){
+    if(x0 === null) return;
+    var t = e.changedTouches[0];
+    var dx = t.clientX - x0, dy = t.clientY - y0;
+    x0 = null;
+    if(Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.6 || Date.now() - t0 > 700) return;
+    calShowMonth(new Date(m.getFullYear(), m.getMonth() + (dx < 0 ? 1 : -1), 1));
+  }, { passive:true });
+}
+
+/* the selected day: every item on it, each with a tick, plus adding a task */
+function calDayPanel(ds, items, todayS, proj){
+  var p = el("section","calpanel");
+  p.setAttribute("aria-label", calLongLabel(ds, todayS));
+  var rel = calRelative(ds, todayS);
+
+  var head = el("div","cphead");
+  head.appendChild(el("h3", null, calLongLabel(ds, todayS)));
+  var sub = el("div","cpsub");
+  sub.appendChild(el("span", ds === todayS ? "rel now" : "rel", rel));
+  if(items.length){
+    var doneN = items.filter(function(it){ return it.done; }).length;
+    sub.appendChild(document.createTextNode(" · " + items.length + (items.length === 1 ? " item" : " items") +
+      (doneN ? ", " + doneN + " done" : "")));
   }
-  var t = it.t;
-  var tr = el("button","agrow" + (taskDone(t) ? " done" : ""));
-  var tk = el("span","tick"); tk.appendChild(ico("check","sm"));
-  tr.appendChild(tk);
-  tr.appendChild(el("span","ot", t.title || "Untitled"));
-  tr.appendChild(el("span","tm","task"));
-  tr.onclick = function(){ patchTask(t.id, { status: taskDone(t) ? firstColumnId(t.projectId, t.spaceId) : doneColumnId(t.projectId, t.spaceId) }); };
-  return tr;
+  head.appendChild(sub);
+  p.appendChild(head);
+
+  var list = el("div","cplist");
+  items.forEach(function(it){ list.appendChild(agendaRow(it, proj)); });
+  if(!items.length){
+    list.appendChild(el("div","cpempty", "Nothing on " +
+      (rel === "Today" || rel === "Tomorrow" ? rel.toLowerCase() : "this day") + "."));
+  }
+  p.appendChild(list);
+  if(writable()) p.appendChild(calAddRow(ds, proj, todayS));
+  return p;
+}
+
+function agendaRow(it, proj){
+  var isTask = it.kind === "task";
+  var title = (isTask ? it.t.title : it.s.title) || "Untitled";
+  var row = el("div","cprow" + (it.done ? " done" : ""));
+  var c = projectColor(it.pid);
+  if(c) row.style.setProperty("--cp", c);
+
+  var tick = el("button","ctick");
+  tick.type = "button";
+  var ring = el("span","ring");
+  ring.appendChild(ico("check","sm"));
+  tick.appendChild(ring);
+  tick.setAttribute("aria-label", (it.done ? "Not done: " : "Done: ") + title);
+  tick.setAttribute("aria-pressed", it.done ? "true" : "false");
+  tick.disabled = !writable();
+  tick.onclick = function(){
+    /* answer the tap now; the write's snapshot redraws the row properly */
+    row.classList.toggle("done");
+    if(isTask){
+      var t = it.t;
+      patchTask(t.id, { status: it.done ? firstColumnId(t.projectId, t.spaceId) : doneColumnId(t.projectId, t.spaceId) });
+    } else {
+      toggleOccurrence(it.s, it.ds);
+    }
+  };
+  row.appendChild(tick);
+
+  var main = el("button","cmain");
+  main.type = "button";
+  main.appendChild(el("span","ct", title));
+  var meta = el("span","cmeta");
+  if(isTask){
+    if(it.late) meta.appendChild(el("span","clate","Overdue"));
+    else meta.appendChild(el("span", null, columnName(it.t.projectId, it.t.spaceId, columnOf(it.t))));
+  } else {
+    meta.appendChild(el("span","ctime", it.time ? fmtTime(it.time) : "Any time"));
+    var rep = el("span","crep");
+    rep.appendChild(ico("repeat"));
+    rep.appendChild(document.createTextNode(schedWhen(it.s)));
+    meta.appendChild(rep);
+  }
+  /* inside a project the project goes without saying; across projects it's the
+     first thing you need */
+  var pn = !proj && it.pid && projName(it.pid);
+  if(pn) meta.appendChild(projChip(it.pid, pn));
+  var sid = isTask ? it.t.spaceId : it.s.spaceId;
+  var sn = !S.space && sid && spaceName(sid);
+  if(sn) meta.appendChild(el("span","chip", sn));
+  main.appendChild(meta);
+  main.onclick = function(){ calOpenItem(it); };
+  row.appendChild(main);
+  if(isTask && it.t.assignee){
+    var av = document.createElement("img");
+    av.className = "av"; av.alt = "";
+    av.dataset.uid = it.t.assignee; av.dataset.kind = "avatar";
+    row.appendChild(av);
+  }
+  return row;
+}
+
+/* ---- adding a task on a date ---- */
+function calAddRow(ds, proj, todayS){
+  var box = el("div","cpadd");
+  var st = S.calAdd;
+  if(st && st.day === ds && st.sel === S.sel) calAddForm(box, ds, proj, st, todayS);
+  else calAddButton(box, ds, todayS);
+  return box;
+}
+function calAddButton(box, ds, todayS){
+  box.textContent = "";
+  var rel = calRelative(ds, todayS);
+  var b = el("button","cpaddbtn");
+  b.type = "button";
+  b.appendChild(ico("plus","sm"));
+  b.appendChild(el("span", null, "Add a task for " +
+    (rel === "Today" || rel === "Tomorrow" ? rel.toLowerCase() : fmtDate(ds))));
+  b.onclick = function(){
+    S.calAdd = { day:ds, sel:S.sel, text:"", focus:true, proj:S.calAddProj };
+    render();
+  };
+  box.appendChild(b);
+}
+/* The field's state lives in S.calAdd, not the node, because the other person's
+   edits re-render the page mid-sentence; the next render rebuilds the field with
+   the same text and focus. Enter saves and leaves it open for the next one. */
+function calAddForm(box, ds, proj, st, todayS){
+  var form = el("div","cpform");
+  var inp = document.createElement("input");
+  inp.type = "text";
+  inp.className = "cpinput";
+  inp.value = st.text || "";
+  inp.placeholder = "What needs doing?";
+  inp.setAttribute("enterkeyhint","done");
+  inp.setAttribute("aria-label","New task for " + calLongLabel(ds, todayS));
+  form.appendChild(inp);
+
+  /* across projects a task still needs a home; inside one it's that project */
+  var pick = null;
+  if(!proj){
+    pick = document.createElement("select");
+    pick.className = "cpproj";
+    pick.setAttribute("aria-label","Project");
+    var ps = S.projects.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    ps.forEach(function(p){
+      var o = document.createElement("option");
+      o.value = p.id; o.textContent = p.name || "Untitled project";
+      pick.appendChild(o);
+    });
+    var none = document.createElement("option");
+    none.value = ""; none.textContent = "No project";
+    pick.appendChild(none);
+    var want = st.proj;
+    if(want == null || (want && !findProject(want))) want = ps.length ? ps[0].id : "";
+    pick.value = want;
+    st.proj = want;
+    pick.onchange = function(){ st.proj = pick.value; S.calAddProj = pick.value; };
+    form.appendChild(pick);
+  }
+  var addB = el("button","btn primary","Add");
+  addB.type = "button";
+  var xB = icoBtn("cpx","x","Cancel");
+  xB.type = "button";
+  form.appendChild(addB);
+  form.appendChild(xB);
+  box.appendChild(form);
+
+  var closed = false, cancelling = false;
+  function save(){
+    var v = inp.value.trim();
+    if(!v) return;
+    /* cleared before the write, so the blur that iOS fires right behind Enter
+       finds nothing left to save — the same trap commitProject guards against */
+    inp.value = ""; st.text = "";
+    calAddTask(ds, v, proj || (pick ? pick.value : null));
+  }
+  function close(keep){
+    if(closed) return;
+    closed = true;
+    if(keep) save();
+    if(S.calAdd === st) S.calAdd = null;
+    /* swapped in place rather than re-rendered: a full render here would replace
+       whatever was clicked to cause this blur, and swallow that click */
+    calAddButton(box, ds, todayS);
+  }
+  inp.oninput = function(){ st.text = inp.value; };
+  inp.onkeydown = function(e){
+    // an Enter that confirms an IME composition isn't a save (229: Safari's version)
+    if(e.isComposing || e.keyCode === 229) return;
+    if(e.key === "Enter"){ e.preventDefault(); save(); }
+    else if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); close(false); }
+  };
+  addB.onclick = function(){ save(); inp.focus(); };
+  /* pointerdown lands before the blur it causes, so Cancel can say it's a cancel */
+  xB.addEventListener("pointerdown", function(){ cancelling = true; });
+  xB.onclick = function(){ close(false); };
+  form.addEventListener("focusin", function(){ st.focus = true; });
+  /* Decided a tick later, not in the event: Chrome fires focusout while a live
+     re-render is still clearing the page, with the form connected, so in the
+     moment a re-render and the user leaving look identical. A tick on, the
+     re-render has detached this form and drawn its replacement; the user
+     leaving has left it connected, with focus somewhere outside it. */
+  form.addEventListener("focusout", function(){
+    setTimeout(function(){
+      if(closed || !form.isConnected || form.contains(document.activeElement)) return;
+      st.focus = false;
+      close(!cancelling);
+    }, 0);
+  });
+  if(st.focus) calPendingFocus = inp;
+}
+function calAddTask(ds, title, projectId){
+  var cur = currentProject();
+  createTask(title, null, projectId || null,
+    cur && projectId === cur ? (S.space || null) : null, null, ds);
+}
+
+/* Repeating items, listed with an Edit each: on a phone or an iPad there's no
+   double-click, and the grid alone gave no way back into one. */
+function calRepeating(scheds, proj){
+  var sec = el("section","schedlist");
+  var canAdd = !!proj && writable();
+  var h = el("div","schedhead");
+  var ht = el("h3");
+  ht.appendChild(ico("repeat","sm"));
+  ht.appendChild(el("span", null, "Repeating"));
+  if(scheds.length) ht.appendChild(el("span","n", String(scheds.length)));
+  h.appendChild(ht);
+  if(canAdd) h.appendChild(calNewSchedBtn("btn addsched"));
+  sec.appendChild(h);
+  if(!scheds.length){
+    sec.appendChild(el("p","schednote", canAdd
+      ? "Nothing repeats here yet. New repeating item sets one up — Instagram posts, say, Monday to Friday at 8am."
+      : "No repeating items yet. Open a project to set one up — Instagram posts, say, Monday to Friday at 8am."));
+    return sec;
+  }
+  scheds.forEach(function(s){
+    var r = el("div","schedrow");
+    var c = projectColor(s.projectId);
+    if(c) r.style.setProperty("--cp", c);
+    r.appendChild(el("span","sdot"));
+    var body = el("span","sbody");
+    body.appendChild(el("span","sn", s.title || "Untitled"));
+    var meta = el("span","smeta");
+    meta.appendChild(el("span","sw", schedWhen(s) + (s.time ? " · " + fmtTime(s.time) : "")));
+    var pn = !proj && projName(s.projectId);
+    if(pn) meta.appendChild(projChip(s.projectId, pn));
+    var sn = !S.space && s.spaceId && spaceName(s.spaceId);
+    if(sn) meta.appendChild(el("span","chip", sn));
+    body.appendChild(meta);
+    r.appendChild(body);
+    if(writable()){
+      var ed = el("button","btn quiet","Edit");
+      ed.onclick = function(){ openSchedule(s); };
+      r.appendChild(ed);
+    }
+    sec.appendChild(r);
+  });
+  return sec;
 }
 
 /* ---- schedule dialog ---- */
-var schedDlg = $("#schedDlg"), sDaysSel = [];
+var schedDlg = $("#schedDlg"), sDaysSel = [], sProj = null;
 function openSchedule(s){
-  var proj = currentProject();
+  /* The cross-project calendar has no current project, so an existing item
+     brings its own — without this, tapping one there did nothing at all. */
+  var proj = currentProject() || (s && s.projectId) || null;
   if(!proj) return;
+  sProj = proj;
   S.editSched = s ? s.id : null;
   $("#sTitle").textContent = s ? "Edit repeating item" : "New repeating item";
   $("#sName").value = s ? (s.title || "") : "";
@@ -4670,12 +5156,12 @@ function syncFreqFields(){
   $("#sDaysField").style.display = f === "weekly" ? "" : "none";
   $("#sDomField").style.display = f === "monthly" ? "" : "none";
 }
-function closeSchedule(){ schedDlg.classList.remove("on"); S.editSched = null; }
+function closeSchedule(){ schedDlg.classList.remove("on"); S.editSched = null; sProj = null; }
 $("#sFreq").onchange = syncFreqFields;
 $("#sCancel").onclick = closeSchedule;
 schedDlg.onmousedown = function(e){ if(e.target === schedDlg) closeSchedule(); };
 $("#sSave").onclick = function(){
-  var proj = currentProject();
+  var proj = sProj || currentProject();
   if(!proj) return closeSchedule();
   var title = $("#sName").value.trim();
   if(!title){ $("#sName").focus(); toast("Give it a name first."); return; }

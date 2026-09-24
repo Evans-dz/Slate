@@ -254,8 +254,11 @@ shows on the rail dot, the project heading and every calendar chip.
 Targets: iPhone, Pixel, iPad, macOS. Verified at 320, 375, 402, 412, 430, 744, 834, 1194 and
 1440px, light and dark.
 
-- **720px is the phone breakpoint.** Below it: drawer rail, bottom tab bar, agenda instead
-  of a month grid. iPads sit above it and keep the persistent rail and the grid.
+- **720px is the phone breakpoint.** Below it: drawer rail, bottom tab bar, and a compact
+  month — dates and dots, iPhone Calendar style — over the selected day's list, instead of
+  the grid with chips. iPads sit above it and keep the persistent rail and the full grid.
+  The calendar is one DOM at every width with CSS choosing what shows, so rotating an iPad
+  across the breakpoint needs no re-render.
 - `100dvh`, not `100vh`
 - `env(safe-area-inset-*)` on the top bar, rail, bottom nav and sheets, including left and
   right for landscape on a notched phone
@@ -274,7 +277,7 @@ Both of these have shipped a bug in this file.
 1. **A base rule placed after a media query overrides it regardless of the query.**
    `#railScrim` had no base rule, only `display:none` inside the phone block, so above 860px
    it became a visible grid item and displaced the whole layout. `#railScrim{display:none}`
-   and `.agenda{display:none}` now sit above the phone block for this reason.
+   and the calendar's desktop-hidden `.dots` now sit above the phone block for this reason.
 
 2. **A shorthand inside the phone block silently drops what an earlier block added.**
    `@media (hover:none)` adds `.card{padding-left:28px}` to clear the drag grip; the phone
@@ -316,6 +319,10 @@ Don't "fix" these.
 - **Tags derived, not stored.** Prevents drift when text is edited.
 - **No row per schedule occurrence.** A year of a daily item would be 365 rows per series for
   no benefit.
+- **In the calendar a tap opens; only the tick completes.** Tapping an item used to complete
+  it, so a curious tap on a phone finished a task, and editing a repeating item needed a
+  double-click that touch doesn't have. The calendar's today is Denver's, like the briefs,
+  because its ticks write `schedule.done` under the same date keys they read.
 - **Vanilla JS, no framework, no build.** The owner wants to open one file and change
   something.
 - **Capture over hierarchy.** Capture is the quick path on purpose — you should never have to
