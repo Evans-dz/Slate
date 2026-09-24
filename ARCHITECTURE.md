@@ -128,8 +128,8 @@ delete its stroke chunks** — nothing does that for you.
 **`schedules`** — `projectId`, `spaceId`, `title`, `freq` (`daily` | `weekly` | `monthly`),
 `days` (0=Sun…6=Sat), `dayOfMonth`, `time` (`HH:MM`), `startDate`, `endDate`, and
 `done: { "YYYY-MM-DD": true }` per occurrence. Occurrences are **computed, never
-materialised** — there is no row per occurrence. `occursOn(schedule, date)` is the whole
-algorithm.
+materialised** — there is no row per occurrence. `SlateBrief.occursOn(schedule, "YYYY-MM-DD")`
+(lib/brief.js) is the whole algorithm, shared by the calendar, the dashboard and both briefs.
 
 **`prospects`** — `company`, `contact`, `email`, `stage`, `note`, `next` (chase date),
 `order`, timestamps. Stages are `lead`, `contacted`, `talking`, `lost`. **`won` is not a

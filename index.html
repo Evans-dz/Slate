@@ -6143,18 +6143,6 @@ function tintOcc(node, projectId, outline){
   else { node.style.background = soft; node.style.color = ink; }
 }
 
-/* does this schedule fall on this date? */
-function occursOn(s, date){
-  var start = parseYmd(s.startDate);
-  if(start && date < start) return false;
-  var end = parseYmd(s.endDate);
-  if(end){ var e = new Date(end); e.setHours(23,59,59); if(date > e) return false; }
-  if(s.freq === "daily") return true;
-  if(s.freq === "monthly") return date.getDate() === (+s.dayOfMonth || 1);
-  var days = s.days || [];
-  return days.indexOf(date.getDay()) !== -1;
-}
-
 /* The calendar's today is Denver's, like the dashboard, the Today page and both
    briefs. A tick here writes schedule.done[date] under the key they all read, so
    on a laptop left in another timezone the device clock would tick a different
