@@ -253,10 +253,10 @@ The reasoning worth keeping:
   page loads the same file as a browser global. The push body is a digest — counts plus
   the busiest few `Project → Space` lines — because push bodies truncate; the Today page
   (`/?view=today`, which a notification tap deep-links into) carries the rest.
-- **Denver, never UTC.** The evening cron fires at 00:00 UTC, which is 6pm *the previous
-  UTC day* in Denver — every date comparison goes through the Denver calendar or the
-  brief is quietly wrong. Same for weekends: Friday's wrap fires on Saturday 00:00 UTC
-  and must still send. The cron *schedules* are UTC though, so the Denver hour drifts by
+- **Denver, never UTC.** The briefs go at 4pm and 10pm Denver, every day — the hours the
+  two of you work on this. The evening cron fires at 04:00 UTC, which is 10pm *the
+  previous UTC day* in Denver — every date comparison goes through the Denver calendar or
+  the wrap would report tomorrow's (empty) day. The cron *schedules* are UTC though, so the Denver hour drifts by
   one across DST; the two expressions in `vercel.json` can be nudged twice a year, and a
   guard-and-skip hourly job isn't possible on the Hobby plan's two once-daily crons.
 - **The morning brief is per-person** — your tasks plus unassigned ones — and **the
@@ -467,7 +467,7 @@ Don't "fix" these.
   completions. If that bites, the fix is an append-only `completions/<taskId>` doc written
   in `patchTask` — still a full-document upsert, so still outbox-safe.
 - **The lens mirrors the morning brief's scoping** (theirs plus unassigned), so each
-  person's dashboard agrees with their 7am push. A strict "only mine" filter would look
+  person's dashboard agrees with their 4pm push. A strict "only mine" filter would look
   empty while most work is unassigned; Workload's Unassigned row, with an owner button on
   each task, is the nudge instead.
 - **Chart colours are the `--viz-*` tokens, not the accent.** Accents are per device, so an

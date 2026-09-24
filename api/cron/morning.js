@@ -1,7 +1,7 @@
 /* The morning brief: today's events and open to-dos, grouped Project -> Space.
    Runs on Vercel Cron (see vercel.json); the schedule is UTC so the Denver hour
-   drifts by one when DST flips. Weekends are skipped by Denver's calendar, not
-   UTC's. Scoped per user — your tasks and unassigned ones — which degrades to
+   drifts by one when DST flips. Sent every day, at the start of the evening
+   stretch you work on this (4pm Denver). Scoped per user — your tasks and unassigned ones — which degrades to
    identical briefs while nothing is assigned.
 
    Test by hand:
@@ -10,14 +10,14 @@
 const { handler, service, fromCron, fetchDocs, sendToSubscriptions } = require("../_util");
 const brief = require("../../lib/brief");
 
-const MORNING_HOUR = 7; // Denver local
+const MORNING_HOUR = 16; // Denver local: 4pm, when the working session starts
 
 module.exports = handler(async (req, res) => {
   if (!fromCron(req)) return res.status(401).json({ error: "Not from cron" });
 
-  /* Two schedules are registered for this route, 13:00 and 14:00 UTC, because a
+  /* Two schedules are registered for this route, 22:00 and 23:00 UTC, because a
      single fixed one drifts an hour when Denver leaves daylight time. Whichever
-     one isn't 7am in Denver right now stops here — unless ?force=1, which exists
+     one isn't 4pm in Denver right now stops here — unless ?force=1, which exists
      so the brief can be tested by hand at any time. That needs no extra guard:
      getting this far already required the cron secret. */
   const hour = brief.denverHour();
@@ -27,9 +27,6 @@ module.exports = handler(async (req, res) => {
   }
 
   const today = brief.denverToday();
-  if (brief.isWeekend(today.dow)) {
-    return res.status(200).json({ date: today.ymd, skipped: "weekend" });
-  }
 
   const sb = service();
   const subs = await sb.from("push_subscriptions").select("user_id,endpoint,p256dh,auth");

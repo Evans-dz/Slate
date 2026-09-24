@@ -72,13 +72,13 @@ level security policy that didn't apply, or the schema not having been run.
 
 ## Push notification briefs
 
-Two pushes a day to every enabled device, weekdays only, straight from the app's own
+Two pushes a day to every enabled device, every day, straight from the app's own
 icon — no Firebase, no third-party service:
 
-- **☀️ Morning Brief** (~7am Mountain) — today's events and open to-dos, grouped
+- **☀️ Morning Brief** (~4pm Mountain, when the working session starts) — today's events and open to-dos, grouped
   Project → Space. Scoped per person: your tasks and unassigned ones, so with nothing
   assigned you both get the same brief.
-- **🌙 Day Wrap** (~6pm Mountain) — what got completed today, the same grouping,
+- **🌙 Day Wrap** (~10pm Mountain) — what got completed today, the same grouping,
   identical for both of you. Nothing completed, no buzz.
 
 Tapping either lands on the **Today** page, which carries the full detail behind the
@@ -94,10 +94,10 @@ digest. The wording and grouping live in `lib/brief.js`, shared by the crons and
 2. Re-run `supabase/schema.sql` in the SQL editor — it's idempotent, and it now creates
    `push_subscriptions`.
 3. Deploy. `vercel.json` registers **four** cron entries — two per brief. Cron schedules
-   are UTC, so one fixed time drifts an hour when Denver leaves daylight time (a 7am
-   brief arriving at 6am). Each brief is therefore scheduled at both candidate UTC
+   are UTC, so one fixed time drifts an hour when Denver leaves daylight time (a 4pm
+   brief arriving at 3pm). Each brief is therefore scheduled at both candidate UTC
    hours, and the route checks the Denver hour and returns early on the one that isn't
-   7am (or 6pm) there, so exactly one fires per day year-round. Hobby allows up to 100
+   4pm (or 10pm) there, so exactly one fires per day year-round. Hobby allows up to 100
    cron jobs, each at most once daily, and invokes them somewhere within the hour
    rather than on the minute — which is why the check compares the hour, never the
    minute.
@@ -119,7 +119,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" "https://your-app.vercel.app/api/cr
 ```
 
 Same for `/api/cron/evening`. `force=1` skips the Denver-hour check so the brief actually
-sends whatever time you run it; without it you'll just get `{"skipped":"not 7:00 in
+sends whatever time you run it; without it you'll just get `{"skipped":"not 16:00 in
 Denver"}`, which is the check doing its job. Both return a JSON summary (sent / failed /
 pruned, or why they skipped) and log the same line, which is what survives in the Vercel
 logs. **This really sends to every registered device** — it is the same code path the

@@ -1,7 +1,7 @@
 /* The day wrap: what got completed today, grouped Project -> Space. One shared
    brief for everyone — the wrap is team news, not a per-person report. Fires at
-   00:00 UTC, which is 6pm Denver in summer; the Denver calendar decides what
-   "today" and "weekend" mean, so the UTC date being tomorrow doesn't matter.
+   04:00 UTC, which is 10pm Denver in summer; the Denver calendar decides what
+   "today" means, so the UTC date being tomorrow doesn't matter. Every day.
 
    Test by hand:
    curl -H "Authorization: Bearer $CRON_SECRET" https://<app>/api/cron/evening */
@@ -9,13 +9,13 @@
 const { handler, service, fromCron, fetchDocs, sendToSubscriptions } = require("../_util");
 const brief = require("../../lib/brief");
 
-const EVENING_HOUR = 18; // Denver local
+const EVENING_HOUR = 22; // Denver local: 10pm, the end of the working session
 
 module.exports = handler(async (req, res) => {
   if (!fromCron(req)) return res.status(401).json({ error: "Not from cron" });
 
-  /* Registered at both 00:00 and 01:00 UTC so the 6pm Denver slot holds across
-     daylight time; the one that isn't 6pm there right now stops here. ?force=1
+  /* Registered at both 04:00 and 05:00 UTC so the 10pm Denver slot holds across
+     daylight time; the one that isn't 10pm there right now stops here. ?force=1
      runs it anyway, for testing by hand — reaching this line already required
      the cron secret. */
   const hour = brief.denverHour();
@@ -25,9 +25,6 @@ module.exports = handler(async (req, res) => {
   }
 
   const today = brief.denverToday();
-  if (brief.isWeekend(today.dow)) {
-    return res.status(200).json({ date: today.ymd, skipped: "weekend" });
-  }
 
   const sb = service();
   const subs = await sb.from("push_subscriptions").select("user_id,endpoint,p256dh,auth");

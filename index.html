@@ -4487,7 +4487,7 @@ function paintNotif(body){
     var row = el("div","nrow");
 
     if(got.sub){
-      say("This device gets the morning brief and the day wrap, weekdays only.");
+      say("This device gets the morning brief at 4pm and the day wrap at 10pm, every day.");
       var test = el("button","btn","Send a test");
       test.onclick = function(){
         test.disabled = true;
@@ -4521,7 +4521,7 @@ function paintNotif(body){
       row.appendChild(test);
       row.appendChild(off);
     } else {
-      say("Two pushes a day on this device: the morning brief and the day wrap, weekdays only.");
+      say("Two pushes a day on this device: the morning brief at 4pm and the day wrap at 10pm, every day.");
       var on = el("button","btn primary","Enable on this device");
       on.onclick = function(){
         on.disabled = true;
