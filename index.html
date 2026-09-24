@@ -1163,7 +1163,7 @@ tr:hover .rowx{opacity:1}
   margin-left:4px;color:var(--muted);
   padding:3px;border-radius:3px;opacity:0;display:inline-flex;align-items:center;
 }
-.col:hover .col-head .colx{opacity:.7}
+.col:hover .col-head .colx{opacity:1}
 .col-head .colx:hover{opacity:1;color:var(--danger);background:var(--line-soft)}
 .coladd{
   flex:0 0 auto;align-self:flex-start;
@@ -1235,12 +1235,12 @@ tr:hover .rowx{opacity:1}
 .dtick{
   position:relative;
   flex:0 0 auto;width:19px;height:19px;margin-top:7px;border-radius:50%;
-  border:1.5px solid var(--line);color:transparent;
+  border:1.5px solid var(--line-strong);color:transparent;
   display:flex;align-items:center;justify-content:center;
 }
 .dtick .ico{width:12px;height:12px;stroke-width:2.6}
-.dtick:hover{border-color:var(--accent)}
-.dtick.on{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.dtick:hover{border-color:var(--accent);background:var(--accent-soft)}
+.dtick.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .dmain{
   flex:1;min-width:0;text-align:left;display:flex;flex-direction:column;gap:3px;
   padding:6px 4px 6px 0;
