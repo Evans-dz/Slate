@@ -206,7 +206,7 @@ window.SlateStore = (function () {
         .then(function (recs) {
           (recs || []).forEach(function (r) {
             if (session && r.uid && r.uid !== session.user.id) return;  // the other account's work
-            (pending[r.col] = pending[r.col] || {})[r.id] = { op: r.op, data: r.data };
+            (pending[r.col] = pending[r.col] || {})[r.id] = { op: r.op, data: r.data, seq: r.seq };
             if (r.seq >= seq) seq = r.seq + 1;
           });
           if (recs && recs.length) report();
@@ -250,7 +250,7 @@ window.SlateStore = (function () {
       }
       return idbDo("outbox", "readwrite", function (s) { return s.put(rec); })
         .then(function () {
-          (pending[col] = pending[col] || {})[id] = { op: op, data: rec.data };
+          (pending[col] = pending[col] || {})[id] = { op: op, data: rec.data, seq: rec.seq };
           report();
           scheduleFlush(0);
         });
@@ -324,11 +324,21 @@ window.SlateStore = (function () {
               if (session && rec.uid && rec.uid !== session.user.id) return;
               return sendRecord(rec).then(function (res) {
                 if (res === "retry") { ok = false; return; }
-                return idbDo("outbox", "readwrite", function (s) { return s.delete(rec.key); })
+                /* A newer save of the same document can be put() under the same key
+                   while this one is in flight, and deleting by key alone would delete
+                   THAT one — the edit gone on both devices, silently. So the record is
+                   deleted only if it is still the one that was sent, checked inside
+                   the same transaction. */
+                return idbDo("outbox", "readwrite", function (s) {
+                  var got = s.get(rec.key);
+                  got.onsuccess = function () {
+                    if (got.result && got.result.seq === rec.seq) s.delete(rec.key);
+                  };
+                })
                   .then(function () {
                     var p = pending[rec.col];
                     // only forget it if nothing newer replaced it while in flight
-                    if (p && p[rec.id] && p[rec.id].seq === undefined) delete p[rec.id];
+                    if (p && p[rec.id] && p[rec.id].seq === rec.seq) delete p[rec.id];
                     if (p && !Object.keys(p).length) delete pending[rec.col];
                     report();
                   });
@@ -336,7 +346,8 @@ window.SlateStore = (function () {
             });
           }, Promise.resolve()).then(function () {
             if (!pendingCount()) { backoff = 2000; resyncSoon(); return; }
-            if (ok) return;
+            // what's left arrived during this pass, after its snapshot was taken
+            if (ok) { setTimeout(function () { scheduleFlush(0); }, 1000); return; }
             backoff = Math.min(60000, Math.round(backoff * 1.8));
             setTimeout(function () { scheduleFlush(0); }, backoff);
           });
