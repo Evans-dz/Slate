@@ -396,7 +396,12 @@ The other person's edit never silently overwrites yours, or the reverse: the edi
 text if you haven't typed, waits for the caret to leave if you're in it, and if you have typed
 it pauses saving and asks — *See theirs* / *Keep mine* — and won't close until you choose.
 A save also goes out on `pagehide` and when the app is backgrounded, and before the update
-banner reloads.
+banner reloads. Because that save can wait behind an autosave still in flight, backgrounding
+also writes a **device copy** (`localStorage` `slate:draft:<id>`, with the stamp it was based
+on); the next open of that note puts the words back, or turns them into the See theirs / Keep
+mine question if the note changed on the server since. A clean close or a confirmed save drops
+it. Reopening a doc while this device's own save is still queued opens that save's text
+(`queuedSave`), so the echo isn't mistaken for the other person's change.
 
 **Markdown view** (per device, remembered) shows the stored text in the old textarea: the way
 out if the rich editor ever misbehaves somewhere, and what the doc is if `lib/docmd.js` fails to load.
