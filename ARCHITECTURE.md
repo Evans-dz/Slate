@@ -28,7 +28,8 @@ config.js               your Supabase URL, anon key and the push public key
 lib/brief.js            brief logic: grouping, wording, Denver dates (page + server)
 api/                    Vercel functions: push subscribe/unsubscribe/test, two cron briefs
 vendor/supabase.js      the Supabase client, vendored so the shell works offline
-sw.js                   service worker: caches the app shell, shows the push briefs
+sw.js                   service worker: offline shell (network first), shows the push briefs
+tools/validate-colours.js  contrast checks for every token pair; run before a colour change
 supabase/schema.sql     run once in the Supabase SQL editor
 ```
 
@@ -277,11 +278,39 @@ The reasoning worth keeping:
 
 ## Colour
 
-Each project takes the next `colorIndex`, and an index is **never handed out twice**, not
-even after the project holding it is deleted. The high water mark lives in `meta/colors` so
-it holds for both users rather than one browser. Hues come from the golden angle
-(137.508°), so consecutive projects land far apart and the palette can't run out. The colour
-shows on the rail dot, the project heading and every calendar chip.
+**Every colour is a token.** The three theme blocks at the top of `index.html` — `:root`
+(light), `@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) }` and
+`:root[data-theme="dark"]` — define surfaces (`--paper` page, `--panel` bars and cards,
+`--panel-2`, `--raised` cards and menus, `--sunken` board columns), ink (`--ink`, `--ink-2`,
+`--muted`, `--faint`), lines (`--line-soft`, `--line`, `--line-strong` for input borders and
+tick rings), status (`--danger`, `--good`, `--warn`, each with a `-soft`), the chart ramp
+(`--viz-*`), and the accent set (`--accent`, `--accent-ink` for accent-coloured text and
+focus rings, `--accent-soft`, `--on-accent` for text on a filled accent). Rules outside
+those blocks use `var()` only, never a literal. The two dark blocks must stay identical.
+
+**Theme and accent are per device**, chosen in the avatar menu and kept in localStorage
+(`slate:theme`, `slate:accent`). A tiny script in `<head>` sets `data-theme` and
+`data-accent` on `<html>` before first paint, so there's no flash. Each accent defines raw
+light and dark values (`--acc-l`, `--acc-d`, …); the theme blocks map `--accent*` onto one
+set, so seven accents × two themes need no combinatorial CSS. The `ACCENTS` array in the
+script mirrors the CSS for the swatches and the `theme-color` meta; the validator checks
+the two agree.
+
+**`node tools/validate-colours.js` must pass before any colour change ships.** It reads the
+live tokens out of `index.html` and checks every text/surface pair for WCAG contrast (4.5:1
+body, 3:1 large text and UI parts), every accent in both themes, the chart ramp against
+every surface it sits on, and the project hues' spread. Don't fade text with `opacity` —
+it silently drops contrast below the line; hovers are a `box-shadow` ring instead.
+
+**Project colours.** Each project takes the next `colorIndex`, and an index is **never
+handed out twice**, not even after the project holding it is deleted. The high water mark
+lives in `meta/colors` so it holds for both users rather than one browser. Hues come from
+the golden angle (137.508°), so consecutive projects land far apart and the palette can't
+run out. `projectColor(id, kind)` returns an `oklch()` string whose lightness is a token
+(`--ph-l`, `--ph-ink-l`, `--ph-soft-l`), so every hue is equally bright and a theme switch
+repaints them with no re-render; chroma is the most each hue can hold inside sRGB at both
+themes' lightness. The colour shows on the rail dot, project chips, calendar chips and dots,
+and the dashboard's project table.
 
 ---
 
@@ -408,6 +437,13 @@ Recorded because the reasoning still gets quoted at me.
 - **Dashboard as summary cards above the cross-project tabs** → a tab-less Dashboard plus
   All projects. The cards were a thin layer over "every board at once", done cards
   included; the boards moved to their own page and the dashboard got history.
+- **Code cached first, refreshed only when `sw.js` changed** → network first with a 4s
+  timeout for everything same-origin except icons. Nothing is fingerprinted, so a deploy that
+  changed `store.js` but not `sw.js` left installed phones running the old platform layer
+  under the new page. Icons and fonts stay cache-first; bump `VERSION` when one is redrawn.
+- **Green accent on warm paper** → cool neutrals ("Slate Crisp") with a per-device accent,
+  Cobalt by default. The green-on-black read as low contrast, and HSL project colours were
+  uneven in brightness, with two near-identical greens by project #7.
 - **Self-hosted Node, SQLite and SSE behind Tailscale** → Vercel, Supabase and GitHub.
   Supabase realtime replaces SSE, Supabase auth replaces the sessions table, Supabase storage
   replaces the blobs directory.
