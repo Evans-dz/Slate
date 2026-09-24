@@ -17,6 +17,19 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<script>
+/* Theme and accent are per device (each of you picks your own), and must be on
+   <html> before the first paint or the page flashes the wrong theme on every
+   open. Kept tiny and inline for that reason; applyAppearance() owns it after. */
+(function(){
+  try{
+    var d = document.documentElement;
+    var t = localStorage.getItem("slate:theme"), a = localStorage.getItem("slate:accent");
+    if(t === "light" || t === "dark") d.setAttribute("data-theme", t);
+    if(a) d.setAttribute("data-accent", a);
+  }catch(e){}
+})();
+</script>
 <style>
 :root{
   --paper:#F4F2ED;
@@ -32,6 +45,8 @@
   --accent-soft:#E1EAE5;
   --danger:#8C3A2B;
   --shadow:0 1px 1px rgba(27,26,23,.04), 0 2px 6px rgba(27,26,23,.05);
+  /* project hues: projectColor() supplies the hue, the theme supplies these */
+  --ph-s:44%; --ph-l:40%; --ph-ink-s:42%; --ph-ink-l:30%; --ph-soft-s:46%; --ph-soft-l:92%;
   --radius:5px;
   --ui:"Archivo",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --serif:"Newsreader",Georgia,"Times New Roman",serif;
@@ -51,6 +66,7 @@
     --accent-soft:#22322C;
     --danger:#D08878;
     --shadow:0 1px 1px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.28);
+    --ph-s:38%; --ph-l:58%; --ph-ink-s:42%; --ph-ink-l:72%; --ph-soft-s:30%; --ph-soft-l:18%;
   }
 }
 :root[data-theme="dark"]{
@@ -67,9 +83,19 @@
   --accent-soft:#22322C;
   --danger:#D08878;
   --shadow:0 1px 1px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.28);
+  --ph-s:38%; --ph-l:58%; --ph-ink-s:42%; --ph-ink-l:72%; --ph-soft-s:30%; --ph-soft-l:18%;
 }
 
 *{box-sizing:border-box}
+/* the sprite's icons: stroked in the colour of the text they sit beside */
+.ico{
+  width:18px;height:18px;flex:0 0 auto;display:block;
+  fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+}
+.ico.sm{width:15px;height:15px}
+.ico.lg{width:22px;height:22px}
+/* the few glyphs made of dots fill rather than stroke */
+.ico.dots{fill:currentColor;stroke:none}
 html{height:100%;-webkit-text-size-adjust:100%}
 body{
   margin:0;min-height:100%;
@@ -210,7 +236,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
   font-size:13px;line-height:1;white-space:nowrap;
   color:var(--muted);border:1px solid transparent;
 }
-.vbtn .vico{font-size:14px;line-height:1}
+.vbtn .vico{opacity:.9}
 .vbtn:hover{background:var(--line-soft);color:var(--ink)}
 .vbtn.on{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent)}
 .tab.tabadd{color:var(--muted);font-size:16px;padding:7px 11px}
@@ -229,7 +255,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
   margin:0 6px 6px;flex:0 0 auto;
 }
 .tab.tabdoc{display:flex;align-items:center;gap:6px;font-family:var(--serif);font-size:14px}
-.tab.tabdoc .dico{font-family:var(--ui);font-size:11px;color:var(--muted);line-height:1}
+.tab.tabdoc .dico{color:var(--muted);width:14px;height:14px}
 .tab.tabdoc.on .dico{color:var(--accent-ink)}
 
 .docpage-head{
@@ -307,7 +333,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .card .grip{
   position:absolute;left:0;top:0;bottom:0;width:20px;
   display:flex;align-items:center;justify-content:center;
-  color:var(--muted);font-size:13px;letter-spacing:-1px;
+  color:var(--muted);
   cursor:grab;touch-action:none;opacity:.45;
   border-radius:var(--radius) 0 0 var(--radius);
 }
@@ -381,7 +407,7 @@ body.dragging-now{user-select:none;-webkit-user-select:none}
 }
 .list select:hover,.list input[type=date]:hover{border-color:var(--line)}
 .list img.who{width:21px;height:21px;border-radius:50%;display:block}
-.rowx{color:var(--muted);font-size:15px;padding:0 5px;border-radius:3px;opacity:0}
+.rowx{color:var(--muted);padding:3px;border-radius:3px;opacity:0;display:inline-flex;align-items:center;justify-content:center}
 tr:hover .rowx{opacity:1}
 .rowx:hover{color:var(--danger)}
 
@@ -524,19 +550,46 @@ tr:hover .rowx{opacity:1}
 #bell:hover{color:var(--ink);background:var(--line-soft)}
 #bell.on{color:var(--accent)}
 #bell svg{width:16px;height:16px;display:block}
-#nmenu{
+#nmenu,#umenu{
   position:absolute;z-index:70;display:none;width:min(88vw,290px);
   background:var(--panel);border:1px solid var(--line);
   border-radius:var(--radius);box-shadow:0 10px 26px rgba(20,19,17,.18);
   padding:11px 12px 12px;
 }
-#nmenu.on{display:block}
-#nmenu h4{
+#nmenu.on,#umenu.on{display:block}
+#nmenu h4,#umenu h4{
   margin:0 0 6px;font-size:12.5px;font-weight:500;color:var(--muted);
   letter-spacing:.02em;text-transform:uppercase;
 }
 #nmenu p{margin:0 0 10px;font-size:13px;line-height:1.5;color:var(--muted)}
 #nmenu .nrow{display:flex;gap:7px;flex-wrap:wrap}
+/* ---------- account menu ---------- */
+#whoami{border-radius:999px;padding:3px 4px 3px 10px}
+#whoami:hover{background:var(--line-soft)}
+#umenu .who{display:flex;align-items:center;gap:10px;padding:2px 0 12px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+#umenu .who img{width:34px;height:34px;border-radius:50%}
+#umenu .who b{display:block;font-weight:600;font-size:14px}
+#umenu .who span{font-size:12.5px;color:var(--muted)}
+#umenu .sect{margin:0 0 12px}
+.seg{display:flex;border:1px solid var(--line);border-radius:var(--radius);padding:2px;gap:2px;background:var(--paper)}
+.seg button{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:6px 6px;border-radius:calc(var(--radius) - 2px);font-size:12.5px;color:var(--muted);
+}
+.seg button:hover{color:var(--ink)}
+.seg button.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatch{
+  width:28px;height:28px;border-radius:50%;position:relative;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);
+}
+.swatch.on{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--ink)}
+.swatch .ico{position:absolute;inset:0;margin:auto;width:14px;height:14px;stroke-width:2.8}
+#umenu .signout{
+  display:flex;align-items:center;gap:8px;width:100%;padding:8px 6px;margin-top:2px;
+  border-top:1px solid var(--line);border-radius:0;color:var(--ink);font-size:13.5px;
+}
+#umenu .signout:hover{color:var(--danger)}
 
 /* ---------- toast / banner ---------- */
 #toast{
@@ -587,8 +640,9 @@ tr:hover .rowx{opacity:1}
 .thumb button{
   position:absolute;top:1px;right:1px;width:17px;height:17px;
   border-radius:50%;background:rgba(20,19,17,.72);color:#fff;
-  font-size:12px;line-height:17px;text-align:center;
+  display:flex;align-items:center;justify-content:center;
 }
+.thumb button .ico{width:11px;height:11px;stroke-width:2.4}
 
 /* ---------- tags ---------- */
 #tagbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
@@ -670,7 +724,8 @@ tr:hover .rowx{opacity:1}
 .calbar .mon{font-size:16px;font-weight:600;letter-spacing:-.01em;min-width:150px}
 .calbar .nav{
   border:1px solid var(--line);border-radius:var(--radius);
-  width:27px;height:27px;line-height:1;font-size:14px;color:var(--muted);
+  width:30px;height:30px;color:var(--muted);
+  display:inline-flex;align-items:center;justify-content:center;
 }
 .calbar .nav:hover{border-color:var(--accent);color:var(--accent-ink)}
 .calgrid{
@@ -732,7 +787,7 @@ tr:hover .rowx{opacity:1}
   padding:6px 9px;font-size:13.5px;background:var(--paper);
 }
 .field textarea{resize:vertical;min-height:72px;line-height:1.45}
-.hasnotes{color:var(--muted);font-size:13px;line-height:1;cursor:default}
+.hasnotes{color:var(--muted);display:inline-flex;align-items:center;cursor:default}
 .field input:focus,.field select:focus{border-color:var(--accent);outline:none}
 .days{display:flex;gap:4px;flex-wrap:wrap}
 .daybtn{
@@ -913,8 +968,8 @@ tr:hover .rowx{opacity:1}
   background:var(--line-soft);border-radius:9px;padding:1px 7px;
 }
 .col-head .colx{
-  margin-left:4px;color:var(--muted);font-size:15px;line-height:1;
-  padding:2px 5px;border-radius:3px;opacity:0;
+  margin-left:4px;color:var(--muted);
+  padding:3px;border-radius:3px;opacity:0;display:inline-flex;align-items:center;
 }
 .col:hover .col-head .colx{opacity:.7}
 .col-head .colx:hover{opacity:1;color:var(--danger);background:var(--line-soft)}
@@ -991,8 +1046,9 @@ tr:hover .rowx{opacity:1}
 .dtick{
   flex:0 0 auto;width:19px;height:19px;margin-top:7px;border-radius:50%;
   border:1.5px solid var(--line);color:transparent;
-  font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;
 }
+.dtick .ico{width:12px;height:12px;stroke-width:2.6}
 .dtick:hover{border-color:var(--accent)}
 .dtick.on{background:var(--accent);border-color:var(--accent);color:var(--panel)}
 .dmain{
@@ -1039,8 +1095,9 @@ tr:hover .rowx{opacity:1}
 .agrow .tick{
   width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);
   flex:0 0 auto;display:flex;align-items:center;justify-content:center;
-  font-size:13px;color:transparent;
+  color:transparent;
 }
+.agrow .tick .ico{width:13px;height:13px;stroke-width:2.6}
 .agrow.done .tick{background:var(--accent);border-color:var(--accent);color:var(--panel)}
 .agempty{font-size:13px;color:var(--muted);padding:6px 0 2px}
 
@@ -1055,7 +1112,8 @@ tr:hover .rowx{opacity:1}
   flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
   padding:7px 2px 6px;min-height:52px;color:var(--muted);
 }
-#bottomnav .bn .ic{font-size:17px;line-height:1}
+#bottomnav .bn .ic{display:flex}
+#bottomnav .bn .ic .ico{width:22px;height:22px}
 #bottomnav .bn .bl{font-size:10.5px;letter-spacing:.01em}
 #bottomnav .bn.on{color:var(--accent-ink)}
 #bottomnav .bn.on .ic{transform:translateY(-1px)}
@@ -1105,7 +1163,7 @@ tr:hover .rowx{opacity:1}
   }
   #railToggle{
     display:flex;align-items:center;justify-content:center;
-    width:38px;height:38px;margin-left:-6px;font-size:19px;color:var(--ink);
+    width:38px;height:38px;margin-left:-6px;color:var(--ink);
     border-radius:var(--radius);
   }
   .brand .sub{display:none}
@@ -1294,15 +1352,47 @@ tr:hover .rowx{opacity:1}
 </head>
 <body>
 
+<!-- One icon set, drawn in currentColor, so every icon follows the text it sits
+     beside through both themes and every accent. These replace unicode glyphs
+     (◈ ◍ ▦ ▣ ▤ ☰ ∷ ≡) that render at different sizes and weights on every
+     platform and meant nothing on their own. Use via ico("name"). -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="9" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="5" rx="1.6"/><rect x="13.5" y="11" width="7.5" height="10" rx="1.6"/><rect x="3" y="15" width="7.5" height="6" rx="1.6"/></symbol>
+  <symbol id="i-all" viewBox="0 0 24 24"><path d="M12 3 2.5 8 12 13l9.5-5Z"/><path d="m2.5 12.5 9.5 5 9.5-5"/><path d="m2.5 16.5 9.5 5 9.5-5"/></symbol>
+  <symbol id="i-capture" viewBox="0 0 24 24"><path d="M12 20h8.5"/><path d="M16.2 3.8a2.2 2.2 0 0 1 3.1 3.1L7.5 18.7 3.5 19.8l1.1-4Z"/></symbol>
+  <symbol id="i-board" viewBox="0 0 24 24"><rect x="3" y="3.5" width="5" height="15" rx="1.4"/><rect x="9.5" y="3.5" width="5" height="10" rx="1.4"/><rect x="16" y="3.5" width="5" height="13" rx="1.4"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11.5M9 12h11.5M9 18h11.5"/><circle cx="4.5" cy="6" r="1.1"/><circle cx="4.5" cy="12" r="1.1"/><circle cx="4.5" cy="18" r="1.1"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16.5" rx="2.2"/><path d="M3 10h18M8 2.5v4M16 2.5v4"/></symbol>
+  <symbol id="i-notes" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7.2A2.2 2.2 0 0 1 5.2 5h3.9l2.1 2.2h7.6A2.2 2.2 0 0 1 21 9.4v8.4a2.2 2.2 0 0 1-2.2 2.2H5.2A2.2 2.2 0 0 1 3 17.8Z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></symbol>
+  <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.3"/><circle cx="15" cy="6" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="18" r="1.3"/><circle cx="15" cy="18" r="1.3"/></symbol>
+  <symbol id="i-text" viewBox="0 0 24 24"><path d="M4.5 7h15M4.5 12h15M4.5 17h9"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.6 4.6L19 7.6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M9.5 5.5 16 12l-6.5 6.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.6A8.2 8.2 0 1 1 9.4 4a6.6 6.6 0 0 0 10.6 10.6Z"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12.5" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9.5 20.5H5.2A2.2 2.2 0 0 1 3 18.3V5.7a2.2 2.2 0 0 1 2.2-2.2h4.3"/><path d="m16 16.5 4.5-4.5L16 7.5M20.5 12H9.5"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2.5 4.5 13.5H12L11 21.5l8.5-11H12Z"/></symbol>
+</svg>
+
 <div id="shell">
   <header id="topbar">
-    <button id="railToggle" aria-label="Show projects">☰</button>
+    <button id="railToggle" aria-label="Show projects"><svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg></button>
     <div class="brand"><span class="mark"></span><span class="word">Slate</span><span class="sub">projects &amp; notes</span></div>
     <input id="search" type="search" placeholder="Filter tasks and notes" aria-label="Filter tasks and notes">
     <button id="bell" aria-label="Notification briefs" title="Notification briefs">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
     </button>
-    <div id="whoami"></div>
+    <button id="whoami" aria-haspopup="true" aria-label="Account and appearance" title="Account and appearance"></button>
   </header>
 
   <div id="banner"></div>
@@ -1328,19 +1418,19 @@ tr:hover .rowx{opacity:1}
 
   <nav id="bottomnav" aria-label="Main">
     <button class="bn" data-nav="dash">
-      <span class="ic">◈</span><span class="bl">Dashboard</span>
+      <span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-dash"/></svg></span><span class="bl">Dashboard</span>
     </button>
     <button class="bn" data-nav="capture">
-      <span class="ic">◍</span><span class="bl">Capture</span>
+      <span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-capture"/></svg></span><span class="bl">Capture</span>
     </button>
     <button class="bn" data-nav="board">
-      <span class="ic">▦</span><span class="bl">Board</span>
+      <span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-board"/></svg></span><span class="bl">Board</span>
     </button>
     <button class="bn" data-nav="calendar">
-      <span class="ic">▣</span><span class="bl">Calendar</span>
+      <span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg></span><span class="bl">Calendar</span>
     </button>
     <button class="bn" data-nav="projects">
-      <span class="ic">▤</span><span class="bl">Projects</span>
+      <span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg></span><span class="bl">Projects</span>
     </button>
   </nav>
 </div>
@@ -1582,6 +1672,7 @@ tr:hover .rowx{opacity:1}
 
 <div id="amenu"></div>
 <div id="nmenu"></div>
+<div id="umenu" role="dialog" aria-label="Account and appearance"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script src="config.js"></script>
@@ -1610,12 +1701,24 @@ function hueOf(projectId){
 function projectColor(projectId, kind){
   var h = hueOf(projectId);
   if(h === null) return null;
-  var dark = matchMedia("(prefers-color-scheme: dark)").matches
-             && document.documentElement.getAttribute("data-theme") !== "light";
-  if(document.documentElement.getAttribute("data-theme") === "dark") dark = true;
-  if(kind === "ink")  return "hsl(" + h + " 42% " + (dark ? "72%" : "30%") + ")";
-  if(kind === "soft") return "hsl(" + h + " " + (dark ? "30% 18%" : "46% 92%") + ")";
-  return "hsl(" + h + " " + (dark ? "38% 58%" : "44% 40%") + ")";
+  /* The hue is the project's; saturation and lightness belong to the theme and
+     live in the token block. Returning var() references rather than resolved
+     numbers means a theme switch repaints every project colour at once — the old
+     version froze light-or-dark at render time, so dots stayed light after iOS
+     switched to dark at sunset. */
+  var hue = Math.round(h * 10) / 10;
+  if(kind === "ink")  return "hsl(" + hue + " var(--ph-ink-s) var(--ph-ink-l))";
+  if(kind === "soft") return "hsl(" + hue + " var(--ph-soft-s) var(--ph-soft-l))";
+  return "hsl(" + hue + " var(--ph-s) var(--ph-l))";
+}
+/* A project's name as a chip in the project's own colour, so a cross-project
+   list reads by project the way the rail dots and calendar already do — they
+   were all one accent colour before. */
+function projChip(projectId, text){
+  var c = el("span","chip proj", text);
+  var soft = projectColor(projectId, "soft"), ink = projectColor(projectId, "ink");
+  if(soft){ c.style.background = soft; c.style.color = ink; }
+  return c;
 }
 /* The high water mark lives in the database, not this browser, so a colour
    stays retired for both of you and survives the project that held it. */
@@ -1675,6 +1778,28 @@ var railEl=$("#rail"), headEl=$("#mainhead"), bodyEl=$("#mainbody");
 
 /* ============ helpers ============ */
 function esc(s){ return String(s==null?"":s); }
+/* an icon from the sprite at the top of <body>; decorative, so the control that
+   holds it carries the accessible name */
+var SVGNS = "http://www.w3.org/2000/svg", XLINK = "http://www.w3.org/1999/xlink";
+function ico(name, cls){
+  var s = document.createElementNS(SVGNS, "svg");
+  s.setAttribute("class", "ico" + (cls ? " " + cls : ""));
+  s.setAttribute("aria-hidden", "true");
+  s.setAttribute("focusable", "false");
+  var u = document.createElementNS(SVGNS, "use");
+  u.setAttribute("href", "#i-" + name);
+  u.setAttributeNS(XLINK, "xlink:href", "#i-" + name);
+  s.appendChild(u);
+  return s;
+}
+/* a button holding just an icon, named for screen readers and the tooltip */
+function icoBtn(cls, name, label){
+  var b = el("button", cls);
+  b.appendChild(ico(name));
+  b.setAttribute("aria-label", label);
+  b.title = label;
+  return b;
+}
 function el(tag, cls, text){
   var n = document.createElement(tag);
   if(cls) n.className = cls;
@@ -2194,8 +2319,10 @@ function patchTask(id, patch){
     if(cur){
       var was = taskDone(cur);
       var now = taskDone(Object.assign({}, cur, patch));
-      if(!was && now) patch.completedAt = nowISO();
-      else if(was && !now) patch.completedAt = null;
+      /* and who: the dashboard reports who finished what, and without this the
+         answer for anything done before today would always be "someone" */
+      if(!was && now){ patch.completedAt = nowISO(); patch.completedBy = S.uid || null; }
+      else if(was && !now){ patch.completedAt = null; patch.completedBy = null; }
     }
   }
   queue("tasks/"+id, function(){ return S.db.doc("tasks/"+id).update(patch); });
@@ -2281,8 +2408,8 @@ function deleteColumn(projectId, spaceId, colId){
     if(t.projectId === projectId && (t.spaceId || null) === (spaceId || null) && t.status === colId){
       var patch = { status: fallback, updatedAt: nowISO() };
       var wasDone = taskDone(t);
-      if(!wasDone && nowDone) patch.completedAt = nowISO();
-      else if(wasDone && !nowDone) patch.completedAt = null;
+      if(!wasDone && nowDone){ patch.completedAt = nowISO(); patch.completedBy = S.uid || null; }
+      else if(wasDone && !nowDone){ patch.completedAt = null; patch.completedBy = null; }
       queue("tasks/"+t.id, function(){ return S.db.doc("tasks/"+t.id).update(patch); });
     }
   });
@@ -2660,7 +2787,7 @@ function renderHead(){
       tabs.appendChild(el("span","tabsep"));
       docs.forEach(function(d){
         var b = el("button","tab tabdoc" + (S.doc === d.id ? " on" : ""));
-        b.appendChild(el("span","dico","\u25a4"));
+        b.appendChild(ico("notes","sm dico"));
         b.appendChild(document.createTextNode(
           (d.title && d.title.trim()) || "Untitled doc"));
         b.onclick = function(){ S.doc = d.id; render(); };
@@ -2669,10 +2796,10 @@ function renderHead(){
     }
 
     var views = el("div","viewswitch");
-    [["board","▦","Board"],["list","☰","List"],
-     ["calendar","▣","Calendar"],["notes","◈","Notes"]].forEach(function(v){
+    [["board","board","Board"],["list","list","List"],
+     ["calendar","calendar","Calendar"],["notes","notes","Notes"]].forEach(function(v){
       var vb = el("button","vbtn" + (!S.doc && S.tab === v[0] ? " on" : ""));
-      vb.appendChild(el("span","vico", v[1]));
+      vb.appendChild(ico(v[1], "sm vico"));
       vb.appendChild(el("span","vlabel", v[2]));
       vb.title = v[2];
       vb.setAttribute("aria-label", v[2]);
@@ -2769,7 +2896,7 @@ function boardFor(group){
     var inCol = group.tasks.filter(function(t){ return columnOf(t) === st.id; });
     ch.appendChild(el("span","n", String(inCol.length)));
     if(editable && cols.length > 1){
-      var del = el("button","colx","\u00d7");
+      var del = el("button","colx"); del.appendChild(ico("x","sm"));
       del.title = "Remove this column";
       del.setAttribute("aria-label","Remove the " + st.name + " column");
       del.onclick = function(e){
@@ -2875,7 +3002,7 @@ function taskCard(t){
   if(writable()){
     var grip = el("div","grip");
     grip.setAttribute("aria-hidden","true");
-    grip.textContent = "\u2237";
+    grip.appendChild(ico("grip","sm dots"));
     c.appendChild(grip);
     attachDrag(c, grip, t);
   }
@@ -2884,11 +3011,11 @@ function taskCard(t){
   var foot = el("div","foot");
   if(S.sel === "dash" && t.projectId){
     var pn = projName(t.projectId);
-    if(pn) foot.appendChild(el("span","chip proj", pn));
+    if(pn) foot.appendChild(projChip(t.projectId, pn));
   }
   /* notes are only visible once the card is open, so say they're there */
   if(t.notes){
-    var nm = el("span","hasnotes","≡");
+    var nm = el("span","hasnotes"); nm.appendChild(ico("text","sm"));
     nm.title = t.notes.length > 140 ? t.notes.slice(0,140) + "…" : t.notes;
     nm.setAttribute("aria-label","Has notes");
     foot.appendChild(nm);
@@ -3118,7 +3245,7 @@ function listRow(t){
   }
   if(S.sel === "dash" && t.projectId){
     var pn = projName(t.projectId);
-    if(pn){ c2.appendChild(document.createTextNode(" ")); c2.appendChild(el("span","chip proj", pn)); }
+    if(pn){ c2.appendChild(document.createTextNode(" ")); c2.appendChild(projChip(t.projectId, pn)); }
   }
   tr.appendChild(c2);
 
@@ -3161,7 +3288,7 @@ function listRow(t){
 
   var c6 = document.createElement("td"); c6.className = "c-x";
   if(writable()){
-    var x = el("button","rowx","×");
+    var x = el("button","rowx"); x.appendChild(ico("x","sm"));
     x.title = "Delete task";
     x.setAttribute("aria-label","Delete task");
     x.onclick = function(e){ e.stopPropagation(); deleteTask(t.id); };
@@ -3386,6 +3513,128 @@ bellBtn.onclick = function(){
   else openNotifMenu();
 };
 
+/* ============ account menu: appearance and sign out ============ */
+/* Theme and accent are chosen per device — the two of you needn't agree. The
+   neutral base is fixed for legibility; the accent is taste. Each entry carries
+   its swatch for both themes so the menu shows the colour as it will look now.
+   The CSS for each accent lives in the token block under [data-accent]. */
+var ACCENTS = [
+  { id:"cobalt",   label:"Cobalt",   light:"#2F5FD9", dark:"#3E68E0" },
+  { id:"violet",   label:"Violet",   light:"#6A45D6", dark:"#7856E6" },
+  { id:"teal",     label:"Teal",     light:"#0E7780", dark:"#0E7C86" },
+  { id:"ember",    label:"Ember",    light:"#C2410C", dark:"#C2440F" },
+  { id:"rose",     label:"Rose",     light:"#C0265E", dark:"#CC3068" },
+  { id:"forest",   label:"Forest",   light:"#1B7A45", dark:"#1C7D47" },
+  { id:"graphite", label:"Graphite", light:"#3D4350", dark:"#687080" }
+];
+var DEFAULT_ACCENT = ACCENTS[0].id;
+var umenu = $("#umenu"), whoBtn = $("#whoami");
+
+function effectiveDark(){
+  var t = document.documentElement.getAttribute("data-theme");
+  if(t === "dark") return true;
+  if(t === "light") return false;
+  return matchMedia("(prefers-color-scheme: dark)").matches;
+}
+function applyAppearance(){
+  var d = document.documentElement;
+  var t = prefGet("theme", "system"), a = prefGet("accent", DEFAULT_ACCENT);
+  if(t === "light" || t === "dark") d.setAttribute("data-theme", t); else d.removeAttribute("data-theme");
+  if(a && a !== DEFAULT_ACCENT) d.setAttribute("data-accent", a); else d.removeAttribute("data-accent");
+  /* iOS tints the status bar from theme-color, and the two tags in <head> are
+     gated on the SYSTEM scheme — so a forced theme has to overwrite both or the
+     bar keeps the system's colour above a page in the other one. */
+  var paper = getComputedStyle(d).getPropertyValue("--paper").trim();
+  Array.prototype.forEach.call(document.querySelectorAll('meta[name="theme-color"]'), function(m){
+    if(!m.dataset.base) m.dataset.base = m.getAttribute("content");
+    m.setAttribute("content", (t === "light" || t === "dark") ? paper : m.dataset.base);
+  });
+}
+
+function openUserMenu(){
+  umenu.textContent = "";
+  var r = whoBtn.getBoundingClientRect();
+  var w = Math.min(window.innerWidth * 0.88, 290);
+  umenu.style.left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 10)) + "px";
+  umenu.style.top = (r.bottom + window.scrollY + 6) + "px";
+
+  var who = el("div","who");
+  if(S.me){ var im = document.createElement("img"); im.src = S.me.avatarUrl; im.alt = ""; who.appendChild(im); }
+  var nm = el("div");
+  nm.appendChild(el("b", null, (S.me && S.me.name) || "You"));
+  nm.appendChild(el("span", null, "Appearance is set per device"));
+  who.appendChild(nm);
+  umenu.appendChild(who);
+
+  var th = el("div","sect");
+  th.appendChild(el("h4", null, "Theme"));
+  var seg = el("div","seg");
+  seg.setAttribute("role","radiogroup"); seg.setAttribute("aria-label","Theme");
+  var cur = prefGet("theme","system");
+  [["system","monitor","System"],["light","sun","Light"],["dark","moon","Dark"]].forEach(function(o){
+    var b = el("button", cur === o[0] ? "on" : "");
+    b.setAttribute("role","radio"); b.setAttribute("aria-checked", cur === o[0] ? "true" : "false");
+    b.appendChild(ico(o[1],"sm")); b.appendChild(document.createTextNode(o[2]));
+    b.onclick = function(){ prefSet("theme", o[0]); applyAppearance(); openUserMenu(); };
+    seg.appendChild(b);
+  });
+  th.appendChild(seg);
+  umenu.appendChild(th);
+
+  var ac = el("div","sect");
+  ac.appendChild(el("h4", null, "Accent"));
+  var sw = el("div","swatches");
+  sw.setAttribute("role","radiogroup"); sw.setAttribute("aria-label","Accent colour");
+  var curA = prefGet("accent", DEFAULT_ACCENT), dark = effectiveDark();
+  ACCENTS.forEach(function(a){
+    var b = el("button","swatch" + (curA === a.id ? " on" : ""));
+    b.style.background = dark ? a.dark : a.light;
+    b.style.color = "#fff";
+    b.setAttribute("role","radio"); b.setAttribute("aria-checked", curA === a.id ? "true" : "false");
+    b.setAttribute("aria-label", a.label); b.title = a.label;
+    if(curA === a.id) b.appendChild(ico("check"));
+    b.onclick = function(){ prefSet("accent", a.id); applyAppearance(); openUserMenu(); };
+    sw.appendChild(b);
+  });
+  ac.appendChild(sw);
+  umenu.appendChild(ac);
+
+  var so = el("button","signout");
+  so.appendChild(ico("logout","sm"));
+  so.appendChild(document.createTextNode("Sign out"));
+  so.onclick = signOutGuarded;
+  umenu.appendChild(so);
+
+  umenu.classList.add("on");
+  whoBtn.setAttribute("aria-expanded","true");
+  setTimeout(function(){ document.addEventListener("mousedown", outsideUser); }, 0);
+}
+function outsideUser(e){
+  if(!umenu.contains(e.target) && !whoBtn.contains(e.target)) closeUserMenu();
+}
+function closeUserMenu(){
+  umenu.classList.remove("on");
+  whoBtn.setAttribute("aria-expanded","false");
+  document.removeEventListener("mousedown", outsideUser);
+}
+whoBtn.onclick = function(){
+  if(umenu.classList.contains("on")) closeUserMenu();
+  else openUserMenu();
+};
+
+/* Signing out doesn't delete unsynced writes — the outbox keeps them on this
+   device, tagged with who made them, and replays them when that person signs in
+   here again. But it does stop them sending until then, so say so first. */
+function signOutGuarded(){
+  closeUserMenu();
+  var n = (SlateStore.pendingWrites && SlateStore.pendingWrites()) || 0;
+  if(!n){ SlateStore.signOut(); return; }
+  askConfirm(n + " change" + (n === 1 ? " hasn't" : "s haven't") + " synced yet",
+    "They're kept on this device and send the next time you sign in here. Until then nobody else sees them.",
+    "Sign out anyway").then(function(ok){ if(ok) SlateStore.signOut(); });
+}
+applyAppearance();
+
 /* ============ render: notes ============ */
 /* Filing from inside the note editor means opening every one. On the unfiled
    view each card carries its own pickers so the stack clears in a pass. */
@@ -3505,7 +3754,7 @@ function renderNotes(){
     }
     if((S.sel === "dash" || S.sel === "capture") && n.projectId){
       var pn = projName(n.projectId);
-      if(pn) f.appendChild(el("span","chip proj", pn));
+      if(pn) f.appendChild(projChip(n.projectId, pn));
       var sn = spaceName(n.spaceId);
       if(sn) f.appendChild(el("span","chip", sn));
     }
@@ -3569,7 +3818,7 @@ function dashCard(title, count){
 function dashTaskRow(t){
   var row = el("div","drow");
 
-  var tick = el("button","dtick" + (taskDone(t) ? " on" : ""), "✓");
+  var tick = el("button","dtick" + (taskDone(t) ? " on" : "")); tick.appendChild(ico("check","sm"));
   tick.setAttribute("aria-label", "Mark done");
   tick.disabled = !writable();
   tick.onclick = function(e){
@@ -3582,7 +3831,7 @@ function dashTaskRow(t){
   main.appendChild(el("span","dt", t.title || "Untitled"));
   var meta = el("span","dmeta");
   var pn = t.projectId && projName(t.projectId);
-  if(pn) meta.appendChild(el("span","chip proj", pn));
+  if(pn) meta.appendChild(projChip(t.projectId, pn));
   var sn = t.spaceId && spaceName(t.spaceId);
   if(sn) meta.appendChild(el("span","chip", sn));
   if(t.due) meta.appendChild(el("span","ddue" + (isLate(t.due, taskDone(t) ? "done" : "") ? " late" : ""), fmtDate(t.due)));
@@ -3610,7 +3859,7 @@ function dashOccRow(s, dateStr){
   var done = !!(s.done && s.done[dateStr]);
   var row = el("div","drow" + (done ? " is-done" : ""));
 
-  var tick = el("button","dtick" + (done ? " on" : ""), "✓");
+  var tick = el("button","dtick" + (done ? " on" : "")); tick.appendChild(ico("check","sm"));
   tick.setAttribute("aria-label", done ? "Not done after all" : "Mark done");
   tick.disabled = !writable();
   tick.onclick = function(e){ e.stopPropagation(); toggleOccurrence(s, dateStr); };
@@ -3621,7 +3870,7 @@ function dashOccRow(s, dateStr){
   var meta = el("span","dmeta");
   if(s.time) meta.appendChild(el("span","dtime", fmtTime(s.time)));
   var pn = s.projectId && projName(s.projectId);
-  if(pn) meta.appendChild(el("span","chip proj", pn));
+  if(pn) meta.appendChild(projChip(s.projectId, pn));
   var sn = s.spaceId && spaceName(s.spaceId);
   if(sn) meta.appendChild(el("span","chip", sn));
   main.appendChild(meta);
@@ -3849,7 +4098,7 @@ function prospectRow(p){
     };
     row.appendChild(sel);
 
-    var x = el("button","rowx","×");
+    var x = el("button","rowx"); x.appendChild(ico("x","sm"));
     x.title = "Remove prospect";
     x.setAttribute("aria-label","Remove prospect");
     x.onclick = function(e){
@@ -4021,7 +4270,7 @@ function feedItem(n){
   if(noteKind(n) !== "note") f.appendChild(el("span","chip", noteKind(n) === "doc" ? "Doc" : "Whiteboard"));
   if(n.projectId){
     var pn = projName(n.projectId);
-    if(pn) f.appendChild(el("span","chip proj", pn));
+    if(pn) f.appendChild(projChip(n.projectId, pn));
     var sn = spaceName(n.spaceId);
     if(sn) f.appendChild(el("span","chip", sn));
   }
@@ -4087,10 +4336,10 @@ function renderCalendar(){
   var m = S.calMonth;
 
   var bar = el("div","calbar");
-  var prev = el("button","nav","‹");
+  var prev = el("button","nav"); prev.appendChild(ico("left"));
   prev.setAttribute("aria-label","Previous month");
   prev.onclick = function(){ S.calMonth = new Date(m.getFullYear(), m.getMonth()-1, 1); render(); };
-  var next = el("button","nav","›");
+  var next = el("button","nav"); next.appendChild(ico("right"));
   next.setAttribute("aria-label","Next month");
   next.onclick = function(){ S.calMonth = new Date(m.getFullYear(), m.getMonth()+1, 1); render(); };
   bar.appendChild(prev);
@@ -4228,7 +4477,7 @@ function agendaRow(it){
   if(it.kind === "sched"){
     var done = !!(it.s.done && it.s.done[it.ds]);
     var r = el("button","agrow" + (done ? " done" : ""));
-    var tick = el("span","tick","✓");
+    var tick = el("span","tick"); tick.appendChild(ico("check","sm"));
     r.appendChild(tick);
     r.appendChild(el("span","ot", it.s.title || "Untitled"));
     r.appendChild(el("span","tm", fmtTime(it.s.time)));
@@ -4237,7 +4486,7 @@ function agendaRow(it){
   }
   var t = it.t;
   var tr = el("button","agrow" + (taskDone(t) ? " done" : ""));
-  var tk = el("span","tick","✓");
+  var tk = el("span","tick"); tk.appendChild(ico("check","sm"));
   tr.appendChild(tk);
   tr.appendChild(el("span","ot", t.title || "Untitled"));
   tr.appendChild(el("span","tm","task"));
@@ -4422,7 +4671,7 @@ function drawCapThumbs(){
     var im = document.createElement("img");
     im.src = SlateStore.blobUrl(id); im.alt = "";
     w.appendChild(im);
-    var x = el("button",null,"×");
+    var x = el("button"); x.appendChild(ico("x","sm"));
     x.setAttribute("aria-label","Remove image");
     x.onclick = function(){
       S.capImages = S.capImages.filter(function(i){ return i !== id; });
@@ -4733,10 +4982,43 @@ function openTask(id){
   taskDlg.classList.add("on");
   if(!ro && isPhone()) $("#tkName").focus();
 }
-function closeTask(){ taskDlg.classList.remove("on"); tkId = null; }
+/* What the sheet would write, compared with what the task holds — only a real
+   difference is worth a write. Status is compared against columnOf(), not the
+   raw field, because a status matching no column is shown as the first one and
+   would otherwise register as a change every time the sheet closed. */
+function tkPending(){
+  var t = findTask(tkId);
+  if(!t || !writable()) return null;
+  var want = {
+    title: $("#tkName").value.trim() || t.title || "",   // an emptied name keeps the old one
+    notes: $("#tkNotes").value.trim() || null,
+    status: $("#tkStatus").value,
+    due: $("#tkDue").value || null,
+    projectId: $("#tkProj").value || null,
+    spaceId: $("#tkSpace").value || null,
+    assignee: $("#tkOwner").value || null
+  };
+  var have = {
+    title: t.title || "", notes: t.notes || null, status: columnOf(t), due: t.due || null,
+    projectId: t.projectId || null, spaceId: t.spaceId || null, assignee: t.assignee || null
+  };
+  var changed = {};
+  Object.keys(want).forEach(function(k){ if(want[k] !== have[k]) changed[k] = want[k]; });
+  return Object.keys(changed).length ? changed : null;
+}
+/* Every way out of the sheet keeps what was typed — Close, tapping outside,
+   Escape. They all used to discard it silently. Only Delete passes false. */
+function closeTask(save){
+  if(save !== false && tkId){
+    var ch = tkPending();
+    if(ch) patchTask(tkId, ch);
+  }
+  taskDlg.classList.remove("on");
+  tkId = null;
+}
 
 $("#tkProj").onchange = tkSyncSpaces;
-$("#tkClose").onclick = closeTask;
+$("#tkClose").onclick = function(){ closeTask(); };
 $("#tkNote").onclick = function(){
   var t = findTask(tkId);
   if(!t || !t.noteId) return;
@@ -4745,18 +5027,8 @@ $("#tkNote").onclick = function(){
 };
 taskDlg.onmousedown = function(e){ if(e.target === taskDlg) closeTask(); };
 $("#tkSave").onclick = function(){
-  if(!tkId || !writable()) return closeTask();
-  var title = $("#tkName").value.trim();
-  if(!title){ $("#tkName").focus(); toast("Give the task a name."); return; }
-  patchTask(tkId, {
-    title: title,
-    notes: $("#tkNotes").value.trim() || null,
-    status: $("#tkStatus").value,
-    due: $("#tkDue").value || null,
-    projectId: $("#tkProj").value || null,
-    spaceId: $("#tkSpace").value || null,
-    assignee: $("#tkOwner").value || null
-  });
+  if(!tkId || !writable()) return closeTask(false);
+  if(!$("#tkName").value.trim()){ $("#tkName").focus(); toast("Give the task a name."); return; }
   closeTask();
 };
 $("#tkDelete").onclick = function(){
@@ -4765,7 +5037,7 @@ $("#tkDelete").onclick = function(){
   askConfirm("Delete this task?", "It won't come back.", "Delete").then(function(ok){
     if(!ok) return;
     deleteTask(id);
-    closeTask();
+    closeTask(false);
   });
 };
 
@@ -4831,7 +5103,7 @@ function drawEdImgs(){
     im.onerror = function(){ w.remove(); };
     w.appendChild(im);
     if(writable()){
-      var x = el("button",null,"×");
+      var x = el("button"); x.appendChild(ico("x","sm"));
       x.setAttribute("aria-label","Remove image");
       x.onclick = function(){
         askConfirm("Remove this image?", "It's deleted from the board for both of you.", "Remove")
@@ -5012,6 +5284,8 @@ overlay.addEventListener("mousedown", function(e){ if(e.target === overlay) clos
 document.addEventListener("keydown", function(e){
   if(e.key !== "Escape") return;
   if($("#confirm").classList.contains("on")) return; // the dialog handles its own Escape
+  if(umenu.classList.contains("on")){ closeUserMenu(); whoBtn.focus(); return; }
+  if(nmenu.classList.contains("on")){ closeNotifMenu(); bellBtn.focus(); return; }
   if(projDlg.classList.contains("on")){ saveProjectSheet(); closeProjectSheet(); return; }
   if(prospectDlg.classList.contains("on")){ saveProspect(); closeProspect(); return; }
   if(taskDlg.classList.contains("on")){ closeTask(); return; }

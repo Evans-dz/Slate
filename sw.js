@@ -3,7 +3,7 @@
    connection, because Supabase requests carry auth and are never cached.
    Also receives the push briefs — see the handlers at the bottom. */
 
-var VERSION = "slate-v4";
+var VERSION = "slate-v5";
 /* "/index.html" is deliberately absent: cleanUrls redirects it to "/", so caching
    it stores a redirected response, and returning one of those for a navigation is
    a network error rather than a page. "/" precaches the same bytes. */
@@ -54,21 +54,32 @@ function cacheFirst(req) {
   });
 }
 
+/* Network first, but a phone on one bar of job-site signal can leave a fetch
+   hanging for a minute rather than failing. Past the timeout, the cached copy
+   answers and the fetch keeps going in the background to refresh the cache. */
+var NET_TIMEOUT = 4000;
 function networkFirst(req) {
-  return fetch(req).then(function (res) {
+  var fresh = fetch(req).then(function (res) {
     if (res.ok) {
       var copy = res.clone();
       caches.open(VERSION).then(function (c) { c.put(req, copy); });
     }
     return res;
-  }).catch(function () {
+  });
+  fresh.catch(function () {});        // may lose the race and fail later, unobserved
+  var timedOut = new Promise(function (resolve, reject) {
+    setTimeout(function () { reject(new Error("slow")); }, NET_TIMEOUT);
+  });
+  return Promise.race([fresh, timedOut]).catch(function () {
     /* Offline. A push deep link is "/?view=today", which matches no cache key on
        its own — caches.match is query-sensitive — so fall back through the same
        URL ignoring its query, then to the shell. */
     return caches.match(req).then(function (hit) {
       if (hit) return hit;
       return caches.match(req, { ignoreSearch: true }).then(function (h2) {
-        return h2 || caches.match("/");
+        if (h2) return h2;
+        if (req.mode === "navigate") return caches.match("/");
+        return fresh;                    // nothing cached: wait for the network after all
       });
     });
   });
@@ -89,15 +100,18 @@ self.addEventListener("fetch", function (e) {
     return;
   }
 
-  // config.js is deploy-time configuration — network first, or a changed key
-  // sits stale in the cache forever (vercel.json marks it must-revalidate for
-  // the same reason). The cached copy is only the offline fallback.
-  if (url.origin === location.origin && url.pathname === "/config.js") {
+  /* Code, config and the manifest: network first, cache as the offline fallback.
+     These were cache-first and only refreshed when this file changed, so a deploy
+     that touched store.js but not sw.js left every installed phone running the
+     OLD store.js under the NEW index.html — the page and its platform layer from
+     two different builds. Nothing here is fingerprinted, so nothing here can be
+     trusted to be immutable. */
+  if (url.origin === location.origin && !/^\/icons\//.test(url.pathname)) {
     e.respondWith(networkFirst(req));
     return;
   }
 
-  // Fonts and same-origin assets: cache first, they're versioned or immutable.
+  // Icons and fonts genuinely don't change under the same URL: cache first.
   if (url.origin === location.origin ||
       url.hostname === "fonts.googleapis.com" ||
       url.hostname === "fonts.gstatic.com") {
