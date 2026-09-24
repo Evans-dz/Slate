@@ -202,7 +202,9 @@ button{cursor:pointer;background:none;border:0;padding:0}
 #railToggle{display:none}
 
 #search{
-  flex:1;max-width:340px;margin-left:auto;
+  /* min-width:0 — an input's intrinsic width is ~20 characters, which pushed the
+     top bar past a 320px screen and made the whole page scroll sideways */
+  flex:1;min-width:0;max-width:340px;margin-left:auto;
   border:1px solid var(--line-strong);background:var(--paper);
   border-radius:var(--radius);padding:6px 10px;font-size:13px;
 }
@@ -797,7 +799,7 @@ tr:hover .rowx{opacity:1}
    day. Above 720px each cell carries its date and up to three chips; the phone
    half, further down in the phone block, hides the chips and turns each cell into
    a date with dots, iPhone Calendar style. Colours are tokens only — project
-   colours arrive as inline hsl(var()) strings or through --cp. */
+   colours arrive as inline oklch(var()) strings or through --cp. */
 .calbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .calbar .mon{
   margin:0 auto 0 0;min-width:0;
@@ -841,7 +843,7 @@ tr:hover .rowx{opacity:1}
   font-size:12.5px;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink-2);
 }
 .calday .dn:hover .dnum{background:var(--line-soft)}
-.calday.off .dnum{color:var(--muted);opacity:.6}
+.calday.off .dnum{color:var(--faint)}
 .calday.today .dnum,
 .calday.today .dn:hover .dnum{background:var(--accent);color:var(--on-accent);font-weight:600;opacity:1}
 .calday .dots{display:none}
@@ -850,8 +852,8 @@ tr:hover .rowx{opacity:1}
   font-size:11.5px;line-height:1.25;padding:1px 6px;border-radius:4px;
   border:1px solid transparent;background:var(--accent-soft);color:var(--accent-ink);
 }
-.occ:hover{filter:brightness(.96)}
-.occ .tm{font-variant-numeric:tabular-nums;opacity:.75;flex:0 0 auto}
+.occ:hover{box-shadow:0 0 0 2px var(--line-strong)}
+.occ .tm{font-variant-numeric:tabular-nums;font-weight:600;flex:0 0 auto}
 .occ .ot{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .occ.task{background:transparent;border-color:var(--line);color:var(--ink)}
 .occ.done{background:var(--line-soft);border-color:transparent;color:var(--muted);text-decoration:line-through}
