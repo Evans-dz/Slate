@@ -102,12 +102,17 @@ Deleting a space does **not** delete its contents; it nulls `spaceId` on the tas
 schedules that referenced it.
 
 **`tasks`** — `title`, `status` (a column id, see below), `projectId`, `spaceId`, `assignee`,
-`due` (`YYYY-MM-DD`), `noteId`, `order`, timestamps, and `completedAt`. `order` is a float;
-reordering inserts at the midpoint of its neighbours. `noteId` points back at the note a
-card was made from. `completedAt` is stamped by `patchTask` the moment a status change
-lands a task in its done column and cleared when it leaves — done-ness itself stays
-positional (see Columns), the timestamp exists so the evening brief can say what got
-finished *today*.
+`due` (`YYYY-MM-DD`), `noteId`, `notes`, `order`, timestamps, `completedAt` and
+`completedBy`. `order` is a float; reordering inserts at the midpoint of its neighbours.
+`noteId` points back at the note a card was made from. `completedAt` is stamped by
+`patchTask` the moment a status change lands a task in its done column and cleared when it
+leaves — done-ness itself stays positional (see Columns), the timestamp exists so the
+evening brief can say what got finished *today* and the dashboard can chart it.
+`completedBy` (the uid that ticked it) is stamped and cleared alongside it; the dashboard
+credits a completion to the task's `assignee`, falling back to `completedBy`. Three doors
+stamp both: `patchTask`, `deleteColumn` (which re-files cards itself), and `createTask`
+when a task is typed straight into the done column. `completedAt` exists from
+2026-09-17 (`TRACK_START`), `completedBy` from 2026-09-24.
 
 **`notes`** — `title`, `body`, `kind` (`note` | `doc` | `board`), `images` (asset ids),
 `projectId`, `spaceId`, timestamps. Tags are **derived, not stored** — `tagsOf()` regexes
@@ -172,13 +177,44 @@ board a filing tool as well as a board.
 
 ## Views
 
-`S.sel` is the current view: `"dash"`, `"capture"`, `"unfiled"`, or a project id.
-`isVirtualView()` distinguishes the first three from a real project.
+`S.sel` is the current view: `"dash"`, `"all"`, `"capture"`, `"unfiled"`, `"today"`, or a
+project id. `isVirtualView()` distinguishes the named ones from a real project. Every change
+of view goes through `goView(sel, tab, drill)`, which clears the space, open doc, tag filter
+and drill chip, keeps a Prospects tab only where one exists, closes the phone drawer and
+starts the new page at the top.
 
-**Dashboard** is the landing page and the only cross-project home. A four-card summary —
-today, overdue, in progress, next seven days — sits above the Board / List / Calendar /
-Notes / Prospects tabs, which span every project. Prospect chase dates surface in the Today
-and Next seven days cards so a follow-up can't quietly pass.
+**Dashboard** is the landing page. It reads at a glance and every part of it either acts in
+place (tick, assign, open) or drills somewhere specific; it has no tabs. From the top: four
+stat tiles (Completed in the range, In progress, Due this week, Overdue); two stacks — *act*
+(Today: overdue, events, due today, chases; then Next 7 days by day) and *review* (the
+Completed chart, then Finished, the completions log that is the chart's detail view); a
+Projects table (progress bar, open, late, done in range, last touched, a Quiet flag after
+`STALE_DAYS`); then Workload and Pipeline side by side. All of it comes from one pass over
+what's loaded (`dashModel()`), on the Denver date the briefs use.
+
+Two controls scope it, in one row above everything: a **person lens** (Everyone, then each
+profile, me first) and a **history range** (7 days, 30 days, 12 weeks — weeks so every
+bucket is a whole Monday week). Both are per device (`slate:who`, `slate:dashRange`). The
+lens is the morning brief's rule, one rule for everything: *a person's view is theirs plus
+nobody's* — open work assigned to them or to no one, completions credited to them or to no
+one. So the two lenses overlap and don't add up to Everyone, and the header says so in
+words. Events, chases, Pipeline and Workload ignore the lens: they're shared, or per person
+already. The range scopes only history: the Completed tile, the chart, Finished and the
+Projects Done column.
+
+**All projects** (`"all"`) is the cross-project half the dashboard used to carry: Board /
+List / Calendar / Notes / Prospects tabs spanning every project, a board per project and
+space. It never applies the lens. A dashboard drill-through arrives as `S.drill`
+(`{lens, owner, status, project}`) and shows as one removable chip under the tabs, so a
+filter is never left on the shared board without saying so; any `goView` without one clears
+it. The phone's Board and Calendar buttons open All projects from any view that isn't a
+project, and switch the project's own tab inside one. `/?view=all` deep-links to it.
+
+**Boards and the list only show a fortnight of finished work.** A done card whose
+`completedAt` (or, before tracking, `updatedAt`) is more than `DONE_KEEP_DAYS` old folds
+behind "Show N older" per board; the list does the same. Counts on tabs, board headings and
+the rail are open work only — Dashboard's rail badge is the overdue count, Capture carries
+none.
 
 **Capture** is the quick-note stream. Type, press Enter, saved. The project and space
 pickers start empty and reset after every save, so each note is filed deliberately rather
@@ -335,6 +371,27 @@ Don't "fix" these.
   a basement can be replayed an hour later without inspecting what changed meanwhile. Both
   hold **only while every write ends in a full-document upsert** — adding a real partial
   update would quietly break them.
+- **A fixed dashboard, no widget editor.** Two people don't need a stored layout, and every
+  per-person preference is one more thing that differs between your screen and theirs.
+- **Completion history is derived from task rows, never backfilled.** A completion counts
+  when `completedAt` is set *and* the task still sits in a done column — the evening wrap's
+  rule, so the chart's today always equals the wrap. Days before `TRACK_START`
+  (2026-09-17) are drawn as "Not tracked", never as zeros, and the Completed tile shows a
+  delta only once the previous period is fully tracked. `updatedAt` is not used to invent
+  older dates: it moves on any edit. Finished tasks with no `completedAt` still count where
+  done-ness is positional (Projects, Workload) and are footnoted everywhere else. Known
+  limits, shared with the evening brief: deleting a done card, adding a column after Done,
+  or deleting a space (which nulls `spaceId` outside `patchTask`) retroactively removes
+  completions. If that bites, the fix is an append-only `completions/<taskId>` doc written
+  in `patchTask` — still a full-document upsert, so still outbox-safe.
+- **The lens mirrors the morning brief's scoping** (theirs plus unassigned), so each
+  person's dashboard agrees with their 7am push. A strict "only mine" filter would look
+  empty while most work is unassigned; Workload's Unassigned row, with an owner button on
+  each task, is the nudge instead.
+- **Chart colours are the `--viz-*` tokens, not the accent.** Accents are per device, so an
+  accent-coloured chart would look different on each of your screens. Marks get their
+  colour from CSS classes, never from SVG presentation attributes — `var()` there is
+  unreliable on iOS.
 - **Images are not queued offline.** The text of a note is the thing worth saving in a
   basement; a photo can wait. Queuing blobs would need a second store against the same
   quota, different error semantics, and a two-phase commit so a note never references an
@@ -348,6 +405,9 @@ Recorded because the reasoning still gets quoted at me.
 - **Four fixed statuses** → per-space named columns. Different spaces genuinely need
   different workflows.
 - **Feed as the landing view** → Dashboard. Capture is still one tap away in the bottom bar.
+- **Dashboard as summary cards above the cross-project tabs** → a tab-less Dashboard plus
+  All projects. The cards were a thin layer over "every board at once", done cards
+  included; the boards moved to their own page and the dashboard got history.
 - **Self-hosted Node, SQLite and SSE behind Tailscale** → Vercel, Supabase and GitHub.
   Supabase realtime replaces SSE, Supabase auth replaces the sessions table, Supabase storage
   replaces the blobs directory.

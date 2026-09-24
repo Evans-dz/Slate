@@ -1213,10 +1213,7 @@ tr:hover .rowx{opacity:1}
 .pstage:focus{border-color:var(--accent);outline:none}
 
 /* ---------- dashboard ---------- */
-.dash{
-  display:grid;gap:12px;align-items:start;margin-bottom:22px;
-  grid-template-columns:repeat(auto-fill,minmax(248px,1fr));
-}
+/* .dcard and the row styles are the Today page's; the dashboard's lists reuse the rows */
 .dcard{
   background:var(--panel);border:1px solid var(--line);
   border-radius:var(--radius);padding:13px 14px 12px;
@@ -1236,6 +1233,7 @@ tr:hover .rowx{opacity:1}
 .drow{display:flex;align-items:flex-start;gap:9px;border-radius:3px}
 .drow:hover{background:var(--line-soft)}
 .dtick{
+  position:relative;
   flex:0 0 auto;width:19px;height:19px;margin-top:7px;border-radius:50%;
   border:1.5px solid var(--line);color:transparent;
   display:flex;align-items:center;justify-content:center;
@@ -1253,6 +1251,287 @@ tr:hover .rowx{opacity:1}
 .dtime{font-variant-numeric:tabular-nums}
 .ddue{font-variant-numeric:tabular-nums}
 .ddue.late{color:var(--danger)}
+
+/* ========== dashboard, All projects, rail counts, board history (redesign) ========== */
+/* Every base rule for these lives in this block, above the tablet and phone
+   blocks (CSS trap 1); their overrides live in delimited parts of those blocks. */
+
+/* Two independent stacks, not grid areas: the lists vary in height, and a shared
+   grid either stretches a whole row to its tallest list or leaves holes. Source
+   order is the phone order and the screen-reader order. */
+.dboard{max-width:1400px;display:flex;flex-direction:column;gap:14px}
+.dtiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.dstacks{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:14px;align-items:start}
+.dstack{display:flex;flex-direction:column;gap:14px;min-width:0}
+.dband2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.sr-only{
+  position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;
+}
+
+/* the two controls that scope everything below them: one row, above, never in a card */
+.dfilters{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 2px}
+.seg.dseg{display:inline-flex;flex:0 0 auto}
+.dseg button{flex:0 0 auto;min-height:32px;padding:5px 12px;font-size:13px;white-space:nowrap}
+/* these scope the whole page, so the choice has to read at a glance in both themes */
+.dseg button.on{font-weight:500;box-shadow:var(--shadow),inset 0 0 0 1px var(--line)}
+.dseg img{width:18px;height:18px;border-radius:50%;display:block;background:var(--line-soft)}
+
+/* stat tiles: proportional figures at this size — tabular digits look loose */
+.dtile{
+  display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;text-align:left;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 14px 13px;
+}
+.dtile:hover{border-color:var(--accent)}
+.dtile .tl{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2)}
+.dtile .tl .ico{color:var(--muted)}
+.dtile .tl .ico.crit{color:var(--danger)}
+.dtile .tv{font-size:28px;font-weight:600;line-height:1.15;letter-spacing:-.02em;color:var(--ink)}
+.dtile .ts{font-size:12px;color:var(--muted);line-height:1.35}
+.dtile .ts .up{color:var(--good)}
+.dtile .ts .down{color:var(--danger)}
+
+/* cards */
+.wcard{
+  margin:0;min-width:0;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);padding:14px 16px 12px;scroll-margin-top:66px;
+}
+.wcard:focus{outline:none}
+.whead{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.whead .wt{flex:1;min-width:0}
+.whead h3{
+  margin:0;font-size:14.5px;font-weight:600;letter-spacing:-.005em;
+  display:flex;align-items:center;gap:8px;
+}
+.whead h3 .n{
+  font-size:11.5px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums;
+  background:var(--line-soft);border-radius:9px;padding:1px 7px;
+}
+.wsub{font-size:12px;color:var(--muted);margin-top:1px}
+.wact{
+  flex:0 0 auto;display:inline-flex;align-items:center;gap:1px;
+  font-size:12.5px;color:var(--accent-ink);padding:4px 4px 4px 8px;margin:-4px -6px 0 0;border-radius:4px;
+}
+.wact:hover{background:var(--accent-soft)}
+.wmore{display:block;text-align:left;font-size:12.5px;color:var(--accent-ink);padding:6px 4px 3px 28px}
+.wmore:hover{text-decoration:underline}
+.wnote{font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px}
+.dgroup.crit{display:flex;align-items:center;gap:5px;color:var(--danger)}
+.dgroup.crit .ico{width:13px;height:13px}
+button.dgroup{display:block;width:100%;text-align:left}
+button.dgroup:hover{color:var(--accent-ink)}
+.dspace{flex:0 0 auto;width:19px}
+.drow .dwho{
+  flex:0 0 auto;width:20px;height:20px;border-radius:50%;margin:7px 2px 0 0;
+  background:var(--line-soft);
+}
+.dassign{
+  flex:0 0 auto;width:22px;height:22px;margin:6px 2px 0 0;border-radius:50%;position:relative;
+  border:1.5px dashed var(--line);color:var(--muted);display:flex;align-items:center;justify-content:center;
+}
+.dassign .ico{width:12px;height:12px;stroke-width:2.4}
+.dassign:hover{border-color:var(--accent);color:var(--accent-ink)}
+.dpick{
+  display:inline-flex;align-items:center;gap:2px;margin:0 0 8px;
+  border:1px solid var(--line);border-radius:999px;padding:1px 2px 1px 10px;
+  font-size:12px;color:var(--ink-2);background:var(--panel-2);
+}
+.dpick button{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.dpick button:hover{color:var(--ink);background:var(--line-soft)}
+.dpick .ico{width:13px;height:13px}
+
+/* the completions chart. No colour is ever written into the SVG — var() inside a
+   presentation attribute is unreliable on iOS — so every mark gets a class, and a
+   theme flip repaints it without a redraw. */
+.vx-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;margin:-2px 0 10px}
+.vx-total{font-size:22px;font-weight:600;letter-spacing:-.015em;line-height:1.1}
+.vx-stat{font-size:12.5px;color:var(--muted)}
+.vx-host{position:relative;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+svg.vx{display:block;overflow:visible}
+.vx-bar{fill:var(--viz-1)}
+.vx-bar.dim{opacity:.35}
+.vx-grid{stroke:var(--viz-grid);stroke-width:1;shape-rendering:crispEdges}
+.vx-base{stroke:var(--viz-axis);stroke-width:1;shape-rendering:crispEdges}
+.vx-tick{fill:var(--muted);font-family:var(--ui);font-size:11px;font-variant-numeric:tabular-nums}
+.vx-tick.now{fill:var(--ink-2);font-weight:600}
+.vx-lbl{fill:var(--ink);font-family:var(--ui);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.vx-untracked{fill:var(--viz-untracked)}
+.vx-utxt{fill:var(--muted);font-family:var(--ui);font-size:11.5px}
+.vx-msg{
+  position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:0 10px;font-size:12.5px;line-height:1.4;color:var(--muted);pointer-events:none;
+}
+.vx-hits{position:absolute;display:flex}
+.vx-hit{flex:1 1 0;min-width:0;height:100%;border-radius:3px}
+.vx-hit:hover{background:var(--viz-1-soft)}
+.vx-hit:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;background:var(--viz-1-soft)}
+.vx-hit.off,.vx-hit.off:hover{background:transparent;cursor:default}
+.vx-tip{
+  position:absolute;z-index:5;pointer-events:none;width:max-content;max-width:230px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:8px 10px 9px;font-size:12px;line-height:1.4;color:var(--ink-2);
+}
+.vx-tip[hidden]{display:none}
+.vx-tip .tv{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--ink)}
+.vx-tip .tv::before{content:"";width:12px;height:2px;border-radius:1px;background:var(--viz-1);flex:0 0 auto}
+.vx-tip .td{color:var(--muted)}
+.vx-tip .tt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+.vx-tip .tsplit{margin-top:3px}
+.vx-readout{
+  display:flex;align-items:center;gap:2px;margin-top:8px;padding:1px;
+  border:1px solid var(--line-soft);border-radius:var(--radius);background:var(--panel-2);
+}
+.vx-readout .rt{flex:1;min-width:0;text-align:center;font-size:13px;font-variant-numeric:tabular-nums}
+.vx-readout button{
+  flex:0 0 auto;width:38px;height:38px;border-radius:4px;color:var(--ink-2);
+  display:flex;align-items:center;justify-content:center;
+}
+.vx-readout button:hover{background:var(--line-soft)}
+.vx-readout button:disabled{opacity:.35;cursor:default;background:transparent}
+.seg.wtog{display:inline-flex;flex:0 0 auto;margin:-3px 0 0}
+.wtog button{flex:0 0 auto;padding:3px 9px;font-size:12px}
+.vx-table{width:100%;border-collapse:collapse;font-size:13px}
+.vx-table th{
+  text-align:left;font-weight:500;font-size:12px;color:var(--muted);
+  padding:0 8px 6px;border-bottom:1px solid var(--line);
+}
+.vx-table td{padding:6px 8px;border-bottom:1px solid var(--line-soft);font-variant-numeric:tabular-nums}
+.vx-table .num{text-align:right}
+.vx-table .muted{color:var(--muted)}
+
+/* part-to-whole bars: one ordinal ramp, so one encoding means status everywhere on
+   the page. A 2px surface gap between segments, the data end rounded, the start square. */
+.stk{display:flex;gap:2px;height:10px;min-width:0}
+.stk span{flex:1 1 0;min-width:3px}
+.stk span:last-child{border-radius:0 4px 4px 0}
+.stk .s-done{background:var(--viz-done)}
+.stk .s-doing{background:var(--viz-doing)}
+.stk .s-todo{background:var(--viz-todo)}
+/* not ".empty": that's the empty-state block, and it would pad this to 68px */
+.stk.stk-none{background:var(--line-soft);border-radius:0 4px 4px 0}
+.lgd{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin:0 0 8px}
+.lgd span{display:inline-flex;align-items:center;gap:6px}
+.lgd i{display:inline-block;width:10px;height:10px;border-radius:2px}
+.lgd .s-done{background:var(--viz-done)}
+.lgd .s-doing{background:var(--viz-doing)}
+.lgd .s-todo{background:var(--viz-todo)}
+
+/* projects: a table because it's many rows with several measures each */
+.ptable{display:flex;flex-direction:column}
+.pth,.ptr{
+  display:grid;align-items:center;gap:0 14px;
+  grid-template-columns:minmax(0,2.3fr) minmax(0,2fr) 48px 48px 64px 76px;
+}
+.pth{font-size:11.5px;color:var(--muted);padding:0 8px 6px;border-bottom:1px solid var(--line)}
+.pth .pa{text-align:right}
+.pth .num,.ptr .num{text-align:right;font-variant-numeric:tabular-nums}
+.ptr{width:100%;text-align:left;padding:9px 8px;border-bottom:1px solid var(--line-soft);font-size:13.5px}
+.ptr:hover{background:var(--panel-2)}
+.ptr .pn{display:flex;align-items:center;gap:8px;min-width:0}
+.ptr .pdot{width:9px;height:9px;border-radius:3px;flex:0 0 auto;transform:rotate(-8deg);background:var(--muted)}
+.ptr .pnw{display:flex;flex-direction:column;min-width:0}
+.ptr .pnm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.ptr .pquiet{flex:0 0 auto;background:transparent;border:1px solid var(--line);color:var(--ink-2)}
+.ptr .pp{display:flex;align-items:center;gap:10px;min-width:0}
+.ptr .pp .stk{flex:1 1 auto}
+.ptr .ppct{flex:0 0 auto;min-width:34px;text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ptr .late{color:var(--danger);font-weight:500;display:inline-flex;align-items:center;justify-content:flex-end;gap:3px}
+.ptr .late .ico{width:12px;height:12px}
+.ptr .zero{color:var(--muted)}
+.ptr .pa{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+.ptr .pai,.ptr .pm{display:none}
+.ptr .pm .late{display:inline-flex;font-weight:400}
+.pfold{
+  width:100%;text-align:left;padding:9px 8px;font-size:12.5px;color:var(--accent-ink);
+  border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:4px;
+}
+.pfold:hover{background:var(--panel-2)}
+.pfold .ico{width:14px;height:14px}
+
+/* workload */
+.wlrow{
+  display:grid;grid-template-columns:120px minmax(0,1fr);gap:3px 12px;align-items:center;
+  width:100%;text-align:left;padding:8px 6px;border-radius:4px;
+}
+.wlrow:hover{background:var(--panel-2)}
+.wlrow[aria-expanded="true"]{background:var(--panel-2)}
+.wlwho{display:flex;align-items:center;gap:8px;min-width:0;font-size:13.5px}
+.wlwho img,.wlwho .wlnone{width:22px;height:22px;border-radius:50%;flex:0 0 auto;background:var(--line-soft)}
+.wlwho .wlnone{background:transparent;border:1.5px dashed var(--muted)}
+.wlwho .wln{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wltrack{display:flex;align-items:center;gap:8px;min-width:0}
+.wltrack .stk{flex:0 0 auto}
+.wlval{font-size:12.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.wlval.zero{color:var(--muted)}
+.wlmeta{grid-column:2;font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.wlmeta .late{color:var(--danger);display:inline-flex;align-items:center;gap:3px}
+.wlmeta .ico{width:12px;height:12px}
+.wlx{padding:2px 4px 8px 36px}
+.wlx .wmore{padding-left:0}
+
+/* pipeline: three numbers read faster than three bars */
+.pcounts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pcount{
+  display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;min-width:0;
+  padding:8px 10px;border:1px solid var(--line-soft);border-radius:var(--radius);background:var(--panel-2);
+}
+.pcount:hover{border-color:var(--accent)}
+.pcount b{font-size:20px;font-weight:600;line-height:1.2}
+.pcount span{font-size:12px;line-height:1.3;color:var(--muted);max-width:100%}
+.plost{font-size:12px;color:var(--muted);margin-top:7px}
+.psub{font-size:11.5px;color:var(--muted);letter-spacing:.02em;margin:14px 0 3px}
+.pchase{display:flex;align-items:baseline;gap:10px;width:100%;text-align:left;padding:7px 4px;border-radius:3px}
+.pchase:hover{background:var(--line-soft)}
+.pchase .pc1{flex:1;min-width:0;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pchase .pc2{font-size:12px;color:var(--muted);white-space:nowrap}
+.pchase .pcd{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.pchase .pcd.late{color:var(--danger)}
+.pnudge{display:block;text-align:left;margin-top:8px;font-size:12.5px;color:var(--accent-ink)}
+.pnudge:hover{text-decoration:underline}
+
+/* All projects: a drill-through arrives as one removable chip, so a filter is
+   never left on the shared board without saying so */
+.drill{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+.dchip{
+  display:inline-flex;align-items:center;gap:2px;font-size:12.5px;
+  color:var(--accent-ink);background:var(--accent-soft);border:1px solid var(--accent);
+  border-radius:999px;padding:1px 2px 1px 11px;
+}
+.dchip button{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.dchip button:hover{background:var(--panel)}
+.dchip .ico{width:13px;height:13px}
+
+/* rail: the virtual views carry an icon where projects carry their colour dot,
+   and the dot sits in the same 15px so every label lines up */
+.rail-item .rico{width:15px;height:15px;color:var(--muted)}
+.rail-item.on .rico{color:var(--accent-ink)}
+.rail-item .dot{margin:0 4px}
+.rail-item .ct.crit{color:var(--danger);font-weight:600}
+
+/* boards and the list: finished work folds away after a fortnight */
+.doneolder{
+  width:100%;padding:6px 8px;font-size:12.5px;color:var(--muted);
+  border:1px dashed var(--line);border-radius:var(--radius);
+}
+.doneolder:hover{color:var(--accent-ink);border-color:var(--accent)}
+.listmore{margin-top:10px}
+/* A phone board snaps a column at a time, and a mandatory snap undoes every 16px
+   autoPan nudge — the dragged card could never reach the next column. Snapping
+   comes back on release, and settles on whichever column is nearest. */
+body.dragging-now .board{scroll-snap-type:none}
+
+/* touch: the tick stays small to look at and gets a finger-sized target */
+@media (hover:none){
+  .dtick{width:22px;height:22px;margin-top:6px}
+  .dtick::after,.dassign::after{content:"";position:absolute;inset:-9px}
+  .dspace{width:22px}
+}
+@media (forced-colors:active){
+  .vx-bar,.vx-bar.dim{fill:CanvasText}
+  .vx-untracked{fill:GrayText}
+  .stk span{background:CanvasText}
+}
 
 /* ---------- today: the page behind the notification briefs ---------- */
 /* a vertical stack on every width — this page is for scrolling, not snapping */
@@ -1289,6 +1568,22 @@ tr:hover .rowx{opacity:1}
   .col{scroll-snap-align:start}
   #mainhead{padding:18px 18px 0}
   #mainbody{padding:16px 18px 40px}
+  /* ---- dashboard (redesign): one stack, Today first ---- */
+  .dstacks{grid-template-columns:minmax(0,1fr)}
+  /* ---- end dashboard ---- */
+}
+
+/* narrow tablets: ~500-600px of content (the calendar's narrow rules live in its
+   own section) */
+@media (max-width:900px) and (min-width:721px){
+  /* ---- dashboard (redesign): ~500-600px of content ---- */
+  .dtiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dband2{grid-template-columns:minmax(0,1fr)}
+  /* Active moves under the project name rather than squeezing the bar */
+  .pth,.ptr{grid-template-columns:minmax(0,2fr) minmax(0,2fr) 44px 44px 60px}
+  .pth .pa,.ptr .pa{display:none}
+  .ptr .pai{display:block;font-size:11.5px;font-weight:400;color:var(--muted)}
+  /* ---- end dashboard ---- */
 }
 
 /* ---------- phone ---------- */
@@ -1376,13 +1671,45 @@ tr:hover .rowx{opacity:1}
   .list input[type=checkbox]{width:21px;height:21px}
   .rowx{font-size:21px;padding:6px 9px}
 
-  /* stacked, the summary is a wall of cards before the tab content; swipe it
-     instead, the same way the board scrolls here */
-  .dash{
-    display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;
-    margin:0 -15px 16px;padding:0 15px 8px;-webkit-overflow-scrolling:touch;
-  }
-  .dcard{flex:0 0 80vw;scroll-snap-align:center}
+  /* ---- dashboard (redesign): one column in source order ---- */
+  .dboard,.dstack{gap:10px}
+  .dtiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .dtile{min-height:76px;padding:11px 12px 12px 12px}
+  .dtile .tv{font-size:26px}
+  .dstacks,.dband2{grid-template-columns:minmax(0,1fr);gap:10px}
+  .dfilters{flex-direction:column;align-items:stretch;gap:8px}
+  .seg.dseg{display:flex}
+  .dseg button{flex:1 1 0;min-width:0;min-height:38px;padding:6px 6px;font-size:13.5px}
+  .wcard{padding:13px 13px 11px 13px}
+  .wact{min-height:38px;padding:4px 6px 4px 10px;margin:-10px -8px -6px 0}
+  .wmore,.pnudge{min-height:38px;display:flex;align-items:center}
+  .wtog button{min-height:38px;padding:4px 12px}
+  button.dgroup{min-height:38px;display:flex;align-items:center}
+  .dtick{width:22px;height:22px;margin-top:6px}
+  .dtick::after,.dassign::after{content:"";position:absolute;inset:-9px}
+  .dspace{width:22px}
+  .dpick{min-height:38px;padding-left:12px}
+  .dpick button{width:34px;height:34px}
+  .dchip{min-height:38px;font-size:13.5px;padding-left:13px}
+  .dchip button{width:34px;height:34px}
+  /* projects: name and % / a full-width bar / the numbers as one line */
+  .pth{display:none}
+  .ptr{grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;padding:11px 4px;font-size:14.5px}
+  .ptr .pn{grid-column:1;grid-row:1}
+  .ptr .pp{display:contents}
+  .ptr .ppct{grid-column:2;grid-row:1;font-size:12.5px}
+  .ptr .pp .stk{grid-column:1 / -1;grid-row:2}
+  .ptr .num,.ptr .pa,.ptr .pai{display:none}
+  .ptr .pm{display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;grid-column:1 / -1;grid-row:3;font-size:12.5px;color:var(--muted)}
+  .pfold{min-height:44px}
+  /* workload: the name above its bar */
+  .wlrow{grid-template-columns:minmax(0,1fr);padding:10px 4px}
+  .wlmeta{grid-column:1}
+  .wlx{padding-left:4px}
+  .pchase{padding:10px 4px}
+  .pcount{min-height:58px}
+  .doneolder{min-height:38px}
+  /* ---- end dashboard ---- */
 
   .bgroup{margin-bottom:20px}
   .coladd{flex:0 0 auto;min-height:38px}
@@ -1968,6 +2295,17 @@ function nextColorIndex(){
 /* one definition, shared with the brief logic in lib/brief.js */
 var DEFAULT_COLUMNS = SlateBrief.DEFAULT_COLUMNS;
 
+/* patchTask has stamped completedAt only since f6a0e3e (Sep 17, 2026). Nothing
+   earlier knows when it finished, so completion history starts here: older days
+   are drawn as "Not tracked", never as zeros that would claim nobody worked. No
+   backfill from updatedAt either — it moves on any edit, so it would invent dates. */
+var TRACK_START = "2026-09-17";
+/* a project with open work and no edits for this long gets a Quiet flag */
+var STALE_DAYS = 7;
+/* finished cards stay on a board this long, then fold behind "Show N older" —
+   otherwise every Done column keeps every card ever finished */
+var DONE_KEEP_DAYS = 14;
+
 /* outreach pipeline. Won is terminal: a won prospect becomes a project. */
 var STAGES = [
   {id:"lead",      label:"Lead"},
@@ -1986,7 +2324,7 @@ var S = {
   canWrite:null,          // true / false / null (unknown)
   projects:[], spaces:[], tasks:[], notes:[], schedules:[], prospects:[],
   meta:{},                // small shared counters, currently just the colour high water mark
-  sel:"dash",             // "dash" | "capture" | "unfiled" | projectId
+  sel:"dash",             // "dash" | "all" | "capture" | "unfiled" | "today" | projectId
   space:null,             // spaceId within the selected project, or null for all
   tab:"board",
   q:"",
@@ -2007,6 +2345,17 @@ var S = {
   composing:{col:null, text:""},
   newProject:false, newProjectText:"",
   openNote:null,
+  /* the dashboard. who and dashRange are per device; the rest is transient but
+     lives here so a realtime re-render doesn't collapse what you just opened */
+  people:[],                     // profiles, me first; empty until loaded (and offline)
+  who:prefGet("who",""),         // person lens: "" = everyone, else their work plus unassigned
+  dashRange:prefGet("dashRange","7"),   // "7" | "30" | "12w"
+  dashPick:null,                 // the chart bucket picked, by its start date
+  dashTable:false,               // the chart's table twin
+  dashMore:{},                   // "Show N more" expanders
+  wlOpen:null,                   // the Workload row expanded
+  drill:null,                    // All projects filter from a drill-through: {lens, owner, status, project}
+  doneOlder:{},                  // board or list key -> showing finished work older than DONE_KEEP_DAYS
   ready:false
 };
 
@@ -2243,7 +2592,7 @@ function richText(container, text){
       s.onclick = function(e){
         e.stopPropagation();
         S.tag = p.slice(1).toLowerCase();
-        if(S.sel !== "capture" && S.tab !== "notes") S.sel = "capture";
+        if(S.sel === "dash" || (S.sel !== "capture" && S.tab !== "notes")) S.sel = "capture";
         render();
       };
       container.appendChild(s);
@@ -2363,7 +2712,7 @@ function spacesOf(projectId){
     .sort(function(a,b){ return (a.order||0)-(b.order||0); });
 }
 /* views that aren't a project: anything else in S.sel is a project id */
-var VIRTUAL_VIEWS = ["dash","capture","unfiled","today"];
+var VIRTUAL_VIEWS = ["dash","all","capture","unfiled","today"];
 function isVirtualView(sel){ return VIRTUAL_VIEWS.indexOf(sel) !== -1; }
 function currentProject(){
   return isVirtualView(S.sel) ? null : S.sel;
@@ -2384,19 +2733,33 @@ function openProspects(){
 /* ============ selectors ============ */
 function visibleTasks(){
   var q = S.q.toLowerCase();
+  /* a drill-through filter only ever applies where its chip is showing */
+  var dr = S.sel === "all" ? S.drill : null;
   return S.tasks.filter(function(t){
-    if(S.sel === "unfiled" || S.sel === "capture") return false;
-    if(S.sel !== "dash" && t.projectId !== S.sel) return false;
+    /* the dashboard and Today read S.tasks through their own models */
+    if(S.sel === "unfiled" || S.sel === "capture" || S.sel === "dash" || S.sel === "today") return false;
+    if(S.sel !== "all" && t.projectId !== S.sel) return false;
     if(S.space && t.spaceId !== S.space) return false;
-    if(q && String(t.title||"").toLowerCase().indexOf(q) === -1) return false;
+    if(q && (String(t.title||"") + " " + String(t.notes||"")).toLowerCase().indexOf(q) === -1) return false;
+    if(dr && !drillMatch(t, dr)) return false;
     return true;
   }).sort(function(a,b){ return (a.order||0) - (b.order||0); });
+}
+/* The lens rule is the morning brief's: someone's view is theirs plus nobody's. */
+function drillMatch(t, dr){
+  if(dr.lens && t.assignee && t.assignee !== dr.lens) return false;
+  if(dr.owner === "none" && t.assignee) return false;
+  if(dr.owner && dr.owner !== "none" && t.assignee !== dr.owner) return false;
+  if(dr.status === "doing" && !taskUnderway(t)) return false;
+  if(dr.status === "open" && taskDone(t)) return false;
+  if(dr.project === "none" && t.projectId && findProject(t.projectId)) return false;
+  return true;
 }
 function visibleNotes(){
   var q = S.q.toLowerCase();
   return S.notes.filter(function(n){
     if(S.sel === "unfiled"){ if(n.projectId) return false; }
-    else if(S.sel !== "dash" && S.sel !== "capture"){
+    else if(S.sel !== "all" && S.sel !== "capture"){
       if(n.projectId !== S.sel) return false;
       if(S.space && n.spaceId !== S.space) return false;
     }
@@ -2412,7 +2775,7 @@ function visibleNotes(){
 }
 function visibleSchedules(){
   return S.schedules.filter(function(s){
-    if(S.sel === "dash") return true;
+    if(S.sel === "all") return true;
     if(S.sel !== s.projectId) return false;
     if(S.space && s.spaceId !== S.space) return false;
     return true;
@@ -2525,7 +2888,7 @@ function deleteProject(id){
     scheds.forEach(function(s){ queue("schedules/"+s.id, function(){ return S.db.doc("schedules/"+s.id).delete(); }); });
     spaces.forEach(function(sp){ queue("spaces/"+sp.id, function(){ return S.db.doc("spaces/"+sp.id).delete(); }); });
     queue("projects/"+id, function(){ return S.db.doc("projects/"+id).delete(); })
-      .then(function(){ S.sel = "dash"; S.space = null; render(); });
+      .then(function(){ goView("dash"); });
   });
 }
 
@@ -2538,21 +2901,23 @@ function createTask(title, status, projectId, spaceId, noteId, due){
     return t.status === status && (t.projectId||null) === (projectId||null) && (t.spaceId||null) === (spaceId||null);
   });
   var maxOrder = inCol.reduce(function(m,t){ return Math.max(m, t.order||0); }, 0);
-  queue("tasks/"+id, function(){
-    return S.db.doc("tasks/"+id).set({
-      title: String(title).trim(),
-      status: status,
-      projectId: projectId || null,
-      spaceId: spaceId || null,
-      assignee: null,
-      due: due || null,
-      noteId: noteId || null,
-      order: maxOrder + 1,
-      createdAt: nowISO(),
-      createdBy: S.uid || null,
-      updatedAt: nowISO()
-    });
-  });
+  var doc = {
+    title: String(title).trim(),
+    status: status,
+    projectId: projectId || null,
+    spaceId: spaceId || null,
+    assignee: null,
+    due: due || null,
+    noteId: noteId || null,
+    order: maxOrder + 1,
+    createdAt: nowISO(),
+    createdBy: S.uid || null,
+    updatedAt: nowISO()
+  };
+  /* typed straight into the Done column's "Add a task": finished now, and without
+     the stamp it would never appear in the evening wrap or the history */
+  if(status === doneColumnId(projectId, spaceId)){ doc.completedAt = nowISO(); doc.completedBy = S.uid || null; }
+  queue("tasks/"+id, function(){ return S.db.doc("tasks/"+id).set(doc); });
 }
 function patchTask(id, patch){
   if(!writable()) return;
@@ -2632,7 +2997,7 @@ function noteToTask(n){
   if(!writable()) return;
   createTask(taskTitleFor(n), null, n.projectId || null, n.spaceId || null, n.id || null);
   toast(n.projectId ? "Added to " + (projName(n.projectId) || "the board")
-                    : "Added to the Dashboard board — file it into a project from there");
+                    : "Added to All projects — file it into a project from there");
 }
 
 /* ---- columns ---- */
@@ -2790,9 +3155,19 @@ function deleteNote(id){
 function renderRail(){
   railEl.textContent = "";
 
+  /* Counts that mean something, and ignore the dashboard's lens: every task ever
+     made (the old Dashboard number) and every note (the old Capture one) only
+     ever go up. Overdue is the number that wants you; Capture's meaningful count
+     is already on Unfiled notes, so it carries none. */
+  var todayS = SlateBrief.denverToday().ymd, overdue = 0, openAll = 0;
+  S.tasks.forEach(function(t){
+    if(taskDone(t)) return;
+    openAll++;
+    if(t.due && t.due < todayS) overdue++;
+  });
   var top = el("div","rail-sec");
-  top.appendChild(railItem("dash", "Dashboard", S.tasks.length, null));
-  top.appendChild(railItem("capture", "Capture", S.notes.length, null));
+  top.appendChild(railItem("dash", "Dashboard", overdue || null, "dash", overdue + " overdue", true));
+  top.appendChild(railItem("capture", "Capture", null, "capture"));
   railEl.appendChild(top);
 
   var ps = el("div","rail-sec");
@@ -2806,6 +3181,8 @@ function renderRail(){
     h.appendChild(add);
   }
   ps.appendChild(h);
+  /* first under its heading: it's the parent of every row below it */
+  ps.appendChild(railItem("all", "All projects", openAll, "all", openAll + " open"));
 
   if(S.newProject && writable()){
     var wrap = el("div","rail-new");
@@ -2863,31 +3240,47 @@ function renderRail(){
   }
   ns.appendChild(nh);
   var unfiled = S.notes.filter(function(n){ return !n.projectId; }).length;
-  ns.appendChild(railItem("unfiled","Unfiled notes", unfiled, null));
+  ns.appendChild(railItem("unfiled","Unfiled notes", unfiled, "notes"));
   railEl.appendChild(ns);
 }
-function railItem(id, label, count, dotCls){
+/* mark: "dot" for a project's colour, else an icon from the sprite */
+function railItem(id, label, count, mark, countLabel, crit){
   var b = el("button","rail-item" + (S.sel === id ? " on" : ""));
-  if(dotCls){
+  if(S.sel === id) b.setAttribute("aria-current","page");
+  if(mark === "dot"){
     var dot = el("span","dot");
     var c = projectColor(id);
     if(c) dot.style.background = c;
     b.appendChild(dot);
+  } else if(mark){
+    b.appendChild(ico(mark, "rico"));
   }
   b.appendChild(el("span","lbl", label));
-  if(count != null) b.appendChild(el("span","ct", String(count)));
-  b.onclick = function(){
-    if(S.sel !== id) S.space = null;
-    S.sel = id;
-    S.doc = null;
-    S.tag = null;
-    if(id === "unfiled") S.tab = "notes";
-    /* only the dashboard has a prospects tab */
-    if(S.tab === "prospects" && id !== "dash"){ S.tab = "board"; prefSet("tab","board"); }
-    closeRail();
-    render();
-  };
+  if(count != null){
+    b.appendChild(el("span","ct" + (crit ? " crit" : ""), String(count)));
+    if(countLabel) b.setAttribute("aria-label", label + ", " + countLabel);
+  }
+  b.onclick = function(){ goView(id); };
   return b;
+}
+/* Every change of view goes through here — the rail, the bottom bar, every
+   dashboard drill-through — so none of them can strand a doc, a tag filter, a
+   space or a drill chip from the view before, or a Prospects tab somewhere that
+   has none. */
+function goView(sel, tab, drill){
+  if(S.sel !== sel) S.space = null;
+  S.sel = sel;
+  S.doc = null;
+  S.tag = null;
+  S.drill = drill || null;
+  if(sel === "unfiled") S.tab = "notes";
+  else if(tab){ S.tab = tab; prefSet("tab", tab); }
+  if(S.tab === "prospects" && sel !== "all"){ S.tab = "board"; prefSet("tab","board"); }
+  closeRail();
+  render();
+  /* render() keeps your place, which is right for a live update and wrong for
+     arriving somewhere new */
+  window.scrollTo(0, 0);
 }
 
 /* ============ render: head ============ */
@@ -2898,6 +3291,7 @@ function renderHead(){
   var isProject = !isVirtualView(S.sel);
   var label = isProject ? (projName(S.sel) || "Untitled project")
             : S.sel === "dash" ? "Dashboard"
+            : S.sel === "all" ? "All projects"
             : S.sel === "capture" ? "Capture"
             : S.sel === "today" ? "Today" : "Unfiled notes";
 
@@ -2921,7 +3315,8 @@ function renderHead(){
 
   var actions = el("div","head-actions");
   if(writable()){
-    if(S.sel !== "capture" && S.sel !== "today" && !S.doc && (S.tab === "notes" || S.sel === "unfiled")){
+    /* not "dash": it has no tabs, and a saved Notes tab would put these on it */
+    if(S.sel !== "capture" && S.sel !== "today" && S.sel !== "dash" && !S.doc && (S.tab === "notes" || S.sel === "unfiled")){
       var target = isProject ? S.sel : null;
       [["note","New note"],["doc","New doc"],["board","New whiteboard"]].forEach(function(k, i){
         var nb = el("button","btn" + (i === 0 ? " primary" : ""), k[1]);
@@ -2934,8 +3329,12 @@ function renderHead(){
   headEl.appendChild(row);
 
   if(S.sel === "dash"){
+    renderDashHead();
+    return;
+  }
+  if(S.sel === "all"){
     headEl.appendChild(el("div","meta",
-      "What wants attention today, across every project."));
+      "Every project's board, list, calendar, notes and prospects."));
   }
   if(S.sel === "capture"){
     headEl.appendChild(el("div","meta",
@@ -3072,19 +3471,48 @@ function renderHead(){
   }
 
   var tabDefs = [["board","Board"],["list","List"],["calendar","Calendar"],["notes","Notes"]];
-  if(S.sel === "dash") tabDefs.push(["prospects","Prospects"]);
+  if(S.sel === "all") tabDefs.push(["prospects","Prospects"]);
+  /* open work only: counting finished tasks made a number that only ever grew */
+  var openN = visibleTasks().filter(function(t){ return !taskDone(t); }).length;
   tabDefs.forEach(function(t){
     var b = el("button","tab" + (S.tab === t[0] ? " on" : ""));
     b.appendChild(document.createTextNode(t[1]));
     var n = t[0] === "notes" ? visibleNotes().length
           : t[0] === "calendar" ? visibleSchedules().length
           : t[0] === "prospects" ? openProspects().length
-          : visibleTasks().length;
+          : openN;
     b.appendChild(el("span","n", String(n)));
     b.onclick = function(){ S.tab = t[0]; prefSet("tab", t[0]); render(); };
     tabs.appendChild(b);
   });
   headEl.appendChild(tabs);
+
+  if(S.sel === "all" && S.drill){
+    var dr = el("div","drill");
+    var chip = el("span","dchip");
+    chip.appendChild(el("span", null, drillLabel(S.drill)));
+    var dx = icoBtn(null, "x", "Clear this filter");
+    dx.onclick = function(){ S.drill = null; render(); };
+    chip.appendChild(dx);
+    dr.appendChild(chip);
+    headEl.appendChild(dr);
+  }
+}
+function drillLabel(dr){
+  var parts = [];
+  if(dr.status === "doing") parts.push("In progress");
+  else if(dr.status === "open") parts.push("Open");
+  if(dr.lens) parts.push(personName(dr.lens) + " + unassigned");
+  if(dr.owner === "none") parts.push("Unassigned");
+  else if(dr.owner) parts.push(personName(dr.owner));
+  if(dr.project === "none") parts.push("No project");
+  return parts.join(" · ") || "Filtered";
+}
+function drillEmpty(){
+  var clr = el("button","btn","Clear the filter");
+  clr.onclick = function(){ S.drill = null; render(); };
+  return emptyBlock("Nothing matches this filter",
+    drillLabel(S.drill) + ": nothing fits that right now.", clr);
 }
 
 /* ============ render: board ============ */
@@ -3107,7 +3535,7 @@ function boardGroups(){
   tasks.forEach(function(t){ bucket(t.projectId || null, t.spaceId || null).tasks.push(t); });
 
   /* a space you're looking at should show even when it holds nothing yet */
-  if(S.sel !== "dash"){
+  if(S.sel !== "all"){
     if(S.space) bucket(S.sel, S.space);
     else {
       var spaces = spacesOf(S.sel);
@@ -3128,10 +3556,24 @@ function boardGroups(){
   return groups;
 }
 
+/* Finished long enough ago to fold away. completedAt when there is one; before
+   tracking began only updatedAt says anything, and nothing at all means old. */
+function doneLongAgo(t, cutoff){
+  var at = Date.parse(t.completedAt || t.updatedAt || "");
+  return !(at >= cutoff);
+}
+function boardKey(projectId, spaceId){ return (projectId || "~") + "|" + (spaceId || "~"); }
+
 function boardFor(group){
   var cols = columnsFor(group.projectId, group.spaceId);
   var editable = writable() && !!columnHost(group.projectId, group.spaceId);
   var board = el("div","board");
+  /* render() rebuilds every board on every snapshot; the key is how it puts each
+     one back where you had it scrolled */
+  var bkey = boardKey(group.projectId, group.spaceId);
+  board.dataset.key = bkey;
+  var doneId = cols.length ? cols[cols.length-1].id : null;
+  var cutoff = Date.now() - DONE_KEEP_DAYS * 86400000;
 
   cols.forEach(function(st){
     var col = el("div","col");
@@ -3153,7 +3595,10 @@ function boardFor(group){
       };
     }
     ch.appendChild(nm);
-    var inCol = group.tasks.filter(function(t){ return columnOf(t) === st.id; });
+    var allInCol = group.tasks.filter(function(t){ return columnOf(t) === st.id; });
+    var older = st.id === doneId ? allInCol.filter(function(t){ return doneLongAgo(t, cutoff); }) : [];
+    var inCol = older.length && !S.doneOlder[bkey]
+      ? allInCol.filter(function(t){ return older.indexOf(t) === -1; }) : allInCol;
     ch.appendChild(el("span","n", String(inCol.length)));
     if(editable && cols.length > 1){
       var del = el("button","colx"); del.appendChild(ico("x","sm"));
@@ -3161,7 +3606,7 @@ function boardFor(group){
       del.setAttribute("aria-label","Remove the " + st.name + " column");
       del.onclick = function(e){
         e.stopPropagation();
-        var moving = inCol.length;
+        var moving = allInCol.length;
         askConfirm("Remove the " + st.name + " column?",
           moving ? moving + (moving === 1 ? " card moves" : " cards move") + " to " + cols[0].name + ". Nothing is deleted."
                  : "It's empty, so nothing moves.",
@@ -3176,6 +3621,14 @@ function boardFor(group){
     var cb = el("div","col-body");
     cb.dataset.status = st.id;
     inCol.forEach(function(t){ cb.appendChild(taskCard(t)); });
+    if(older.length){
+      var showing = !!S.doneOlder[bkey];
+      var tog = el("button","doneolder", (showing ? "Hide " : "Show ") + older.length + " older");
+      tog.title = "Finished more than " + DONE_KEEP_DAYS + " days ago";
+      tog.setAttribute("aria-expanded", showing ? "true" : "false");
+      tog.onclick = function(){ S.doneOlder[bkey] = !showing; render(); };
+      cb.appendChild(tog);
+    }
     col.appendChild(cb);
 
     if(writable()){
@@ -3220,11 +3673,15 @@ function renderBoard(){
   var groups = boardGroups();
 
   /* one space selected: just its board, no heading, it's the page title */
-  if(S.sel !== "dash" && S.space){
+  if(S.sel !== "all" && S.space){
     bodyEl.appendChild(boardFor(groups[0] || { projectId: S.sel, spaceId: S.space, tasks: [] }));
     return;
   }
 
+  if(!groups.length && S.sel === "all" && S.drill && !S.q){
+    bodyEl.appendChild(drillEmpty());
+    return;
+  }
   if(!groups.length){
     bodyEl.appendChild(emptyBlock(
       S.q ? "Nothing matches that" : "Nothing on the board",
@@ -3235,21 +3692,24 @@ function renderBoard(){
     return;
   }
 
-  var onDash = S.sel === "dash";
+  var onAll = S.sel === "all";
   groups.forEach(function(g){
     var sec = el("div","bgroup");
     var h = el("h4",null);
-    var label = onDash
+    var label = onAll
       ? (g.projectId ? (projName(g.projectId) || "Untitled project") : "No project")
       : (g.spaceId ? (spaceName(g.spaceId) || "Untitled space") : "No space");
-    if(onDash && g.spaceId){
+    if(onAll && g.spaceId){
       h.appendChild(el("span","bg-proj", label));
       h.appendChild(el("span","bg-sep", "\u203a"));
       h.appendChild(el("span",null, spaceName(g.spaceId) || "Untitled space"));
     } else {
-      h.appendChild(el("span", onDash ? "bg-proj" : null, label));
+      h.appendChild(el("span", onAll ? "bg-proj" : null, label));
     }
-    h.appendChild(el("span","n", String(g.tasks.length)));
+    var openCt = g.tasks.filter(function(t){ return !taskDone(t); }).length;
+    var nEl = el("span","n", String(openCt));
+    nEl.title = openCt + " open";
+    h.appendChild(nEl);
     sec.appendChild(h);
     sec.appendChild(boardFor(g));
     bodyEl.appendChild(sec);
@@ -3269,7 +3729,7 @@ function taskCard(t){
   c.appendChild(el("div","ttl", t.title || "Untitled"));
 
   var foot = el("div","foot");
-  if(S.sel === "dash" && t.projectId){
+  if(S.sel === "all" && t.projectId){
     var pn = projName(t.projectId);
     if(pn) foot.appendChild(projChip(t.projectId, pn));
   }
@@ -3329,7 +3789,9 @@ function startDrag(e, card, t, immediate){
     if(g) g.remove();
     ghost.className = "card dragghost";
     ghost.style.width = r.width + "px";
-    drag = { id: t.id, card: card, ghost: ghost, ox: sx - r.left, oy: sy - r.top, col: null };
+    var home = card.closest(".board");
+    drag = { id: t.id, card: card, ghost: ghost, ox: sx - r.left, oy: sy - r.top, col: null,
+             board: home, boardKey: home ? home.dataset.key : null };
     document.body.appendChild(ghost);
     moveGhost(sx, sy);
     card.classList.add("dragging");
@@ -3352,7 +3814,7 @@ function startDrag(e, card, t, immediate){
     if(drag.col && drag.col !== col) drag.col.classList.remove("over");
     drag.col = col;
     if(col) col.classList.add("over");
-    autoPan(ev.clientX);
+    autoPan(ev.clientX, col ? col.closest(".board") : null);
   }
   function onUp(ev){
     if(ev.pointerId !== pid) return;
@@ -3393,10 +3855,19 @@ function columnAt(x, y){
   return n && n.closest ? n.closest(".col") : null;
 }
 
-/* nudge the board sideways when a card is dragged to the edge */
+/* Nudge a board sideways when a card is dragged to its edge. It has to be the
+   board under the finger, else the one the card came from — the first .board on
+   the page is the wrong one on All projects or a project's All tab, where every
+   space has its own, and off-screen columns there were unreachable on a phone. */
 var panT = null;
-function autoPan(x){
-  var board = document.querySelector(".board");
+function autoPan(x, over){
+  if(!drag) return;
+  var board = over || drag.board;
+  /* a live update mid-drag rebuilds the boards; find ours again by its key */
+  if(board && !board.isConnected && drag.boardKey){
+    board = bodyEl.querySelector('.board[data-key="' + drag.boardKey + '"]');
+    drag.board = board;
+  }
   if(!board) return;
   clearTimeout(panT);
   var r = board.getBoundingClientRect();
@@ -3405,7 +3876,7 @@ function autoPan(x){
   else if(x < r.left + 56) d = -16;
   if(!d) return;
   board.scrollLeft += d;
-  panT = setTimeout(function(){ autoPan(x); }, 16);
+  panT = setTimeout(function(){ autoPan(x, board); }, 16);
 }
 
 function dropOn(id, col, clientY, colBody){
@@ -3417,12 +3888,16 @@ function dropOn(id, col, clientY, colBody){
   var projectId = col.dataset.project || null;
   var spaceId = col.dataset.space || null;
 
-  var siblings = visibleTasks().filter(function(t){
-    return t.status === status && t.id !== id &&
-           (t.projectId || null) === projectId && (t.spaceId || null) === spaceId;
+  /* Neighbours are the cards actually drawn, in drawn order. Taken from
+     visibleTasks() instead, anything not on screen — finished work folded away,
+     a task whose status matches no column — shifted every index after it. */
+  var cards = [], siblings = [];
+  Array.prototype.forEach.call(colBody.querySelectorAll(".card"), function(c){
+    if(c.dataset.id === id) return;
+    for(var k=0;k<S.tasks.length;k++){
+      if(S.tasks[k].id === c.dataset.id){ cards.push(c); siblings.push(S.tasks[k]); return; }
+    }
   });
-  var cards = Array.prototype.slice.call(colBody.querySelectorAll(".card"))
-    .filter(function(c){ return c.dataset.id !== id; });
 
   var idx = cards.length;
   for(var j=0;j<cards.length;j++){
@@ -3449,6 +3924,10 @@ function dropOn(id, col, clientY, colBody){
 /* ============ render: list ============ */
 function renderList(){
   var tasks = visibleTasks();
+  if(!tasks.length && S.sel === "all" && S.drill && !S.q){
+    bodyEl.appendChild(drillEmpty());
+    return;
+  }
   if(!tasks.length){
     bodyEl.appendChild(emptyBlock(
       S.q ? "Nothing matches that" : "No tasks here yet",
@@ -3471,10 +3950,42 @@ function renderList(){
   thead.appendChild(tr);
   tbl.appendChild(thead);
 
+  /* `order` is a per-column float, meaningless across columns or projects, so
+     on its own it made a cross-project list look shuffled: open before done,
+     then soonest due (undated last), then project, and only then order. */
+  var multi = S.sel === "all";
+  tasks.sort(function(a, b){
+    var da = taskDone(a), db = taskDone(b);
+    if(da !== db) return da ? 1 : -1;
+    var ad = a.due || "9999-99-99", bd = b.due || "9999-99-99";
+    if(ad !== bd) return ad < bd ? -1 : 1;
+    if(multi){
+      var pa = a.projectId ? (projName(a.projectId) || "") : "￿";
+      var pb = b.projectId ? (projName(b.projectId) || "") : "￿";
+      if(pa !== pb) return pa.localeCompare(pb);
+    }
+    return (a.order||0) - (b.order||0);
+  });
+  /* finished work folds away after a fortnight, as on the board */
+  var lkey = "list:" + S.sel + "|" + (S.space || "~");
+  var cutoff = Date.now() - DONE_KEEP_DAYS * 86400000;
+  var older = tasks.filter(function(t){ return taskDone(t) && doneLongAgo(t, cutoff); });
+  var shown = older.length && !S.doneOlder[lkey]
+    ? tasks.filter(function(t){ return older.indexOf(t) === -1; }) : tasks;
+
   var tb = document.createElement("tbody");
-  tasks.forEach(function(t){ tb.appendChild(listRow(t)); });
+  shown.forEach(function(t){ tb.appendChild(listRow(t)); });
   tbl.appendChild(tb);
   bodyEl.appendChild(tbl);
+
+  if(older.length){
+    var showing = !!S.doneOlder[lkey];
+    var more = el("button","doneolder listmore",
+      (showing ? "Hide " : "Show ") + older.length + " finished more than " + DONE_KEEP_DAYS + " days ago");
+    more.setAttribute("aria-expanded", showing ? "true" : "false");
+    more.onclick = function(){ S.doneOlder[lkey] = !showing; render(); };
+    bodyEl.appendChild(more);
+  }
 }
 
 function listRow(t){
@@ -3503,7 +4014,7 @@ function listRow(t){
     c2.style.cursor = "pointer";
     c2.onclick = function(){ openTask(t.id); };
   }
-  if(S.sel === "dash" && t.projectId){
+  if(S.sel === "all" && t.projectId){
     var pn = projName(t.projectId);
     if(pn){ c2.appendChild(document.createTextNode(" ")); c2.appendChild(projChip(t.projectId, pn)); }
   }
@@ -4013,7 +4524,7 @@ function renderNotes(){
       var spn = spaceName(n.spaceId);
       if(spn) f.appendChild(el("span","chip", spn));
     }
-    if((S.sel === "dash" || S.sel === "capture") && n.projectId){
+    if((S.sel === "all" || S.sel === "capture") && n.projectId){
       var pn = projName(n.projectId);
       if(pn) f.appendChild(projChip(n.projectId, pn));
       var sn = spaceName(n.spaceId);
@@ -4042,7 +4553,7 @@ function renderTagBar(notes){
   var pool = S.tag
     ? S.notes.filter(function(n){
         if(S.sel === "unfiled") return !n.projectId;
-        if(S.sel !== "dash" && S.sel !== "capture") return n.projectId === S.sel;
+        if(S.sel !== "all" && S.sel !== "capture") return n.projectId === S.sel;
         return true;
       })
     : notes;
@@ -4076,11 +4587,22 @@ function dashCard(title, count){
   return sec;
 }
 
-function dashTaskRow(t){
+/* The Today page calls this with the task alone (and forEach hands it an index
+   as the second argument, hence the type check); the dashboard passes options:
+     todayS    judge lateness against the Denver date, not this device's clock
+     lateDays  add "4d late" to a late task
+     noDue     leave the date off where a heading already says it
+     col       name the column of a task that's underway ("Review")
+     time      a clock time, for finished work
+     avatar    a uid whose avatar sits at the row's end
+     assign    an owner button instead, for triaging unassigned work in place */
+function dashTaskRow(t, o){
+  if(!o || typeof o !== "object") o = {};
+  var done = taskDone(t);
   var row = el("div","drow");
 
-  var tick = el("button","dtick" + (taskDone(t) ? " on" : "")); tick.appendChild(ico("check","sm"));
-  tick.setAttribute("aria-label", "Mark done");
+  var tick = el("button","dtick" + (done ? " on" : "")); tick.appendChild(ico("check","sm"));
+  tick.setAttribute("aria-label", (done ? "Not done after all: " : "Mark done: ") + (t.title || "Untitled"));
   tick.disabled = !writable();
   tick.onclick = function(e){
     e.stopPropagation();
@@ -4095,15 +4617,36 @@ function dashTaskRow(t){
   if(pn) meta.appendChild(projChip(t.projectId, pn));
   var sn = t.spaceId && spaceName(t.spaceId);
   if(sn) meta.appendChild(el("span","chip", sn));
-  if(t.due) meta.appendChild(el("span","ddue" + (isLate(t.due, taskDone(t) ? "done" : "") ? " late" : ""), fmtDate(t.due)));
+  if(o.col && taskUnderway(t)) meta.appendChild(el("span","chip", columnName(t.projectId, t.spaceId, columnOf(t))));
+  if(t.due && !o.noDue){
+    var late = !done && (o.todayS ? t.due < o.todayS : isLate(t.due, ""));
+    meta.appendChild(el("span","ddue" + (late ? " late" : ""), fmtDate(t.due)));
+    if(late && o.lateDays && o.todayS) meta.appendChild(el("span","ddue late", daysBetween(t.due, o.todayS) + "d late"));
+  }
+  if(o.time) meta.appendChild(el("span","dtime", o.time));
   if(meta.childNodes.length) main.appendChild(meta);
   main.onclick = function(){ openTask(t.id); };
   row.appendChild(main);
+
+  if(o.assign && writable()){
+    var ab = el("button","dassign"); ab.appendChild(ico("plus"));
+    ab.setAttribute("aria-label","Give “" + (t.title || "Untitled") + "” an owner");
+    ab.title = "Give it an owner";
+    ab.onclick = function(e){ e.stopPropagation(); openAssignee(ab, t); };
+    row.appendChild(ab);
+  } else if(o.avatar){
+    var im = document.createElement("img");
+    im.className = "dwho"; im.alt = "";
+    im.dataset.uid = o.avatar; im.dataset.kind = "avatar";
+    row.appendChild(im);
+  }
   return row;
 }
 
 function dashProspectRow(p){
   var row = el("div","drow");
+  /* no tick to show, but the title lines up with the task titles around it */
+  row.appendChild(el("span","dspace"));
   var main = el("button","dmain");
   main.appendChild(el("span","dt", "Chase " + (p.company || "a prospect")));
   var meta = el("span","dmeta");
@@ -4136,7 +4679,7 @@ function dashOccRow(s, dateStr){
   if(sn) meta.appendChild(el("span","chip", sn));
   main.appendChild(meta);
   main.onclick = function(){
-    if(s.projectId){ S.sel = s.projectId; S.space = null; S.tab = "calendar"; prefSet("tab","calendar"); render(); }
+    if(s.projectId) goView(s.projectId, "calendar");
   };
   row.appendChild(main);
   return row;
@@ -4221,7 +4764,7 @@ function searchAll(q){
   return {
     notes: S.notes.filter(function(n){ return hit(n.title, n.body); })
       .sort(function(a,b){ return String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")); }),
-    tasks: S.tasks.filter(function(t){ return hit(t.title); }),
+    tasks: S.tasks.filter(function(t){ return hit(t.title, t.notes); }),
     prospects: S.prospects.filter(function(p){ return hit(p.company, p.contact, p.email, p.note); }),
     projects: S.projects.filter(function(p){ return hit(p.name, p.contact, p.email, p.website, p.phone); })
   };
@@ -4312,7 +4855,7 @@ function renderSearch(){
     if(p.contact) meta.appendChild(el("span","sago", p.contact));
     if(p.email) meta.appendChild(el("span","sago", p.email));
     row.appendChild(meta);
-    row.onclick = function(){ S.q = ""; $("#search").value = ""; S.sel = p.id; S.space = null; render(); };
+    row.onclick = function(){ S.q = ""; $("#search").value = ""; goView(p.id); };
     return row;
   })));
 
@@ -4422,57 +4965,1079 @@ function renderProspects(){
   });
 }
 
-function renderDash(){
-  /* Denver, not the browser's clock. dashOccRow writes schedule.done[todayS], and
-     the Today page and both briefs key that map by the Denver date — on a laptop
-     left on another timezone the two views would tick different days of the same
-     schedule and never agree. Everything below derives from this one date. */
-  var todayS = SlateBrief.denverToday().ymd;
-  var weekEnd = parseYmd(todayS); weekEnd.setDate(weekEnd.getDate() + 7);
-  var weekEndS = ymd(weekEnd);
+/* ============ render: dashboard page ============ */
+/* The dashboard reads at a glance and acts in place — tick, assign, open — or
+   drills somewhere specific. The cross-project board, list, calendar, notes and
+   prospects that used to sit under it are All projects now (S.sel "all").
+   Everything is worked out from what's already loaded, in one pass per render,
+   on the Denver date the briefs use: dashOccRow writes schedule.done[todayS], and
+   the Today page and both briefs key that map by the Denver date, so a laptop
+   left on another timezone would otherwise tick a different day of the same
+   schedule. */
 
-  var open = S.tasks.filter(function(t){ return !taskDone(t); });
+/* ---- dates: YYYY-MM-DD strings and Date.UTC, so no clock or DST can move them ---- */
+var SHORT_DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+var SHORT_MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function ymdUTC(s){ var p = String(s).split("-"); return Date.UTC(+p[0], +p[1]-1, +p[2]); }
+function addDays(s, n){ return new Date(ymdUTC(s) + n * 86400000).toISOString().slice(0,10); }
+function daysBetween(a, b){ return Math.round((ymdUTC(b) - ymdUTC(a)) / 86400000); }
+function dowOf(s){ return new Date(ymdUTC(s)).getUTCDay(); }
+function mondayOf(s){ return addDays(s, -((dowOf(s) + 6) % 7)); }
+function ymdShort(s){ var d = new Date(ymdUTC(s)); return SHORT_MON[d.getUTCMonth()] + " " + d.getUTCDate(); }
+function ymdLabel(s){ return SHORT_DOW[dowOf(s)] + ", " + ymdShort(s); }
+function relDay(s, todayS){
+  var n = daysBetween(s, todayS);
+  return n === 0 ? "Today" : n === 1 ? "Yesterday" : n === -1 ? "Tomorrow" : ymdLabel(s);
+}
+/* brief.js builds a new Intl formatter on every call, which is too slow to run
+   over every finished task on every realtime render on an iPhone. It isn't
+   changed here: the cron routes require it too, and the service worker can
+   still pair a fresh page with a cached copy. So remember each answer instead. */
+var ddayMemo = {};
+function ddayOf(iso){
+  if(!iso) return null;
+  if(!(iso in ddayMemo)) ddayMemo[iso] = SlateBrief.ymdInDenver(iso);
+  return ddayMemo[iso];
+}
+var clockFmt = null;
+function denverClock(iso){
+  try{
+    if(!clockFmt) clockFmt = new Intl.DateTimeFormat("en-US", { timeZone: SlateBrief.TZ, hour: "numeric", minute: "2-digit" });
+    return clockFmt.format(new Date(iso)).replace(/:00(?=\s)/, "").replace(/\s*([AP])M$/i, function(m, ap){ return ap.toLowerCase() + "m"; });
+  }catch(e){ return ""; }
+}
 
-  var occs = S.schedules.filter(function(s){ return SlateBrief.occursOn(s, todayS); })
-    .sort(function(a,b){ return String(a.time||"").localeCompare(String(b.time||"")); });
+/* ---- people, lens, buckets ---- */
+function personName(uid){
+  for(var i=0;i<S.people.length;i++) if(S.people[i].id === uid) return S.people[i].name || "Someone";
+  return "Someone";
+}
+/* A stored lens for someone the profiles don't include (offline, not loaded yet)
+   isn't applied: a filter with no visible control would hide work silently. */
+function lensWho(){
+  if(!S.who) return "";
+  for(var i=0;i<S.people.length;i++) if(S.people[i].id === S.who) return S.who;
+  return "";
+}
+function lensText(who){ return who ? personName(who) + " + unassigned" : "Everyone"; }
+/* One rule for everything, the morning brief's: a person's view is theirs plus
+   nobody's. Completions are credited to the owner, else whoever ticked it; with
+   neither they count for both of you, so a lens never undercounts. */
+function lensOpen(t, who){ return !who || !t.assignee || t.assignee === who; }
+function creditOf(t){ return t.assignee || t.completedBy || null; }
+function lensCredit(t, who){ var c = creditOf(t); return !who || !c || c === who; }
+/* first column, last column, anything between — so 1- and 2-column sets behave */
+function bucketOf(t){
+  var c = columnsFor(t.projectId, t.spaceId), s = columnOf(t);
+  if(!c.length || s === c[c.length-1].id) return "done";
+  return s === c[0].id ? "todo" : "doing";
+}
+/* an axis top whose half is a whole number */
+var NICE = [4,6,8,10,12,16,20,24,30,40,50,60,80,100];
+function niceMax(n){
+  n = Math.max(n, 4);
+  for(var i=0;i<NICE.length;i++) if(NICE[i] >= n) return NICE[i];
+  return Math.ceil(n / 20) * 20;
+}
 
-  var dueToday = open.filter(function(t){ return t.due === todayS; });
-  var overdue  = open.filter(function(t){ return t.due && t.due < todayS; })
-                     .sort(function(a,b){ return String(a.due).localeCompare(String(b.due)); });
-  var soon     = open.filter(function(t){ return !taskUnderway(t) && t.due && t.due > todayS && t.due <= weekEndS; })
-                     .sort(function(a,b){ return String(a.due).localeCompare(String(b.due)); });
-  var doing    = open.filter(taskUnderway);
+/* 12 weeks rather than 90 days, so every bucket is a whole Monday week */
+var DASH_RANGES = {
+  "7":   { label: "7 days",   span: "the last 7 days",   short: "7d" },
+  "30":  { label: "30 days",  span: "the last 30 days",  short: "30d" },
+  "12w": { label: "12 weeks", span: "the last 12 weeks", short: "12w" }
+};
+function dashRangeKey(){ return DASH_RANGES[S.dashRange] ? S.dashRange : "7"; }
+function dashBuckets(todayS, rk){
+  var out = [], i;
+  if(rk === "12w"){
+    var mon = mondayOf(todayS);
+    for(i=11;i>=0;i--){
+      var ws = addDays(mon, -7 * i), we = addDays(ws, 6);
+      out.push({ key: ws, start: ws, end: we > todayS ? todayS : we, week: true });
+    }
+  } else {
+    for(i=+rk-1;i>=0;i--){ var d = addDays(todayS, -i); out.push({ key: d, start: d, end: d, week: false }); }
+  }
+  out.forEach(function(b){
+    b.untracked = b.end < TRACK_START;
+    b.partial = !b.untracked && b.start < TRACK_START;
+    b.count = 0; b.tasks = [];
+  });
+  return out;
+}
+function bucketLabel(b){ return b.week ? "Week of " + ymdShort(b.start) : ymdLabel(b.start); }
+function bucketFind(m, key){
+  for(var i=0;i<m.buckets.length;i++) if(m.buckets[i].key === key) return m.buckets[i];
+  return null;
+}
 
-  var chasing     = openProspects().filter(function(p){ return p.next; });
-  var chaseNow    = chasing.filter(function(p){ return p.next <= todayS; })
-                           .sort(function(a,b){ return String(a.next).localeCompare(String(b.next)); });
-  var chaseSoon   = chasing.filter(function(p){ return p.next > todayS && p.next <= weekEndS; })
-                           .sort(function(a,b){ return String(a.next).localeCompare(String(b.next)); });
+/* ---- the model: one pass over what's loaded ---- */
+function dashModel(){
+  var today = SlateBrief.denverToday(), todayS = today.ymd;
+  var who = lensWho(), rk = dashRangeKey();
+  var buckets = dashBuckets(todayS, rk), byKey = {};
+  buckets.forEach(function(b, i){ byKey[b.key] = i; });
+  var start = buckets[0].start;
+  var tracked = start < TRACK_START ? TRACK_START : start;
+  var span = daysBetween(start, todayS) + 1;
+  var prevStart = addDays(start, -span), prevEnd = addDays(start, -1);
+  var weekEnd = addDays(todayS, 7);
 
-  var grid = el("div","dash");
-
-  var todayRows = occs.map(function(s){ return dashOccRow(s, todayS); })
-    .concat(dueToday.map(dashTaskRow))
-    .concat(chaseNow.map(dashProspectRow));
-  grid.appendChild(fillCard(
-    dashCard("Today", todayRows.length), todayRows,
-    "Nothing scheduled and nothing due. Enjoy it."));
-
-  if(overdue.length){
-    grid.appendChild(fillCard(
-      dashCard("Overdue", overdue.length), overdue.map(dashTaskRow), ""));
+  var m = {
+    today: today, todayS: todayS, who: who, rk: rk, buckets: buckets, start: start,
+    trackedFrom: tracked, trackedDays: tracked > todayS ? 0 : daysBetween(tracked, todayS) + 1,
+    /* a delta against a window nobody tracked would be an invented number */
+    prevTracked: prevStart >= TRACK_START, prevCount: 0,
+    open: 0, doing: [], overdue: [], dueToday: [], soon: [], week: 0, weekToday: 0,
+    done: [], added: 0, legacy: 0, proj: {}, load: {}
+  };
+  function projStat(key){
+    return m.proj[key] || (m.proj[key] = { total:0, done:0, doing:0, todo:0, open:0, late:0, range:0, touched:"", any:false });
   }
 
-  grid.appendChild(fillCard(
-    dashCard("In progress", doing.length), doing.map(dashTaskRow),
-    "Nothing on the go. Move a card into In progress to see it here."));
+  S.tasks.forEach(function(t){
+    var done = taskDone(t);
+    var ps = projStat(t.projectId && findProject(t.projectId) ? t.projectId : "");
+    ps.any = true;
+    if(t.updatedAt && t.updatedAt > ps.touched) ps.touched = t.updatedAt;
 
-  var soonRows = soon.map(dashTaskRow).concat(chaseSoon.map(dashProspectRow));
-  grid.appendChild(fillCard(
-    dashCard("Next seven days", soonRows.length), soonRows,
-    "Nothing due this week."));
+    /* Workload is the per-person view, so it never takes the lens */
+    if(!done){
+      var wk = t.assignee || "";
+      var w = m.load[wk] || (m.load[wk] = { doing:0, todo:0, late:0, week:0, tasks:[] });
+      if(taskUnderway(t)) w.doing++; else w.todo++;
+      if(t.due && t.due < todayS) w.late++;
+      else if(t.due && t.due <= weekEnd) w.week++;
+      w.tasks.push(t);
+    }
+    /* inflow against outflow, over the same tracked window as the completions */
+    if(!who && t.createdAt){
+      var cd = ddayOf(t.createdAt);
+      if(cd && cd >= tracked && cd <= todayS) m.added++;
+    }
 
-  bodyEl.appendChild(grid);
+    if(!(done ? lensCredit(t, who) : lensOpen(t, who))) return;
+    ps.total++; ps[bucketOf(t)]++;
+    if(!done){
+      ps.open++; m.open++;
+      if(taskUnderway(t)) m.doing.push(t);
+      if(t.due){
+        if(t.due < todayS){ ps.late++; m.overdue.push(t); }
+        else if(t.due === todayS) m.dueToday.push(t);
+        else if(t.due <= weekEnd) m.soon.push(t);
+        if(t.due >= todayS && t.due <= weekEnd){ m.week++; if(t.due === todayS) m.weekToday++; }
+      }
+      return;
+    }
+    /* Counted exactly as the evening wrap counts: completedAt set AND still in a
+       done column, so the chart's today always equals what the wrap says. */
+    if(!t.completedAt){ m.legacy++; return; }
+    var d = ddayOf(t.completedAt);
+    if(!d || d < TRACK_START) return;
+    if(d >= start && d <= todayS){
+      var bi = byKey[rk === "12w" ? mondayOf(d) : d];
+      if(bi != null){ buckets[bi].count++; buckets[bi].tasks.push(t); }
+      m.done.push(t); ps.range++;
+    } else if(d >= prevStart && d <= prevEnd){
+      m.prevCount++;
+    }
+  });
+  S.notes.forEach(function(n){
+    if(!n.projectId || !findProject(n.projectId)) return;
+    var ps = projStat(n.projectId);
+    if(n.updatedAt && n.updatedAt > ps.touched) ps.touched = n.updatedAt;
+  });
+
+  function byDue(a, b){
+    if(a.due !== b.due) return String(a.due) < String(b.due) ? -1 : 1;
+    var pa = projName(a.projectId) || "￿", pb = projName(b.projectId) || "￿";
+    return pa !== pb ? pa.localeCompare(pb) : (a.order||0) - (b.order||0);
+  }
+  function newestDone(a, b){ return String(b.completedAt).localeCompare(String(a.completedAt)); }
+  m.overdue.sort(byDue); m.dueToday.sort(byDue); m.soon.sort(byDue);
+  m.done.sort(newestDone);
+  buckets.forEach(function(b){ b.tasks.sort(newestDone); });
+
+  m.events = S.schedules.filter(function(s){ return SlateBrief.occursOn(s, todayS); })
+    .sort(function(a,b){ return String(a.time||"").localeCompare(String(b.time||"")); });
+  m.pendingEvents = m.events.filter(function(s){ return !(s.done && s.done[todayS]); }).length;
+
+  function byNext(a, b){ return String(a.next).localeCompare(String(b.next)); }
+  var pros = openProspects();
+  m.prospects = pros.length;
+  m.chaseNow = pros.filter(function(p){ return p.next && p.next <= todayS; }).sort(byNext);
+  m.chaseSoon = pros.filter(function(p){ return p.next && p.next > todayS && p.next <= weekEnd; }).sort(byNext);
+  m.chaseNext = pros.filter(function(p){ return p.next; }).sort(byNext).slice(0, 5);
+  m.noNext = pros.filter(function(p){ return !p.next; }).length;
+  m.stages = { lead: 0, contacted: 0, talking: 0 };
+  pros.forEach(function(p){ var st = p.stage || "lead"; if(st in m.stages) m.stages[st]++; });
+  m.lost = S.prospects.filter(function(p){ return p.stage === "lost"; }).length;
+  return m;
+}
+
+/* ---- building blocks ---- */
+/* Cards take focus when a tile scrolls to them; tabindex -1 keeps them out of
+   the tab order. */
+function wcard(o){
+  var sec = el(o.tag || "section", "wcard" + (o.cls ? " " + o.cls : ""));
+  sec.id = o.id;
+  sec.tabIndex = -1;
+  sec.setAttribute("aria-labelledby", o.id + "-h");
+  var head = el("div","whead");
+  var wt = el("div","wt");
+  var h3 = el("h3", null, o.title);
+  h3.id = o.id + "-h";
+  if(o.count) h3.appendChild(el("span","n", String(o.count)));
+  wt.appendChild(h3);
+  if(o.sub) wt.appendChild(el("div","wsub", o.sub));
+  head.appendChild(wt);
+  if(o.action){
+    var a = el("button","wact", o.action.label);
+    a.appendChild(ico("right","sm"));
+    a.onclick = o.action.run;
+    head.appendChild(a);
+  }
+  if(o.extra) head.appendChild(o.extra);
+  sec.appendChild(head);
+  return sec;
+}
+/* expanders live in S.dashMore, so a realtime re-render never collapses one */
+function moreBtn(key, open, label){
+  var b = el("button","wmore", open ? "Show fewer" : label);
+  b.dataset.fkey = "more-" + key;
+  b.setAttribute("aria-expanded", open ? "true" : "false");
+  b.onclick = function(){ S.dashMore[key] = !open; render(); };
+  return b;
+}
+function dashGroup(list, key, label, items, build, cap, crit){
+  if(!items.length) return;
+  var g = el("div","dgroup" + (crit ? " crit" : ""));
+  if(crit) g.appendChild(ico("alert","sm"));
+  g.appendChild(document.createTextNode(label + " · " + items.length));
+  list.appendChild(g);
+  var k = "g-" + key, open = !!S.dashMore[k];
+  (open ? items : items.slice(0, cap)).forEach(function(x){ list.appendChild(build(x)); });
+  if(items.length > cap) list.appendChild(moreBtn(k, open, "Show " + (items.length - cap) + " more"));
+}
+function stackBar(parts){
+  var bar = el("span","stk");
+  bar.setAttribute("aria-hidden","true");
+  var any = false;
+  parts.forEach(function(p){
+    if(!p[1]) return;
+    any = true;
+    var s = el("span","s-" + p[0]);
+    s.style.flexGrow = String(p[1]);
+    bar.appendChild(s);
+  });
+  if(!any) bar.classList.add("stk-none");
+  return bar;
+}
+function alertText(cls, text){
+  var s = el("span", cls);
+  s.appendChild(ico("alert","sm"));
+  s.appendChild(document.createTextNode(text));
+  return s;
+}
+function dashJump(id){
+  var c = document.getElementById(id);
+  if(!c) return;
+  var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  c.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+  try{ c.focus({ preventScroll: true }); }catch(e){}
+}
+function plural(n, one, many){ return n + " " + (n === 1 ? one : (many || one + "s")); }
+
+/* ---- header: the two controls that scope everything below them ---- */
+var wantFocus = null;
+function renderDashHead(){
+  var who = lensWho();
+  var meta = SlateBrief.denverToday().label;
+  /* the lens rule, said in words: the two lenses overlap by design */
+  if(who) meta += " · " + personName(who) + "'s work plus anything unassigned. Events and prospects are shared.";
+  headEl.appendChild(el("div","meta", meta));
+
+  var f = el("div","dfilters");
+  var people = [{ id: "", label: "Everyone" }].concat(S.people.map(function(p){
+    return { id: p.id, label: p.name || "Someone", img: p.avatarUrl };
+  }));
+  f.appendChild(dashSeg("lens", "Whose work", people, who, function(id){
+    S.who = id; prefSet("who", id);
+  }));
+  f.appendChild(dashSeg("range", "History range", ["7","30","12w"].map(function(k){
+    return { id: k, label: DASH_RANGES[k].label };
+  }), dashRangeKey(), function(id){
+    S.dashRange = id; prefSet("dashRange", id); S.dashPick = null;
+  }));
+  headEl.appendChild(f);
+}
+/* the appearance menu's segmented control, as a proper radio group: one tab
+   stop, arrows move the choice */
+function dashSeg(key, label, opts, cur, pick){
+  var seg = el("div","seg dseg");
+  seg.setAttribute("role","radiogroup");
+  seg.setAttribute("aria-label", label);
+  opts.forEach(function(o, i){
+    var on = o.id === cur;
+    var b = el("button", on ? "on" : "");
+    b.setAttribute("role","radio");
+    b.setAttribute("aria-checked", on ? "true" : "false");
+    b.tabIndex = on ? 0 : -1;
+    b.dataset.fkey = "seg-" + key + "-" + o.id;
+    if(o.img){ var im = document.createElement("img"); im.src = o.img; im.alt = ""; b.appendChild(im); }
+    b.appendChild(document.createTextNode(o.label));
+    b.onclick = function(){ if(o.id !== cur){ pick(o.id); render(); } };
+    b.onkeydown = function(e){
+      var d = (e.key === "ArrowRight" || e.key === "ArrowDown") ? 1
+            : (e.key === "ArrowLeft" || e.key === "ArrowUp") ? -1 : 0;
+      if(!d) return;
+      e.preventDefault();
+      var nx = opts[(i + d + opts.length) % opts.length];
+      wantFocus = "seg-" + key + "-" + nx.id;
+      pick(nx.id); render();
+    };
+    seg.appendChild(b);
+  });
+  return seg;
+}
+
+/* ---- the page ---- */
+function renderDash(){
+  var m = dashModel();
+  if(S.dashPick && !bucketFind(m, S.dashPick)) S.dashPick = null;
+
+  var board = el("div","dboard");
+  board.appendChild(dashTiles(m));
+
+  var stacks = el("div","dstacks");
+  var act = el("div","dstack");
+  act.appendChild(wToday(m));
+  act.appendChild(wNext(m));
+  var review = el("div","dstack");
+  var chart = wChart(m);
+  review.appendChild(chart.card);
+  review.appendChild(wFinished(m));
+  stacks.appendChild(act);
+  stacks.appendChild(review);
+  board.appendChild(stacks);
+
+  board.appendChild(wProjects(m));
+  var band = el("div","dband2");
+  band.appendChild(wWorkload(m));
+  band.appendChild(wPipeline(m));
+  board.appendChild(band);
+  bodyEl.appendChild(board);
+
+  /* Measured last, with the whole page in place. Reading a width while the body
+     is half built forces a layout that clamps the page's scroll position, and on
+     a phone every realtime update from the other person would jump the page. */
+  if(chart.host) mountChart(chart.host, m);
+}
+
+function dashTiles(m){
+  var wrap = el("div","dtiles");
+  var rl = DASH_RANGES[m.rk];
+
+  function tile(o){
+    var b = el("button","dtile");
+    b.dataset.fkey = "tile-" + o.key;
+    var l = el("span","tl");
+    l.appendChild(ico(o.icon, "sm" + (o.crit ? " crit" : "")));
+    l.appendChild(el("span", null, o.label));
+    b.appendChild(l);
+    b.appendChild(el("span","tv", String(o.value)));
+    var s = el("span","ts");
+    if(o.glyph){ s.appendChild(el("span", o.glyphCls, o.glyph)); s.appendChild(document.createTextNode(" ")); }
+    s.appendChild(document.createTextNode(o.sub));
+    b.appendChild(s);
+    b.setAttribute("aria-label", o.aria);
+    b.onclick = o.run;
+    wrap.appendChild(b);
+  }
+
+  var total = m.done.length, sub, glyph = null, gcls = null;
+  if(!m.prevTracked) sub = "Tracking since " + ymdShort(TRACK_START);
+  else if(!total) sub = "Nothing finished in " + rl.span;
+  else {
+    var dlt = total - m.prevCount;
+    if(!dlt) sub = "Same as the previous " + rl.label;
+    else { glyph = dlt > 0 ? "▲" : "▼"; gcls = dlt > 0 ? "up" : "down"; sub = Math.abs(dlt) + " vs previous " + rl.label; }
+  }
+  tile({ key: "done", icon: "trend", label: "Completed · " + rl.label, value: total, sub: sub,
+    glyph: glyph, glyphCls: gcls,
+    aria: total + " completed in " + rl.span + ". " + (glyph ? (glyph === "▲" ? "Up " : "Down ") : "") + sub + ".",
+    run: function(){ dashJump("wc-chart"); } });
+
+  var doing = m.doing.length;
+  var dsub = doing ? "of " + m.open + " open" : "Nothing on the go" + (m.open ? " · " + m.open + " open" : "");
+  tile({ key: "doing", icon: "bolt", label: "In progress", value: doing, sub: dsub,
+    aria: doing + " in progress, " + dsub + ". Show them in All projects.",
+    run: function(){ goView("all", "list", { lens: m.who || null, status: "doing" }); } });
+
+  var wsub = m.week ? "incl. " + m.weekToday + " today" : "Nothing due this week";
+  tile({ key: "week", icon: "clock", label: "Due this week", value: m.week, sub: wsub,
+    aria: m.week + " due in the next 7 days, " + wsub + ".",
+    run: function(){ dashJump("wc-next"); } });
+
+  var late = m.overdue.length;
+  var lsub = late ? "oldest " + plural(daysBetween(m.overdue[0].due, m.todayS), "day") + " late" : "Nothing late";
+  /* the value stays in ink; the icon carries the state, and changes shape too */
+  tile({ key: "late", icon: late ? "alert" : "check", crit: !!late, label: "Overdue", value: late, sub: lsub,
+    aria: late + " overdue, " + lsub + ".",
+    run: function(){ dashJump("wc-today"); } });
+  return wrap;
+}
+
+function wToday(m){
+  var pending = m.overdue.length + m.dueToday.length + m.pendingEvents + m.chaseNow.length;
+  var card = wcard({ id: "wc-today", title: "Today", count: pending,
+    sub: m.who ? lensText(m.who) + " · events and chases are shared" : "Everyone",
+    action: { label: "Full day", run: function(){ goView("today"); } } });
+  var list = el("div","dlist");
+  var av = !m.who;
+  dashGroup(list, "late", "Overdue", m.overdue, function(t){
+    return dashTaskRow(t, { todayS: m.todayS, lateDays: true, avatar: av && t.assignee });
+  }, 5, true);
+  dashGroup(list, "ev", "Events", m.events, function(s){ return dashOccRow(s, m.todayS); }, 5);
+  dashGroup(list, "due", "Due today", m.dueToday, function(t){
+    return dashTaskRow(t, { todayS: m.todayS, noDue: true, col: true, avatar: av && t.assignee });
+  }, 5);
+  dashGroup(list, "chase", "Chase", m.chaseNow, function(p){ return dashProspectRow(p); }, 5);
+  if(!list.childNodes.length) list.appendChild(el("div","dempty","Nothing due, nothing late, no events. A clear day."));
+  card.appendChild(list);
+  return card;
+}
+
+/* Recurring items stay out: a daily one would flood the list, and the calendar
+   has them. Underway tasks stay in, named by their column. */
+function wNext(m){
+  var items = m.soon.map(function(t){ return { d: t.due, t: t }; })
+    .concat(m.chaseSoon.map(function(p){ return { d: p.next, p: p }; }));
+  items.sort(function(a, b){ return a.d < b.d ? -1 : a.d > b.d ? 1 : 0; });
+  var toCal = function(){ goView("all", "calendar"); };
+  var card = wcard({ id: "wc-next", title: "Next 7 days", count: items.length,
+    sub: m.who ? lensText(m.who) + " · chases are shared" : "Everyone",
+    action: { label: "Calendar", run: toCal } });
+  var list = el("div","dlist");
+  if(!items.length){
+    list.appendChild(el("div","dempty","Nothing due in the next 7 days."));
+  } else {
+    var perDay = {};
+    items.forEach(function(it){ perDay[it.d] = (perDay[it.d] || 0) + 1; });
+    var cap = 8, open = !!S.dashMore.next, last = null;
+    (open ? items : items.slice(0, cap)).forEach(function(it){
+      if(it.d !== last){
+        last = it.d;
+        var h = el("button","dgroup", relDay(it.d, m.todayS) + " · " + perDay[it.d]);
+        h.title = "Open the calendar";
+        h.onclick = toCal;
+        list.appendChild(h);
+      }
+      list.appendChild(it.t
+        ? dashTaskRow(it.t, { todayS: m.todayS, noDue: true, col: true, avatar: !m.who && it.t.assignee })
+        : dashProspectRow(it.p));
+    });
+    if(items.length > cap) list.appendChild(moreBtn("next", open, "Show all " + items.length));
+  }
+  card.appendChild(list);
+  return card;
+}
+
+/* ---- the completions chart: the widget the owners asked for ---- */
+function wChart(m){
+  var rl = DASH_RANGES[m.rk], total = m.done.length;
+  var tog = el("div","seg wtog");
+  tog.setAttribute("role","group");
+  tog.setAttribute("aria-label","Show as");
+  [["chart","Chart"],["table","Table"]].forEach(function(o){
+    var on = (o[0] === "table") === !!S.dashTable;
+    var b = el("button", on ? "on" : "", o[1]);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+    b.dataset.fkey = "vx-mode-" + o[0];
+    b.onclick = function(){ S.dashTable = o[0] === "table"; render(); };
+    tog.appendChild(b);
+  });
+  var card = wcard({ id: "wc-chart", tag: "figure", title: "Completed",
+    sub: "Last " + rl.label + " · " + lensText(m.who), extra: tog });
+
+  var head = el("div","vx-head");
+  head.appendChild(el("span","vx-total", String(total)));
+  var stat = "completed";
+  if(total && m.trackedDays){
+    stat += m.rk === "12w" && m.trackedDays >= 14
+      ? " · avg " + (total / (m.trackedDays / 7)).toFixed(1) + "/week"
+      : " · avg " + (total / m.trackedDays).toFixed(1) + "/day";
+  }
+  /* inflow as text, not a second series: two measures, one axis */
+  if(!m.who) stat += " · " + m.added + " added";
+  head.appendChild(el("span","vx-stat", stat));
+  card.appendChild(head);
+
+  var host = null;
+  if(S.dashTable){
+    card.appendChild(chartTable(m));
+  } else {
+    host = el("div","vx-host");
+    /* Hold the chart's height from the last draw while the page is rebuilt. An
+       empty host when the width is measured would make the page briefly shorter,
+       and that is enough to clamp the scroll position near the bottom. */
+    host.style.height = ((chartW || 480) >= 480 ? 160 : 128) + 38 + "px";
+    card.appendChild(host);
+    var pick = S.dashPick ? bucketFind(m, S.dashPick) : null;
+    if(pick) card.appendChild(chartReadout(m, pick));
+  }
+
+  var peak = null;
+  m.buckets.forEach(function(b){ if(!b.untracked && b.count && (!peak || b.count >= peak.count)) peak = b; });
+  var cap = el("figcaption","sr-only",
+    total + " completed in " + rl.span +
+    (peak ? "; most " + (peak.week ? "in the week of " + ymdShort(peak.start) : "on " + ymdLabel(peak.start)) + " (" + peak.count + ")" : "") +
+    (m.buckets[0].start < TRACK_START ? "; not tracked before " + ymdShort(TRACK_START) : "") + ".");
+  card.appendChild(cap);
+  return { card: card, host: host };
+}
+
+/* The readout is how a phone steps through thirty ~10px columns: 38px buttons
+   either side of the picked one. */
+function chartReadout(m, pick){
+  var i = m.buckets.indexOf(pick), unit = pick.week ? "week" : "day";
+  function step(d){
+    for(var j=i+d; j>=0 && j<m.buckets.length; j+=d) if(!m.buckets[j].untracked) return m.buckets[j];
+    return null;
+  }
+  var rd = el("div","vx-readout");
+  var prev = icoBtn(null, "left", "Previous " + unit), next = icoBtn(null, "right", "Next " + unit);
+  var pb = step(-1), nb = step(1);
+  prev.disabled = !pb; next.disabled = !nb;
+  prev.dataset.fkey = "vx-prev"; next.dataset.fkey = "vx-next";
+  prev.onclick = function(){ if(pb){ S.dashPick = pb.key; render(); } };
+  next.onclick = function(){ if(nb){ S.dashPick = nb.key; render(); } };
+  var txt = el("span","rt", bucketLabel(pick) + " · " + pick.count + " completed");
+  txt.setAttribute("aria-live","polite");
+  var x = icoBtn(null, "x", "Clear the selection");
+  x.dataset.fkey = "vx-clear";
+  x.onclick = function(){ S.dashPick = null; wantFocus = "vx-" + pick.key; render(); };
+  rd.appendChild(prev); rd.appendChild(txt); rd.appendChild(next); rd.appendChild(x);
+  return rd;
+}
+
+function chartTable(m){
+  var tbl = el("table","vx-table");
+  var thead = document.createElement("thead"), hr = document.createElement("tr");
+  var h1 = el("th", null, m.rk === "12w" ? "Week" : "Day"), h2 = el("th","num","Completed");
+  hr.appendChild(h1); hr.appendChild(h2); thead.appendChild(hr); tbl.appendChild(thead);
+  var tb = document.createElement("tbody");
+  m.buckets.forEach(function(b){
+    var tr = document.createElement("tr");
+    var c1 = el("td", null, bucketLabel(b) + (b.partial ? " (partial week, tracking began " + ymdLabel(TRACK_START) + ")" : ""));
+    var c2 = b.untracked ? el("td","num muted","Not tracked") : el("td","num", String(b.count));
+    tr.appendChild(c1); tr.appendChild(c2); tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+  return tbl;
+}
+
+function svgEl(tag, attrs, cls){
+  var n = document.createElementNS(SVGNS, tag);
+  for(var k in attrs) if(Object.prototype.hasOwnProperty.call(attrs, k)) n.setAttribute(k, attrs[k]);
+  if(cls) n.setAttribute("class", cls);
+  return n;
+}
+function r2(v){ return Math.round(v * 100) / 100; }
+/* a column with a 4px rounded top and a square foot on the baseline */
+function barPath(x, y, w, h){
+  var r = Math.min(4, w / 2, h);
+  return "M" + r2(x) + "," + r2(y + h) + "V" + r2(y + r) +
+         "Q" + r2(x) + "," + r2(y) + " " + r2(x + r) + "," + r2(y) +
+         "H" + r2(x + w - r) + "Q" + r2(x + w) + "," + r2(y) + " " + r2(x + w) + "," + r2(y + r) +
+         "V" + r2(y + h) + "Z";
+}
+
+/* One observer, re-pointed at each render's new host. It redraws only the SVG,
+   and only when the width really changed — iPad rotation, Split View — the
+   ink.lastFitW pattern. No entry animation: render() runs on every snapshot. */
+var chartRO = null, chartHost = null, chartModel = null, chartW = 0, chartRaf = 0;
+function mountChart(host, m){
+  chartHost = host; chartModel = m;
+  drawCompletions(host, m);
+  if(!window.ResizeObserver) return;
+  if(!chartRO){
+    chartRO = new ResizeObserver(function(){
+      if(!chartHost || !chartHost.isConnected || chartHost.clientWidth === chartW) return;
+      if(chartRaf) cancelAnimationFrame(chartRaf);
+      chartRaf = requestAnimationFrame(function(){
+        chartRaf = 0;
+        if(chartHost && chartHost.isConnected) drawCompletions(chartHost, chartModel);
+      });
+    });
+  }
+  chartRO.disconnect();
+  chartRO.observe(host);
+}
+
+function drawCompletions(host, m){
+  var had = document.activeElement && host.contains(document.activeElement) ? document.activeElement.dataset.fkey : null;
+  host.textContent = "";
+  var W = host.clientWidth;
+  chartW = W;
+  if(!W) return;
+
+  var bs = m.buckets, n = bs.length, pick = S.dashPick;
+  /* by the width actually available, not isPhone(), which answers for 860px */
+  var plotH = W >= 480 ? 160 : 128, padT = 16, axisH = 22, padL = 30, padR = 2;
+  var H = padT + plotH + axisH, plotW = W - padL - padR, slot = plotW / n, base = padT + plotH;
+  var bw = Math.max(1, Math.min(24, slot - 2));
+  var max = 0, peak = -1;
+  bs.forEach(function(b, i){ if(!b.untracked && b.count && b.count >= max){ max = b.count; peak = i; } });
+  var top = niceMax(max);
+  function yOf(v){ return base - v / top * plotH; }
+  function cxOf(i){ return padL + (i + 0.5) * slot; }
+
+  var svg = svgEl("svg", { width: W, height: H, viewBox: "0 0 " + W + " " + H, "aria-hidden": "true", focusable: "false" }, "vx");
+  [0, top / 2, top].forEach(function(v){
+    var y = Math.round(yOf(v)) + 0.5;
+    if(v) svg.appendChild(svgEl("line", { x1: padL, x2: W - padR, y1: y, y2: y }, "vx-grid"));
+    var tk = svgEl("text", { x: padL - 8, y: r2(y + 3.5), "text-anchor": "end" }, "vx-tick");
+    tk.textContent = String(v);
+    svg.appendChild(tk);
+  });
+
+  /* untracked days are one flat band, never zero-height bars that would claim
+     nobody worked; the axis keeps the full range so nothing jumps as history grows */
+  var ut = 0;
+  while(ut < n && bs[ut].untracked) ut++;
+  if(ut){
+    var bandW = ut * slot - (ut < n ? 2 : 0);
+    svg.appendChild(svgEl("rect", { x: padL, y: padT, width: r2(bandW), height: plotH, rx: 3 }, "vx-untracked"));
+    if(ut < n && bandW >= 70){
+      var ul = svgEl("text", { x: r2(padL + bandW / 2), y: base - plotH / 2 + 4, "text-anchor": "middle" }, "vx-utxt");
+      ul.textContent = "Not tracked";
+      svg.appendChild(ul);
+    }
+  }
+
+  bs.forEach(function(b, i){
+    if(b.untracked || !b.count) return;
+    var h = b.count / top * plotH, x = cxOf(i) - bw / 2;
+    svg.appendChild(svgEl("path", { d: barPath(x, base - h, bw, h) }, "vx-bar" + (pick && pick !== b.key ? " dim" : "")));
+  });
+  /* labels only where the story is: the peak and the bucket you're in */
+  [peak, n - 1].forEach(function(i, k){
+    if(i < 0 || (k === 1 && i === peak)) return;
+    var b = bs[i];
+    if(b.untracked || !b.count) return;
+    var lb = svgEl("text", { x: r2(cxOf(i)), y: r2(yOf(b.count) - 5), "text-anchor": "middle" }, "vx-lbl");
+    lb.textContent = String(b.count);
+    svg.appendChild(lb);
+  });
+  svg.appendChild(svgEl("line", { x1: padL, x2: W - padR, y1: base + 0.5, y2: base + 0.5 }, "vx-base"));
+
+  bs.forEach(function(b, i){
+    var from = n - 1 - i;
+    var show = m.rk === "7" || (m.rk === "30" ? from % 7 === 0 : from % 3 === 0);
+    if(!show) return;
+    var txt = m.rk === "7" ? SHORT_DOW[dowOf(b.start)] : ymdShort(b.start);
+    var x = cxOf(i), anchor = "middle", half = txt.length * 3.1;
+    if(x + half > W){ x = W - 1; anchor = "end"; }
+    var t = svgEl("text", { x: r2(x), y: base + 15, "text-anchor": anchor }, "vx-tick" + (i === n - 1 ? " now" : ""));
+    t.textContent = txt;
+    svg.appendChild(t);
+  });
+  host.style.height = H + "px";
+  host.appendChild(svg);
+
+  function msg(text, left, width){
+    var d = el("div","vx-msg", text);
+    d.style.left = left + "px"; d.style.top = padT + "px";
+    d.style.width = width + "px"; d.style.height = plotH + "px";
+    host.appendChild(d);
+  }
+  if(ut === n) msg("Completion dates are recorded from " + ymdShort(TRACK_START) + ", " + TRACK_START.slice(0,4) + ".", padL, plotW);
+  else if(!m.done.length){
+    var left = padL + ut * slot;
+    msg(ut ? "Nothing completed since tracking began on " + ymdShort(TRACK_START) + "."
+           : "Nothing completed in " + DASH_RANGES[m.rk].span + ".", left, W - padR - left);
+  }
+
+  /* One real button per bucket across the full height: a name for each, a target
+     far bigger than a 10px column, and none of iOS's trouble with focusable SVG.
+     A roving tabindex keeps thirty of them out of the tab order. */
+  var hits = el("div","vx-hits");
+  hits.style.left = padL + "px"; hits.style.top = "0px";
+  hits.style.width = plotW + "px"; hits.style.height = H + "px";
+  var tip = el("div","vx-tip");
+  tip.hidden = true;
+  tip.setAttribute("aria-hidden","true");
+  var rove = n - 1;
+  bs.forEach(function(b, i){ if(b.key === pick) rove = i; });
+
+  function showTip(i){
+    var b = bs[i];
+    tip.textContent = "";
+    if(b.untracked){
+      tip.appendChild(el("div","tv","Not tracked"));
+      tip.appendChild(el("div","td", bucketLabel(b) + " · before " + ymdShort(TRACK_START)));
+    } else {
+      tip.appendChild(el("div","tv", b.count + " completed"));
+      tip.appendChild(el("div","td", bucketLabel(b) +
+        (b.partial ? " · partial week, tracking began " + ymdLabel(TRACK_START) : "")));
+      if(b.count){
+        var by = {}, order = [];
+        b.tasks.forEach(function(t){
+          var c = creditOf(t), k = c ? personName(c) : "Unattributed";
+          if(!(k in by)){ by[k] = 0; order.push(k); }
+          by[k]++;
+        });
+        order.sort(function(a, z){ return (a === "Unattributed") - (z === "Unattributed") || by[z] - by[a]; });
+        tip.appendChild(el("div","td tsplit", order.map(function(k){ return k + " " + by[k]; }).join(" · ")));
+        b.tasks.slice(0, 3).forEach(function(t){ tip.appendChild(el("div","tt", t.title || "Untitled")); });
+        if(b.tasks.length > 3) tip.appendChild(el("div","td", "+" + (b.tasks.length - 3) + " more"));
+      }
+    }
+    tip.hidden = false;
+    var tw = tip.offsetWidth, cx = cxOf(i);
+    var lx = cx < W / 2 ? cx + slot / 2 + 6 : cx - slot / 2 - 6 - tw;
+    tip.style.left = Math.max(0, Math.min(W - tw, lx)) + "px";
+    tip.style.top = padT + "px";
+  }
+  function keyVisible(b){ try{ return b.matches(":focus-visible"); }catch(e){ return true; } }
+
+  bs.forEach(function(b, i){
+    var hb = el("button","vx-hit" + (b.untracked ? " off" : ""));
+    hb.type = "button";
+    hb.tabIndex = i === rove ? 0 : -1;
+    hb.dataset.fkey = "vx-" + b.key;
+    hb.setAttribute("aria-label", b.untracked ? bucketLabel(b) + ": not tracked"
+      : bucketLabel(b) + ": " + b.count + " completed" + (b.partial ? ", partial week" : ""));
+    if(!b.untracked) hb.setAttribute("aria-pressed", b.key === pick ? "true" : "false");
+    hb.onpointerenter = function(e){ if(e.pointerType === "mouse") showTip(i); };
+    hb.onpointerleave = function(){ tip.hidden = true; };
+    hb.onfocus = function(){ if(keyVisible(hb)) showTip(i); };
+    hb.onblur = function(){ tip.hidden = true; };
+    hb.onclick = function(){
+      if(b.untracked) return;
+      S.dashPick = S.dashPick === b.key ? null : b.key;
+      render();
+    };
+    hb.onkeydown = function(e){
+      var j = e.key === "ArrowRight" ? Math.min(n - 1, i + 1)
+            : e.key === "ArrowLeft" ? Math.max(0, i - 1)
+            : e.key === "Home" ? 0 : e.key === "End" ? n - 1 : -1;
+      if(e.key === "Escape" && S.dashPick){ e.preventDefault(); S.dashPick = null; render(); return; }
+      if(j < 0 || j === i) return;
+      e.preventDefault();
+      hb.tabIndex = -1;
+      hits.children[j].tabIndex = 0;
+      hits.children[j].focus();
+    };
+    hits.appendChild(hb);
+  });
+  host.appendChild(hits);
+  host.appendChild(tip);
+  if(had){
+    var back = host.querySelector('[data-fkey="' + had + '"]');
+    if(back) back.focus({ preventScroll: true });
+  }
+}
+
+/* The completions log — the literal "show what got done", and the chart's detail
+   view. The tick stays live: it's the undo for a mis-tick made in Today above. */
+function wFinished(m){
+  var rl = DASH_RANGES[m.rk];
+  var pick = S.dashPick ? bucketFind(m, S.dashPick) : null;
+  var list = pick ? pick.tasks : m.done;
+  var where = pick ? (pick.week ? "in the week of " + ymdShort(pick.start) : "on " + ymdLabel(pick.start)) : "in " + rl.span;
+  var card = wcard({ id: "wc-done", title: "Finished", count: list.length,
+    sub: "Last " + rl.label + " · " + lensText(m.who) });
+  if(pick){
+    var chip = el("div","dpick");
+    chip.appendChild(el("span", null, bucketLabel(pick)));
+    var x = icoBtn(null, "x", "Show the whole range");
+    x.dataset.fkey = "pick-clear";
+    x.onclick = function(){ S.dashPick = null; render(); };
+    chip.appendChild(x);
+    card.appendChild(chip);
+  }
+  var dl = el("div","dlist");
+  if(!list.length){
+    dl.appendChild(el("div","dempty", "Nothing finished " + where + (pick ? "." : " yet.")));
+  } else {
+    var perDay = {};
+    list.forEach(function(t){ var d = ddayOf(t.completedAt); perDay[d] = (perDay[d] || 0) + 1; });
+    var cap = 10, open = !!S.dashMore.fin, last = null;
+    (open ? list : list.slice(0, cap)).forEach(function(t){
+      var d = ddayOf(t.completedAt);
+      if(d !== last){ last = d; dl.appendChild(el("div","dgroup", relDay(d, m.todayS) + " · " + perDay[d])); }
+      dl.appendChild(dashTaskRow(t, { noDue: true, time: denverClock(t.completedAt), avatar: creditOf(t) }));
+    });
+    if(list.length > cap) dl.appendChild(moreBtn("fin", open, "Show all " + list.length));
+  }
+  card.appendChild(dl);
+  if(m.legacy){
+    card.appendChild(el("div","wnote", plural(m.legacy, "older finished task") +
+      (m.legacy === 1 ? " predates" : " predate") + " completion tracking and " + (m.legacy === 1 ? "isn't" : "aren't") + " counted."));
+  }
+  return card;
+}
+
+/* ---- projects: which client is slipping ---- */
+function wProjects(m){
+  var rl = DASH_RANGES[m.rk];
+  var card = wcard({ id: "wc-proj", title: "Projects",
+    sub: lensText(m.who) + " · done in " + rl.span });
+  if(!S.projects.length){
+    card.appendChild(el("div","dempty","No projects yet."));
+    if(writable()){
+      var mk = el("button","btn primary","Create your first project");
+      mk.style.marginTop = "10px";
+      mk.onclick = function(){ S.newProject = true; S.newProjectText = ""; openRail(); render(); };
+      card.appendChild(mk);
+    }
+    return card;
+  }
+  var now = Date.now();
+  var blank = { total:0, done:0, doing:0, todo:0, open:0, late:0, range:0, touched:"", any:false };
+  var rows = S.projects.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); }).map(function(p){
+    var s = m.proj[p.id] || blank;
+    var touched = s.touched || p.createdAt || "";
+    var idleDays = touched ? Math.floor((now - Date.parse(touched)) / 86400000) : 0;
+    return { p: p, s: s, touched: touched, quiet: s.open > 0 && idleDays >= STALE_DAYS ? idleDays : 0 };
+  });
+  var busy = rows.filter(function(r){ return r.s.open || r.s.range; });
+  var idle = rows.filter(function(r){ return !(r.s.open || r.s.range); });
+  /* late first, then the quiet ones (stalest first), then the busiest */
+  busy.sort(function(a, b){
+    return (b.s.late - a.s.late) || (b.quiet - a.quiet) || (b.s.open - a.s.open) ||
+      String(a.p.name||"").localeCompare(String(b.p.name||""));
+  });
+
+  var tbl = el("div","ptable");
+  var th = el("div","pth");
+  th.setAttribute("aria-hidden","true");
+  [["Project",""],["Progress",""],["Open","num"],["Late","num"],["Done · " + rl.short,"num"],["Active","pa"]].forEach(function(c){
+    th.appendChild(el("span", c[1] || null, c[0]));
+  });
+  tbl.appendChild(th);
+
+  function row(name, colorId, s, touched, quiet, run){
+    var b = el("button","ptr");
+    var pct = s.total ? Math.round(s.done / s.total * 100) : 0;
+    var act = touched ? relTime(touched) : "—";
+    var pn = el("span","pn");
+    var dot = el("span","pdot");
+    var c = colorId && projectColor(colorId);
+    if(c) dot.style.background = c;
+    pn.appendChild(dot);
+    var nw = el("span","pnw");
+    nw.appendChild(el("span","pnm", name));
+    nw.appendChild(el("span","pai", "Active " + act));
+    pn.appendChild(nw);
+    if(quiet) pn.appendChild(el("span","chip pquiet", "Quiet " + quiet + "d"));
+    b.appendChild(pn);
+
+    var pp = el("span","pp");
+    pp.appendChild(stackBar([["done", s.done], ["doing", s.doing], ["todo", s.todo]]));
+    pp.appendChild(el("span","ppct", s.total ? pct + "%" : "No tasks yet"));
+    b.appendChild(pp);
+
+    b.appendChild(el("span","num" + (s.open ? "" : " zero"), String(s.open)));
+    b.appendChild(s.late ? alertText("num late", String(s.late)) : el("span","num zero","0"));
+    b.appendChild(el("span","num" + (s.range ? "" : " zero"), String(s.range)));
+    b.appendChild(el("span","pa", act));
+
+    /* the phone's third line */
+    var pm = el("span","pm");
+    [el("span", null, s.open + " open"),
+     s.late ? alertText("late", s.late + " late") : null,
+     el("span", null, s.range + " done"),
+     el("span", null, act)].forEach(function(part){
+      if(!part) return;
+      if(pm.childNodes.length) pm.appendChild(el("span", null, "·"));
+      pm.appendChild(part);
+    });
+    b.appendChild(pm);
+
+    b.setAttribute("aria-label", name + ": " + (s.total ? pct + "% done" : "no tasks yet") + ", " +
+      s.open + " open, " + s.late + " late, " + s.range + " done in " + rl.span +
+      (touched ? ", active " + act : "") + (quiet ? ", quiet for " + quiet + " days" : ""));
+    b.onclick = run;
+    return b;
+  }
+  function projRow(r){
+    return row(r.p.name || "Untitled project", r.p.id, r.s, r.touched, r.quiet,
+      function(){ goView(r.p.id, "board"); });
+  }
+  busy.forEach(function(r){ tbl.appendChild(projRow(r)); });
+  if(idle.length){
+    var open = !!S.dashMore.projIdle;
+    if(busy.length){
+      var fold = el("button","pfold", open ? "Hide the " + idle.length + " with nothing open"
+                                           : idle.length + " with nothing open");
+      if(!open) fold.appendChild(ico("right","sm"));
+      fold.dataset.fkey = "more-projIdle";
+      fold.setAttribute("aria-expanded", open ? "true" : "false");
+      fold.onclick = function(){ S.dashMore.projIdle = !open; render(); };
+      tbl.appendChild(fold);
+    }
+    if(open || !busy.length) idle.forEach(function(r){ tbl.appendChild(projRow(r)); });
+  }
+  var un = m.proj[""];
+  if(un && un.any){
+    tbl.appendChild(row("Unfiled", null, un, un.touched, 0,
+      function(){ goView("all", "list", { project: "none" }); }));
+  }
+  card.appendChild(tbl);
+  return card;
+}
+
+/* ---- workload: who's carrying what. Per person by design, so no lens. ---- */
+function wWorkload(m){
+  var card = wcard({ id: "wc-load", title: "Workload", sub: "Everyone · open now" });
+  var rows = [], seen = {};
+  S.people.forEach(function(p){ rows.push({ uid: p.id, name: p.name || "Someone", img: p.avatarUrl }); seen[p.id] = true; });
+  Object.keys(m.load).forEach(function(k){ if(k && !seen[k]) rows.push({ uid: k, name: null }); });
+  rows.push({ uid: "", name: "Unassigned" });
+  var zero = { doing:0, todo:0, late:0, week:0, tasks:[] };
+  var maxOpen = 1, totalOpen = 0;
+  rows.forEach(function(r){
+    r.s = m.load[r.uid] || zero;
+    r.open = r.s.doing + r.s.todo;
+    maxOpen = Math.max(maxOpen, r.open);
+    totalOpen += r.open;
+  });
+  if(!totalOpen){
+    card.appendChild(el("div","dempty","Nobody has anything open."));
+    return card;
+  }
+  var lgd = el("div","lgd");
+  lgd.setAttribute("aria-hidden","true");
+  [["doing","In progress"],["todo","Not started"]].forEach(function(l){
+    var s = el("span");
+    s.appendChild(el("i","s-" + l[0]));
+    s.appendChild(document.createTextNode(l[1]));
+    lgd.appendChild(s);
+  });
+  card.appendChild(lgd);
+
+  var wrap = el("div","wl");
+  rows.forEach(function(r){
+    var key = r.uid || "~none", open = S.wlOpen === key;
+    var b = el("button","wlrow");
+    b.dataset.fkey = "wl-" + key;
+    b.setAttribute("aria-expanded", open ? "true" : "false");
+    var who = el("span","wlwho");
+    if(r.uid){
+      var im = document.createElement("img");
+      im.alt = "";
+      if(r.img) im.src = r.img; else { im.dataset.uid = r.uid; im.dataset.kind = "avatar"; }
+      who.appendChild(im);
+    } else {
+      who.appendChild(el("span","wlnone"));
+    }
+    var nm = el("span","wln", r.name || "Someone");
+    /* offline the profiles aren't there; paintPeople names them when they are */
+    if(!r.name) nm.dataset.uid = r.uid;
+    who.appendChild(nm);
+    b.appendChild(who);
+
+    var track = el("span","wltrack");
+    if(r.open){
+      var bar = stackBar([["doing", r.s.doing], ["todo", r.s.todo]]);
+      /* scaled to the heaviest load, not to 100%: comparing load is the point.
+         70px of every bar's share is kept back for the label at its end. */
+      var pct = r.open / maxOpen * 100;
+      bar.style.width = "calc(" + r2(pct) + "% - " + r2(pct * 0.7) + "px)";
+      track.appendChild(bar);
+    }
+    track.appendChild(el("span","wlval" + (r.open ? "" : " zero"), r.open ? r.open + " open" : "Nothing open"));
+    b.appendChild(track);
+    if(r.s.late || r.s.week){
+      var meta = el("span","wlmeta");
+      if(r.s.late) meta.appendChild(alertText("late", r.s.late + " late"));
+      if(r.s.late && r.s.week) meta.appendChild(el("span", null, "·"));
+      if(r.s.week) meta.appendChild(el("span", null, r.s.week + " this week"));
+      b.appendChild(meta);
+    }
+    b.setAttribute("aria-label", (r.name || "Someone") + ": " + r.open + " open, " + r.s.doing + " in progress, " +
+      r.s.late + " late, " + r.s.week + " due this week");
+    b.onclick = function(){ S.wlOpen = open ? null : key; render(); };
+    wrap.appendChild(b);
+
+    if(open){
+      var x = el("div","wlx");
+      var tasks = r.s.tasks.slice().sort(function(a, z){
+        var al = a.due && a.due < m.todayS, zl = z.due && z.due < m.todayS;
+        if(al !== zl) return al ? -1 : 1;
+        return String(a.due || "9999").localeCompare(String(z.due || "9999")) || (a.order||0) - (z.order||0);
+      });
+      if(!tasks.length) x.appendChild(el("div","dempty","Nothing open."));
+      tasks.slice(0, 8).forEach(function(t){
+        x.appendChild(dashTaskRow(t, { todayS: m.todayS, lateDays: true, assign: !r.uid }));
+      });
+      var all = el("button","wmore", tasks.length > 8 ? "See all " + tasks.length + " in All projects" : "See them in All projects");
+      all.appendChild(ico("right","sm"));
+      all.style.display = "inline-flex"; all.style.alignItems = "center";
+      all.onclick = function(){ goView("all", "list", { owner: r.uid || "none", status: "open" }); };
+      x.appendChild(all);
+      wrap.appendChild(x);
+    }
+  });
+  card.appendChild(wrap);
+  var assigned = rows.some(function(r){ return r.uid && r.open; });
+  if(!assigned) card.appendChild(el("div","wnote","Give tasks an owner to see who's carrying what."));
+  return card;
+}
+
+/* ---- pipeline: who to chase. Prospects have no owner, so it's shared. ---- */
+function wPipeline(m){
+  var card = wcard({ id: "wc-pipe", title: "Pipeline", sub: "Shared" });
+  var toPros = function(){ goView("all", "prospects"); };
+  if(!m.prospects){
+    card.appendChild(el("div","dempty","No one in the pipeline yet."));
+    if(m.lost) card.appendChild(el("div","plost","Not now " + m.lost));
+    if(writable()){
+      var add = el("button","btn","Add a prospect");
+      add.style.marginTop = "10px";
+      /* focused inside the tap itself, or iOS won't raise the keyboard */
+      add.onclick = function(){
+        toPros();
+        var inp = bodyEl.querySelector(".padd input");
+        if(inp) inp.focus();
+      };
+      card.appendChild(add);
+    }
+    return card;
+  }
+  var counts = el("div","pcounts");
+  [["lead","Lead"],["contacted","Contacted"],["talking","In conversation"]].forEach(function(st){
+    var b = el("button","pcount");
+    b.appendChild(el("b", null, String(m.stages[st[0]])));
+    b.appendChild(el("span", null, st[1]));
+    b.setAttribute("aria-label", m.stages[st[0]] + " " + st[1] + ". Open the pipeline.");
+    b.onclick = toPros;
+    counts.appendChild(b);
+  });
+  card.appendChild(counts);
+  if(m.lost) card.appendChild(el("div","plost","Not now " + m.lost));
+
+  if(m.chaseNext.length){
+    card.appendChild(el("div","psub","Chase next"));
+    m.chaseNext.forEach(function(p){
+      var late = p.next < m.todayS;
+      var r = el("button","pchase");
+      r.appendChild(el("span","pc1", p.company || "Untitled"));
+      r.appendChild(el("span","pc2", STAGE_LABEL[p.stage || "lead"] || "Lead"));
+      r.appendChild(el("span","pcd" + (late ? " late" : ""), p.next === m.todayS ? "Today" : fmtDate(p.next) + (late ? " · late" : "")));
+      r.onclick = function(){ openProspect(p.id); };
+      card.appendChild(r);
+    });
+  }
+  if(m.noNext){
+    var nudge = el("button","pnudge", plural(m.noNext, "prospect") + (m.noNext === 1 ? " has" : " have") + " no follow-up date");
+    nudge.onclick = toPros;
+    card.appendChild(nudge);
+  }
+  return card;
 }
 
 function renderCapture(){
@@ -5264,7 +6829,7 @@ function resetCapturePickers(){
   S.capSpace = null;
 }
 function updateCapture(){
-  var show = writable() && !S.doc && S.sel !== "today" &&
+  var show = writable() && !S.doc && S.sel !== "today" && S.sel !== "dash" &&
     (S.sel === "capture" || S.sel === "unfiled" || S.tab === "notes");
   capEl.classList.toggle("on", !!show);
   if(!show) return;
@@ -5692,15 +7257,15 @@ $("#bottomnav").addEventListener("click", function(e){
   var n = b.dataset.nav;
   closeRail();
   if(n === "projects"){ openRail(); return; }
-  if(n === "dash"){ S.sel = "dash"; S.tag = null; render(); return; }
-  if(n === "capture"){ S.sel = "capture"; S.tag = null; render(); return; }
+  if(S.q){ S.q = ""; $("#search").value = ""; }
+  if(n === "dash" || n === "capture"){ goView(n); return; }
   /* Board / list / calendar / notes need a project context, and render() checks
      a search, an open doc and the virtual views all before it ever looks at
      S.tab — so any of those left set makes these buttons silently do nothing.
-     The desktop view switcher already clears S.doc for the same reason. */
-  if(isVirtualView(S.sel) && S.sel !== "dash") S.sel = "dash";
+     The dashboard has no tabs at all now, so from any view that isn't a project
+     they open All projects; inside one they switch that project's tab. */
+  if(isVirtualView(S.sel) && S.sel !== "all"){ goView("all", n); return; }
   S.doc = null;
-  if(S.q){ S.q = ""; $("#search").value = ""; }
   S.tab = n;
   prefSet("tab", n);
   render();
@@ -6450,11 +8015,72 @@ function paintPeople(){
 }
 
 /* ============ render ============ */
+/* render() rebuilds the page on every snapshot — your own drops (the store emits
+   optimistically), every change the other person makes, every resync when the
+   app comes back to the foreground. Rebuilt boards and tab rows start scrolled to
+   zero, which on a phone threw you back to the first column after every drag.
+   So each one is keyed, and its scroll put back — but only while you're still
+   looking at the same thing; arriving somewhere new should start fresh. */
+var lastViewSig = null;
+function viewSig(){
+  return [S.sel, S.tab, S.space || "", S.doc || "", S.q ? "q" : ""].join("|");
+}
+function keepScroll(){
+  var k = { sig: lastViewSig, boards: {}, cols: {}, tabs: 0 };
+  Array.prototype.forEach.call(bodyEl.querySelectorAll(".board[data-key]"), function(b){
+    if(b.scrollLeft) k.boards[b.dataset.key] = b.scrollLeft;
+    Array.prototype.forEach.call(b.querySelectorAll(".col-body"), function(cb){
+      if(cb.scrollTop) k.cols[b.dataset.key + "|" + cb.dataset.status] = cb.scrollTop;
+    });
+  });
+  var tabs = headEl.querySelector(".tabs");
+  if(tabs) k.tabs = tabs.scrollLeft;
+  return k;
+}
+function restoreScroll(k){
+  var sig = viewSig(), same = k.sig === sig;
+  lastViewSig = sig;
+  var tabs = headEl.querySelector(".tabs");
+  if(!same){
+    /* a new tab or space: bring its tab into view, sideways only — scrollIntoView
+       would also scroll the page to the header on every update */
+    var on = tabs && tabs.querySelector(".tab.on");
+    if(on){
+      var tr = tabs.getBoundingClientRect(), orr = on.getBoundingClientRect();
+      var vs = tabs.querySelector(".viewswitch");
+      var right = vs && getComputedStyle(vs).position === "sticky" ? vs.getBoundingClientRect().left : tr.right;
+      if(orr.left < tr.left) tabs.scrollLeft -= tr.left - orr.left + 12;
+      else if(orr.right > right) tabs.scrollLeft += orr.right - right + 12;
+    }
+    return;
+  }
+  if(tabs && k.tabs) tabs.scrollLeft = k.tabs;
+  Object.keys(k.boards).forEach(function(key){
+    var b = bodyEl.querySelector('.board[data-key="' + key + '"]');
+    if(b) b.scrollLeft = k.boards[key];
+  });
+  Object.keys(k.cols).forEach(function(key){
+    var cut = key.lastIndexOf("|");
+    var cb = bodyEl.querySelector('.board[data-key="' + key.slice(0, cut) + '"] .col-body[data-status="' + key.slice(cut + 1) + '"]');
+    if(cb) cb.scrollTop = k.cols[key];
+  });
+}
+/* Dashboard controls are rebuilt too; a keyboard user keeps their place because
+   each carries a data-fkey and focus follows it to its replacement. */
+function refocus(key){
+  var sel = window.CSS && CSS.escape ? CSS.escape(key) : key.replace(/["\\]/g, "\\$&");
+  var n = document.querySelector('[data-fkey="' + sel + '"]');
+  if(n && n !== document.activeElement){ try{ n.focus({ preventScroll: true }); }catch(e){ n.focus(); } }
+}
+
 var restoreCompose = null;
 function render(){
   var active = document.activeElement;
   var wasCompose = active && active.classList && active.classList.contains("addtask")
     ? S.composing.col : null;
+  var focusKey = wantFocus || (active && active.dataset && active.dataset.fkey) || null;
+  wantFocus = null;
+  var kept = keepScroll();
 
   renderRail();
   renderHead();
@@ -6471,17 +8097,18 @@ function render(){
     renderNotes();
   } else if(S.sel === "today"){
     renderToday();
+  } else if(S.sel === "dash"){
+    renderDash();
   } else {
-    if(S.sel === "dash") renderDash();
     if(S.doc && !isVirtualView(S.sel)) renderDocPage();
-    else if(S.sel === "dash" && S.tab === "prospects") renderProspects();
+    else if(S.sel === "all" && S.tab === "prospects") renderProspects();
     else if(S.tab === "board") renderBoard();
     else if(S.tab === "list") renderList();
     else if(S.tab === "calendar") renderCalendar();
     else renderNotes();
   }
 
-  if(S.ready && !S.projects.length && !S.tasks.length && !S.notes.length && S.sel === "dash"){
+  if(S.ready && !S.projects.length && !S.tasks.length && !S.notes.length && (S.sel === "dash" || S.sel === "all")){
     bodyEl.textContent = "";
     var act = el("button","btn primary","Create your first project");
     act.onclick = function(){
@@ -6495,6 +8122,9 @@ function render(){
       writable() ? act : null
     ));
   }
+
+  restoreScroll(kept);
+  if(focusKey) refocus(focusKey);
 
   if(wasCompose){
     var inp = bodyEl.querySelector('.col[data-status="'+wasCompose+'"] .addtask');
@@ -6531,6 +8161,9 @@ try{
   if(bootQ.get("view") === "today"){
     S.sel = "today";
     S.todaySec = bootQ.get("sec");
+    history.replaceState(null, "", location.pathname);
+  } else if(bootQ.get("view") === "all"){
+    S.sel = "all";
     history.replaceState(null, "", location.pathname);
   }
 }catch(e){}
@@ -6575,6 +8208,15 @@ function docsToArray(snap){
     img.src = me.avatarUrl; img.alt = "";
     var nm = el("span","nm", me.name || "You");
     who.appendChild(nm); who.appendChild(img);
+    /* The dashboard's lens and Workload name people. search("") is memoised in
+       store.js and resolves [] offline; a stored lens is only dropped after a
+       real, non-empty answer, so a flaky connection never wipes the preference. */
+    user.search("").then(function(list){
+      if(!list || !list.length) return;
+      S.people = [me].concat(list.filter(function(p){ return p.id !== me.id; }));
+      if(S.who && !S.people.some(function(p){ return p.id === S.who; })){ S.who = ""; prefSet("who", ""); }
+      render();
+    }).catch(function(){});
     S.canWrite = await user.can("data.write");
   }
 
