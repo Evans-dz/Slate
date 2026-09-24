@@ -148,8 +148,14 @@ counts, so the PWA behaves the same as it does in production.
 
 ## How it's laid out
 
-**Dashboard** is the landing page: a summary of today, overdue, in progress and the next
-seven days, with Board / List / Calendar / Notes / Prospects tabs spanning every project.
+**Dashboard** is the landing page: what got done and what needs doing. Filter it by person
+(Everyone, you, the other one) and by range (7 days, 30 days, 12 weeks). Tiles for
+completed, in progress, due this week and overdue; today's list and the next seven days; a
+Completed chart with the Finished log beside it; a progress table for every project;
+workload per person; and the prospect pipeline. Tap any number to jump to the work behind it.
+
+**All projects** is every board at once, with Board / List / Calendar / Notes / Prospects
+tabs spanning every project.
 
 **Capture** is the quick-note stream — type, press Enter, saved. Pick a project and space
 and the note is filed *and* dropped onto that board as a linked card.
@@ -158,11 +164,19 @@ and the note is filed *and* dropped onto that board as a linked card.
 the four views as icons at the right. Each space has its own named columns. Docs filed to
 the project get their own tabs and open in place with per-block copy buttons.
 
-**Prospects** is the outreach pipeline on the Dashboard. Landing one turns it into a
+**Prospects** is the outreach pipeline, under All projects. Landing one turns it into a
 project and carries your notes across.
 
-On a phone the layout switches below 720px: drawer rail, bottom tab bar, agenda instead of a
-month grid. iPads keep the rail and the grid.
+**Calendar** is a real month on every screen. On a computer or iPad each day shows its
+items as chips in their project's colour, beside a panel for the selected day. On a phone
+it's a compact month of dates with coloured dots, iPhone Calendar style, with the selected
+day's list underneath. Tapping an item opens it; only the round tick completes it.
+
+**Theme and accent** live in the avatar menu at the top right: System, Light or Dark, and
+one of seven accent colours. They're per device, so your phone and laptop can differ.
+
+On a phone the layout switches below 720px: drawer rail and bottom tab bar. iPads keep the
+rail.
 
 ## Working with no signal
 
