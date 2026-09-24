@@ -662,6 +662,12 @@ tr:hover .rowx{opacity:1}
   opacity:0;pointer-events:none;transition:opacity .16s;max-width:88vw;
 }
 #toast.on{opacity:1}
+/* a toast that offers an action (Undo) has to be tappable while it's up */
+#toast.act{pointer-events:auto;display:flex;align-items:center;gap:14px}
+.toastbtn{
+  color:var(--paper);font-weight:600;text-decoration:underline;text-underline-offset:3px;
+  padding:6px 4px;margin:-6px -4px;min-height:32px;
+}
 #banner{
   display:none;padding:9px 22px;font-size:13px;
   background:var(--accent-soft);color:var(--accent-ink);
@@ -686,6 +692,10 @@ tr:hover .rowx{opacity:1}
 #capInput:focus{outline:none}
 #capFoot{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
 #capHint{font-size:11.5px;color:var(--muted)}
+/* a label wrapping the file input: iOS opens Take Photo / Photo Library from a
+   real tap on it, more reliably than from a scripted click() */
+.capphoto{display:inline-flex;align-items:center;gap:6px;cursor:pointer;position:relative}
+.capphoto input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 #capProj,#capSpace{
   border:1px solid var(--line-strong);background:transparent;
   border-radius:3px;padding:3px 6px;font-size:12px;font-family:var(--ui);
@@ -1441,6 +1451,7 @@ tr:hover .rowx{opacity:1}
   <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12.5" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/></symbol>
   <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9.5 20.5H5.2A2.2 2.2 0 0 1 3 18.3V5.7a2.2 2.2 0 0 1 2.2-2.2h4.3"/><path d="m16 16.5 4.5-4.5L16 7.5M20.5 12H9.5"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8.2A2.2 2.2 0 0 1 6.2 6h1.9l1.6-2h4.6l1.6 2h1.9A2.2 2.2 0 0 1 20 8.2v9.6a2.2 2.2 0 0 1-2.2 2.2H6.2A2.2 2.2 0 0 1 4 17.8Z"/><circle cx="12" cy="12.8" r="3.6"/></symbol>
   <symbol id="i-trend" viewBox="0 0 24 24"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
@@ -1472,6 +1483,10 @@ tr:hover .rowx{opacity:1}
           <select id="capProj" aria-label="File this note under a project"></select>
           <select id="capSpace" aria-label="File this note under a space"></select>
           <span id="capHint">#tag anything · Shift+Enter for a new line · paste an image</span>
+          <label class="btn quiet capphoto" id="capPhoto" hidden>
+            <svg class="ico sm" aria-hidden="true"><use href="#i-camera"/></svg><span>Photo</span>
+            <input type="file" id="capFile" accept="image/*" multiple>
+          </label>
           <button class="btn" id="capSave">Save</button>
         </div>
       </div>
@@ -1901,12 +1916,21 @@ function uid(){
 function nowISO(){ return new Date().toISOString(); }
 
 var toastT;
-function toast(msg){
+/* action: optional {label, fn} — a button in the toast, and a longer stay so
+   there's time to reach it */
+function toast(msg, action){
   var t = $("#toast");
-  t.textContent = msg;
+  t.textContent = "";
+  t.appendChild(document.createTextNode(msg));
+  t.classList.toggle("act", !!action);
+  if(action){
+    var b = el("button","toastbtn", action.label);
+    b.onclick = function(){ clearTimeout(toastT); t.classList.remove("on"); action.fn(); };
+    t.appendChild(b);
+  }
   t.classList.add("on");
   clearTimeout(toastT);
-  toastT = setTimeout(function(){ t.classList.remove("on"); }, 2600);
+  toastT = setTimeout(function(){ t.classList.remove("on"); }, action ? 6000 : 2600);
 }
 /* One strip, three things that want it. Highest wins, and a lower one never
    erases a higher one — the update notice in particular carries a click handler
@@ -2416,9 +2440,22 @@ function patchTask(id, patch){
   }
   queue("tasks/"+id, function(){ return S.db.doc("tasks/"+id).update(patch); });
 }
+/* Deleting is one tap — on a phone the list row's x sits right beside the row
+   you tap to open it — so it keeps a copy and offers Undo for a few seconds.
+   The restore is an ordinary set() on the same path, so it goes through the
+   same per-path queue and, offline, the outbox collapses delete-then-restore
+   into the restore. */
 function deleteTask(id){
   if(!writable()) return;
+  var copy = null;
+  for(var i=0;i<S.tasks.length;i++) if(S.tasks[i].id === id){ copy = Object.assign({}, S.tasks[i]); break; }
+  if(copy) delete copy.id;
   queue("tasks/"+id, function(){ return S.db.doc("tasks/"+id).delete(); });
+  if(copy){
+    toast("Deleted \u201c" + (copy.title || "Untitled").slice(0,40) + "\u201d", { label:"Undo", fn:function(){
+      queue("tasks/"+id, function(){ return S.db.doc("tasks/"+id).set(copy); });
+    }});
+  }
 }
 
 /* a captured note: first line becomes the name, the rest is the body */
@@ -4752,6 +4789,7 @@ function updateCapture(){
     : S.assets
       ? "#tag anything · Shift+Enter for a new line · paste an image"
       : "#tag anything · Shift+Enter for a new line";
+  $("#capPhoto").hidden = !S.assets;
   fillCapturePickers();
 }
 function drawCapThumbs(){
@@ -4832,6 +4870,13 @@ capInput.addEventListener("paste", function(e){
   }
 });
 capSave.addEventListener("click", doCapture);
+/* there was no way to add a picture from an iPhone or iPad at all — images only
+   came in by paste or drag-and-drop */
+$("#capFile").addEventListener("change", function(e){
+  var files = e.target.files;
+  if(files && files.length) uploadImages(files, function(id){ S.capImages.push(id); drawCapThumbs(); });
+  e.target.value = "";              // the same photo can be picked again
+});
 ["dragenter","dragover"].forEach(function(ev){
   capEl.addEventListener(ev, function(e){ e.preventDefault(); capEl.classList.add("drag"); });
 });
@@ -5124,7 +5169,7 @@ $("#tkSave").onclick = function(){
 $("#tkDelete").onclick = function(){
   var id = tkId;
   if(!id) return;
-  askConfirm("Delete this task?", "It won't come back.", "Delete").then(function(ok){
+  askConfirm("Delete this task?", "You'll have a few seconds to undo it.", "Delete").then(function(ok){
     if(!ok) return;
     deleteTask(id);
     closeTask(false);
