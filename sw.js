@@ -12,6 +12,7 @@ var SHELL = [
   "/config.js",
   "/store.js",
   "/lib/brief.js",
+  "/lib/docmd.js",
   "/vendor/supabase.js",
   "/manifest.webmanifest",
   "/icons/icon-192.png",

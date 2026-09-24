@@ -856,6 +856,151 @@ tr:hover .rowx{opacity:1}
 .blkcopy:hover{border-color:var(--accent);color:var(--accent-ink)}
 .blkcopy.ok{color:var(--accent-ink);border-color:var(--accent);opacity:1}
 
+/* ---------- rich docs: toolbar, editor, Read mode ----------
+   Every base display:none here sits above the phone block on purpose (CSS trap 1). */
+#edToolsWrap,#edRich,#edConflict,#edLinkRow{display:none}
+#editor.doc.writing #edToolsWrap{
+  display:block;position:sticky;top:0;z-index:3;
+  margin-left:-22px;margin-right:-22px;
+}
+#edTools{
+  display:flex;align-items:center;flex-wrap:wrap;gap:1px;
+  padding:5px 16px;background:var(--panel);
+  border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);
+}
+.fmt{
+  min-width:32px;height:34px;padding:0 6px;border-radius:var(--radius);
+  display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+  color:var(--ink-2);font-family:var(--ui);font-size:13.5px;font-weight:600;
+}
+.fmt.txt{font-family:var(--serif);font-size:15.5px}
+.fmt:hover{background:var(--panel-2);color:var(--ink)}
+.fmt.on{background:var(--accent-soft);color:var(--accent-ink)}
+.fmt:disabled{opacity:.35;cursor:default;background:none}
+.fmt.md{margin-left:auto;font-family:var(--ui);font-size:12.5px;font-weight:500;color:var(--muted)}
+.fmt.md.on{color:var(--accent-ink)}
+.fmt.done{display:none}
+.fmtsep{width:1px;height:20px;background:var(--line);margin:0 3px;flex:0 0 auto}
+/* Markdown view: the bar keeps only its way back */
+#editor.doc.md #edTools > .fmt:not(.md),#editor.doc.md #edTools > .fmtsep{display:none}
+#edTools.linking > .fmt,#edTools.linking > .fmtsep{display:none}
+#edTools.linking #edLinkRow{display:flex;flex:1;align-items:center;gap:6px;min-width:0}
+#edLinkUrl{
+  flex:1;min-width:0;border:1px solid var(--line);border-radius:var(--radius);
+  padding:6px 9px;font-size:14px;background:var(--paper);
+}
+#edLinkUrl:focus{border-color:var(--accent);outline:none}
+#edLinkRow .btn{padding:5px 11px;font-size:12.5px}
+/* someone else changed the note while it was open */
+#edConflict.on{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:8px 10px;border-radius:var(--radius);font-size:13px;line-height:1.4;
+  background:var(--accent-soft);color:var(--ink);border:1px solid var(--line);
+}
+#edConflict.warn{border-color:var(--warn)}
+#edConflict .msg{flex:1 1 220px;display:flex;align-items:center;gap:7px}
+#edConflict .msg .ico{color:var(--warn);flex:0 0 auto}
+#edConflict .btn{padding:5px 11px;font-size:12.5px}
+#edConflict.flash{animation:edflash .5s ease 2}
+@keyframes edflash{50%{border-color:var(--warn);box-shadow:0 0 0 3px var(--accent-soft)}}
+
+/* the editor: what's on screen is what gets saved, so anything the markdown
+   can't hold (a pasted font size, a colour, a picture) isn't shown either */
+#editor.doc #edRich{
+  font-family:var(--serif);font-size:16px;line-height:1.62;color:var(--ink);
+  min-height:440px;outline:none;position:relative;
+  white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;
+  touch-action:manipulation;padding-bottom:18px;
+}
+#edRich > *{margin:.8em 0 0}
+#edRich > :first-child,#edRich > [data-gap="0"]{margin-top:0}
+#edRich > [data-gap="2"],#edRich > [data-gap="3"]{margin-top:1.6em}
+#edRich p,#edRich div{margin-bottom:0}
+#edRich h1{font-size:25px;font-weight:600;line-height:1.25;letter-spacing:-.015em;margin-top:1em}
+#edRich h2{font-size:20px;font-weight:600;line-height:1.3;letter-spacing:-.01em;margin-top:.95em}
+#edRich h3{font-size:17px;font-weight:600;line-height:1.35;margin-top:.9em}
+#edRich > h1:first-child,#edRich > h2:first-child,#edRich > h3:first-child{margin-top:0}
+#edRich ul,#edRich ol{padding-left:1.6em;margin-bottom:0}
+#edRich li{margin:.12em 0}
+#edRich li[data-task]{list-style:none;position:relative}
+#edRich li[data-task]::before{
+  content:"";position:absolute;left:-1.5em;top:.32em;width:1em;height:1em;
+  border:1.5px solid var(--muted);border-radius:4px;box-sizing:border-box;cursor:pointer;
+}
+#edRich li[data-task="1"]::before{background:var(--accent);border-color:var(--accent)}
+#edRich li[data-task="1"]::after{
+  content:"";position:absolute;left:-1.16em;top:.43em;width:.3em;height:.55em;pointer-events:none;
+  border:solid var(--on-accent);border-width:0 2px 2px 0;transform:rotate(45deg);
+}
+#edRich li[data-task="1"]{color:var(--muted)}
+#edRich li[data-task="1"] li{color:var(--ink)}
+#edRich blockquote{margin-left:0;margin-right:0;padding-left:14px;border-left:3px solid var(--quote-bar);color:var(--ink-2)}
+#edRich pre{
+  background:var(--code-bg);border-radius:var(--radius);padding:10px 12px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;line-height:1.5;
+  white-space:pre-wrap;
+}
+#edRich code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em;
+  background:var(--code-bg);border-radius:3px;padding:.08em .3em;
+}
+#edRich hr{border:0;border-top:1px solid var(--line);margin-top:1.1em;margin-bottom:.3em}
+#edRich a{color:var(--accent-ink);text-decoration:underline;text-underline-offset:2px}
+#edRich [style],#edRich font{
+  font-size:inherit!important;font-family:inherit!important;color:inherit!important;
+  line-height:inherit!important;letter-spacing:inherit!important;
+}
+#edRich span[style*="background"]{background-color:transparent!important}
+/* inline code as the toolbar applies it (a <font face>), and as Chrome sometimes
+   rewrites a <code>; both are read back as code */
+#edRich font[face="monospace"],#edRich span[style*="monospace"]{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;font-size:.86em!important;
+  background-color:var(--code-bg)!important;border-radius:3px;padding:.08em .3em;
+}
+#edRich span[style*="rgb(255, 229, 102)"],#edRich span[style*="rgb(255,229,102)"]{
+  background-color:var(--mark)!important;border-radius:2px;
+}
+#edRich img,#edRich video,#edRich iframe{display:none}
+#edRich.empty::before{
+  content:attr(data-placeholder);position:absolute;top:0;left:0;right:0;
+  color:var(--muted);opacity:.8;pointer-events:none;
+}
+#edRich[contenteditable="false"]{cursor:default}
+/* With a software keyboard up (iPhone, iPad) the bar rides on top of it: iOS
+   doesn't shrink the page for the keyboard, so a bar at the top of the sheet is
+   scrolled out of sight exactly when formatting is wanted. JS sets the offset
+   from visualViewport; the wrap keeps the bar's height so the text doesn't jump. */
+#editor.kbd #edTools{
+  position:fixed;top:0;left:0;right:0;z-index:5;flex-wrap:nowrap;overflow-x:auto;
+  border-top:1px solid var(--line);border-bottom:0;
+  padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right));
+}
+
+/* Read mode and the project doc tab: the same blocks, with Copy buttons */
+.blk h1{margin:12px 0 0;font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.015em;line-height:1.25}
+.blk ol{margin:0;padding-left:22px;font-family:var(--serif);font-size:15.5px;line-height:1.6}
+.blk li > ul,.blk li > ol{margin-top:2px}
+.blk li.task{list-style:none}
+.blk li.task > label{display:flex;align-items:flex-start;gap:8px;margin-left:-20px;cursor:pointer}
+.blk li.task input{width:17px;height:17px;margin:4px 0 0;flex:0 0 auto;accent-color:var(--accent)}
+.blk li.task > label > span{white-space:pre-wrap;word-break:break-word}
+.blk li.task.done > label > span{color:var(--muted);text-decoration:line-through}
+.blk blockquote{
+  margin:0;padding-left:14px;border-left:3px solid var(--quote-bar);color:var(--ink-2);
+  font-family:var(--serif);font-size:15.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word;
+}
+.blkhr{padding-right:0}
+.blk hr{border:0;border-top:1px solid var(--line);margin:10px 0}
+.blk mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 .08em}
+.blk code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em;
+  background:var(--code-bg);border-radius:3px;padding:.08em .3em;
+}
+.blk pre{background:var(--code-bg);border-color:var(--line-soft)}
+.blk a.mdlink{color:var(--accent-ink);text-underline-offset:2px}
+.blk.heading .blkcopy{top:12px}
+.docpage-head .btn + .btn{margin-left:0}
+
 /* ---------- whiteboard ---------- */
 /* NOT ".board" — that's the kanban container at the top of this file, and sharing
    the name meant this editor silently inherited its align-items:flex-start, which
@@ -1309,6 +1454,32 @@ tr:hover .rowx{opacity:1}
   .blk pre{white-space:pre-wrap;word-break:break-word}
   .blkcopy{position:static;display:block;margin-top:7px;padding:7px 12px;font-size:13px}
 
+  /* ---- rich docs, phone ----
+     one sideways-scrolling strip, bled to the sheet edges; margins and padding
+     written out longhand so nothing an earlier block added is silently dropped */
+  #editor.doc.writing #edToolsWrap{margin-left:-15px;margin-right:-15px}
+  #edTools{
+    flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+    padding-left:8px;padding-right:8px;gap:1px;
+  }
+  #edTools::-webkit-scrollbar{display:none}
+  #editor.doc.writing #edToolsWrap::after{
+    content:"";position:absolute;top:1px;right:0;bottom:1px;width:24px;pointer-events:none;
+    background:linear-gradient(to right,transparent,var(--panel));
+  }
+  #editor.kbd #edToolsWrap::after{display:none}
+  .fmt{min-width:40px;height:40px}
+  .fmt.done{display:inline-flex;color:var(--accent-ink)}
+  .fmt.md{margin-left:6px}
+  #edLinkUrl{font-size:16px;min-height:38px}
+  #edLinkRow .btn{min-height:38px}
+  #editor.doc #edRich{min-height:44vh;font-size:16px}
+  /* the footer's selects and buttons would sit on the keyboard next to the bar */
+  #editor.typing #edFoot{display:none}
+  #edConflict .btn{min-height:38px}
+  .blk li.task > label{min-height:38px;align-items:center}
+  .blk li.task input{width:20px;height:20px;margin-top:0}
+
   /* whiteboard */
   #inkbar{gap:6px}
   #inkbar .tool{min-height:38px;padding:7px 12px;font-size:13.5px}
@@ -1406,6 +1577,19 @@ tr:hover .rowx{opacity:1}
   <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
   <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2.5 4.5 13.5H12L11 21.5l8.5-11H12Z"/></symbol>
+  <!-- doc formatting toolbar -->
+  <symbol id="i-ol" viewBox="0 0 24 24"><path d="M10 6h10.5M10 12h10.5M10 18h10.5"/><path d="M3.8 4.6 5 4v4.2"/><path d="M3.6 11a1.2 1.2 0 0 1 2.2.6c0 .5-.3.8-.7 1.2l-1.5 1.6h2.4"/><path d="M3.7 16.4h2.2l-1.2 1.5a1.2 1.2 0 1 1-1 2"/></symbol>
+  <symbol id="i-task" viewBox="0 0 24 24"><rect x="3" y="3.8" width="6.4" height="6.4" rx="1.4"/><path d="m4.5 7.1 1.3 1.3 2.2-2.5"/><rect x="3" y="13.8" width="6.4" height="6.4" rx="1.4"/><path d="M12.5 7h8M12.5 17h8"/></symbol>
+  <symbol id="i-indent" viewBox="0 0 24 24"><path d="M10.5 6h10M10.5 12h10M10.5 18h10"/><path d="m3.5 8.5 3.5 3.5-3.5 3.5"/></symbol>
+  <symbol id="i-outdent" viewBox="0 0 24 24"><path d="M10.5 6h10M10.5 12h10M10.5 18h10"/><path d="M7 8.5 3.5 12 7 15.5"/></symbol>
+  <symbol id="i-quote" viewBox="0 0 24 24"><path d="M4.5 4.5v15"/><path d="M9 7.5h11M9 12h11M9 16.5h7"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m8.5 7-5 5 5 5M15.5 7l5 5-5 5"/></symbol>
+  <symbol id="i-fence" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.2"/><path d="m9.8 9.3-2.6 2.7 2.6 2.7M14.2 9.3l2.6 2.7-2.6 2.7"/></symbol>
+  <symbol id="i-hr" viewBox="0 0 24 24"><path d="M3.5 12h17"/><path d="M7.5 6.5h9M7.5 17.5h9" stroke-dasharray="1.6 2.6"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13.6a4 4 0 0 0 5.8.4l3-3a4.1 4.1 0 0 0-5.8-5.8l-1.5 1.5"/><path d="M14 10.4a4 4 0 0 0-5.8-.4l-3 3a4.1 4.1 0 0 0 5.8 5.8l1.5-1.5"/></symbol>
+  <symbol id="i-mark" viewBox="0 0 24 24"><path d="M15.2 4.3a2 2 0 0 1 2.8 0l1.7 1.7a2 2 0 0 1 0 2.8l-7.6 7.6-4.5-4.5Z"/><path d="m7.6 11.9-2.3 2.3.2 2.1-2 2 3.1.6 1.1-1.1 2.1.2 2.3-2.3"/><path d="M13.5 20.5h7"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M8.5 14 4 9.5 8.5 5"/><path d="M4 9.5h10a5.5 5.5 0 0 1 0 11h-3.5"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15.5 14 20 9.5 15.5 5"/><path d="M20 9.5H10a5.5 5.5 0 0 0 0 11h3.5"/></symbol>
 </svg>
 
 <div id="shell">
@@ -1487,7 +1671,52 @@ tr:hover .rowx{opacity:1}
     </div>
     <div id="inkText"></div>
 
+    <!-- docs only: the formatting bar, over a rich editor that stores markdown.
+         mousedown on a button is cancelled in JS so a tap never takes the caret
+         out of the text or drops the keyboard. -->
+    <div id="edToolsWrap">
+      <div id="edTools" role="toolbar" aria-label="Formatting">
+        <button type="button" class="fmt txt" data-fmt="h1" aria-label="Title" title="Title (⌘⌥1)">H1</button>
+        <button type="button" class="fmt txt" data-fmt="h2" aria-label="Heading" title="Heading (⌘⌥2)">H2</button>
+        <button type="button" class="fmt txt" data-fmt="h3" aria-label="Subheading" title="Subheading (⌘⌥3)">H3</button>
+        <span class="fmtsep"></span>
+        <button type="button" class="fmt txt" data-fmt="b" aria-label="Bold" title="Bold (⌘B)"><b>B</b></button>
+        <button type="button" class="fmt txt" data-fmt="i" aria-label="Italic" title="Italic (⌘I)"><i>I</i></button>
+        <button type="button" class="fmt txt" data-fmt="u" aria-label="Underline" title="Underline (⌘U)"><u>U</u></button>
+        <button type="button" class="fmt txt" data-fmt="s" aria-label="Strikethrough" title="Strikethrough (⌘⇧X)"><s>S</s></button>
+        <button type="button" class="fmt" data-fmt="link" aria-label="Link" title="Link (⌘K)"><svg class="ico" aria-hidden="true"><use href="#i-link"/></svg></button>
+        <span class="fmtsep"></span>
+        <button type="button" class="fmt" data-fmt="ul" aria-label="Bulleted list" title="Bulleted list (⌘⇧8)"><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg></button>
+        <button type="button" class="fmt" data-fmt="ol" aria-label="Numbered list" title="Numbered list (⌘⇧7)"><svg class="ico" aria-hidden="true"><use href="#i-ol"/></svg></button>
+        <button type="button" class="fmt" data-fmt="task" aria-label="Checklist" title="Checklist (⌘⇧9)"><svg class="ico" aria-hidden="true"><use href="#i-task"/></svg></button>
+        <button type="button" class="fmt" data-fmt="outdent" aria-label="Move out a level" title="Move out a level (⇧Tab)"><svg class="ico" aria-hidden="true"><use href="#i-outdent"/></svg></button>
+        <button type="button" class="fmt" data-fmt="indent" aria-label="Move in a level" title="Move in a level (Tab)"><svg class="ico" aria-hidden="true"><use href="#i-indent"/></svg></button>
+        <span class="fmtsep"></span>
+        <button type="button" class="fmt" data-fmt="hl" aria-label="Highlight" title="Highlight (⌘⇧H)"><svg class="ico" aria-hidden="true"><use href="#i-mark"/></svg></button>
+        <button type="button" class="fmt" data-fmt="quote" aria-label="Quote" title="Quote"><svg class="ico" aria-hidden="true"><use href="#i-quote"/></svg></button>
+        <button type="button" class="fmt" data-fmt="code" aria-label="Code" title="Code (⌘E)"><svg class="ico" aria-hidden="true"><use href="#i-code"/></svg></button>
+        <button type="button" class="fmt" data-fmt="fence" aria-label="Code block" title="Code block"><svg class="ico" aria-hidden="true"><use href="#i-fence"/></svg></button>
+        <button type="button" class="fmt" data-fmt="hr" aria-label="Divider" title="Divider"><svg class="ico" aria-hidden="true"><use href="#i-hr"/></svg></button>
+        <span class="fmtsep"></span>
+        <button type="button" class="fmt" data-fmt="undo" aria-label="Undo" title="Undo (⌘Z)"><svg class="ico" aria-hidden="true"><use href="#i-undo"/></svg></button>
+        <button type="button" class="fmt" data-fmt="redo" aria-label="Redo" title="Redo (⌘⇧Z)"><svg class="ico" aria-hidden="true"><use href="#i-redo"/></svg></button>
+        <button type="button" class="fmt md" data-fmt="md" aria-pressed="false" title="Show the markdown this doc is stored as">Markdown</button>
+        <button type="button" class="fmt done" data-fmt="done">Done</button>
+        <div id="edLinkRow">
+          <input id="edLinkUrl" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false"
+                 placeholder="Paste or type a link" aria-label="Link address">
+          <button type="button" class="btn primary" id="edLinkOk">Link</button>
+          <button type="button" class="btn quiet" id="edLinkOff">Remove</button>
+          <button type="button" class="btn quiet" id="edLinkCancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div id="edConflict" role="status" aria-live="polite"></div>
+
     <textarea id="edBody" placeholder="Write it down." aria-label="Note body"></textarea>
+    <div id="edRich" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Doc"
+         spellcheck="true" autocapitalize="sentences" autocorrect="on"
+         data-placeholder="Write, or paste your prompts. A blank line — Return on an empty line — starts a new block, and every block gets its own Copy button."></div>
     <div id="edRead"></div>
     <div id="edImgs"></div>
 
@@ -1500,6 +1729,7 @@ tr:hover .rowx{opacity:1}
       <select id="edProj" aria-label="Project this note belongs to"></select>
       <select id="edSpace" aria-label="Space this note belongs to"></select>
       <button class="btn quiet" id="edTask">Make this a task</button>
+      <button class="btn quiet" id="edToDoc" title="Headings, bold, lists and checklists, and a Copy button on every block">Turn into doc</button>
       <button class="btn quiet danger" id="edDelete">Delete note</button>
       <button class="btn" id="edClose">Close</button>
       <span id="edStatus"></span>
@@ -1703,6 +1933,7 @@ tr:hover .rowx{opacity:1}
 <script src="vendor/supabase.js"></script>
 <script src="store.js"></script>
 <script src="lib/brief.js"></script>
+<script src="lib/docmd.js"></script>
 <script>
 (function(){
 "use strict";
@@ -2180,7 +2411,8 @@ function visibleNotes(){
     }
     if(S.tag && tagsOf(n).indexOf(S.tag) === -1) return false;
     if(q){
-      var hay = (String(n.title||"") + " " + String(n.body||"")).toLowerCase();
+      var hay = (String(n.title||"") + " " + String(n.body||"") +
+                 (noteKind(n) === "doc" ? " " + docPlain(n.body) : "")).toLowerCase();
       if(hay.indexOf(q) === -1) return false;
     }
     return true;
@@ -3726,6 +3958,11 @@ function renderDocPage(){
   if(sn) meta.appendChild(el("span","chip", sn));
   meta.appendChild(el("span",null,"Edited " + relTime(n.updatedAt)));
   head.appendChild(meta);
+  if(n.body && n.body.trim()){
+    var all = el("button","btn quiet","Copy all");
+    all.onclick = function(){ copyText(docPlain(n.body), all); };
+    head.appendChild(all);
+  }
   if(writable()){
     var edit = el("button","btn","Edit");
     edit.onclick = function(){ openNote(n.id); };
@@ -3734,7 +3971,18 @@ function renderDocPage(){
   bodyEl.appendChild(head);
 
   var page = el("div","docpage");
-  paintDocBlocks(page, n.body || "");
+  paintDocBlocks(page, n.body || "", {
+    readOnly: !writable(),
+    /* A tick from the tab changes that one character of the stored text. It
+       re-reads the doc as it is now — a save from the other device may have
+       moved lines since this page was drawn — and does nothing if the line moved. */
+    onTask: function(line, text, checked){
+      var cur = findNote(n.id);
+      var nb = cur && window.SlateDocMd ? SlateDocMd.toggleTask(cur.body || "", line, text, checked) : null;
+      if(nb == null){ render(); return; }
+      patchNote(n.id, { body: nb });
+    }
+  });
   bodyEl.appendChild(page);
 }
 
@@ -3757,7 +4005,7 @@ function renderNotes(){
     var kind = noteKind(n);
     if(n.body && n.body.trim()){
       var bd = el("div","nb");
-      richText(bd, n.body);
+      richText(bd, kind === "doc" ? docPlain(n.body) : n.body);   // a doc's card shows text, not ## and **
       b.appendChild(bd);
     }
     if(n.images && n.images.length){
@@ -3982,7 +4230,7 @@ function searchAll(q){
     return false;
   }
   return {
-    notes: S.notes.filter(function(n){ return hit(n.title, n.body); })
+    notes: S.notes.filter(function(n){ return hit(n.title, n.body, noteKind(n) === "doc" ? docPlain(n.body) : ""); })
       .sort(function(a,b){ return String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")); }),
     tasks: S.tasks.filter(function(t){ return hit(t.title); }),
     prospects: S.prospects.filter(function(p){ return hit(p.company, p.contact, p.email, p.note); }),
@@ -4036,7 +4284,7 @@ function renderSearch(){
   var secs = [];
   secs.push(searchSection("Notes", res.notes.map(function(n){
     var row = el("button","srow");
-    row.appendChild(el("span","st", (n.title && n.title.trim()) || firstLineOf(n.body) || "Untitled note"));
+    row.appendChild(el("span","st", (n.title && n.title.trim()) || firstLineOf(noteKind(n) === "doc" ? docPlain(n.body) : n.body) || "Untitled note"));
     var meta = el("span","smeta");
     meta.appendChild(whereChips(n.projectId, n.spaceId));
     meta.appendChild(el("span","sago", relTime(n.updatedAt)));
@@ -4274,7 +4522,7 @@ function feedItem(n){
   }
   if(n.body && n.body.trim()){
     var bd = el("div","fb");
-    richText(bd, n.body);
+    richText(bd, noteKind(n) === "doc" ? docPlain(n.body) : n.body);
     b.appendChild(bd);
   }
   if(n.images && n.images.length){
@@ -5110,7 +5358,24 @@ $("#bottomnav").addEventListener("click", function(e){
 /* ============ note editor ============ */
 var overlay = $("#overlay"), edTitle = $("#edTitle"), edBody = $("#edBody"),
     edProj = $("#edProj"), edStatus = $("#edStatus"), edImgs = $("#edImgs");
+var edEditor = $("#editor"), edTools = $("#edTools"), edToolsWrap = $("#edToolsWrap"),
+    edConflict = $("#edConflict"), edRich = $("#edRich"), edLinkUrl = $("#edLinkUrl");
 var saveT = null, dirty = false;
+/* The open note's text as it arrived or was last saved from here, and every
+   version stamp this device has seen or written — so the other person's change
+   can be told apart from the echo of our own save, and from a stale re-read. */
+var ed = {
+  kind: "note",      // what the note was when it was opened
+  surface: "text",   // "rich": a doc's editor; "text": the textarea (notes, boards, a doc's Markdown view)
+  base: "", baseTitle: "",
+  edited: false,     // the rich editor changed since base; only then is it serialised
+  known: {},         // updatedAt stamps that are not news
+  conflict: null,    // their newer version, while ours has unsaved changes
+  held: null,        // their newer version, waiting for the caret to leave
+  mine: null,        // ours, kept after "See theirs" in case it was the one to keep
+  range: null,       // the last selection inside the rich editor
+  after: null        // what a Return the browser handled needs tidied afterwards
+};
 
 function currentNote(){
   for(var i=0;i<S.notes.length;i++) if(S.notes[i].id === S.openNote) return S.notes[i];
@@ -5151,42 +5416,61 @@ function noteKind(n){
   var k = n && n.kind;
   return (k === "doc" || k === "board") ? k : "note";
 }
+function isDocOpen(){ return !!S.openNote && ed.kind === "doc"; }
+/* the rich editor, on a doc, in Write mode, for someone who can save */
+function richLive(){
+  return ed.surface === "rich" && S.docMode === "write" && writable() && !!S.openNote && isDocOpen();
+}
 
 function openNote(id, fresh){
   var n = null;
   for(var i=0;i<S.notes.length;i++) if(S.notes[i].id === id) n = S.notes[i];
   if(!n) return;
+  if(S.openNote && dirty) flushNote();
   S.openNote = id;
   var kind = noteKind(n);
-  var editor = $("#editor");
-  editor.className = kind === "doc" ? "doc" : kind === "board" ? "whiteboard" : "";
+  var isBoard = kind === "board", isDoc = kind === "doc";
+  edEditor.className = isDoc ? "doc" : isBoard ? "whiteboard" : "";
+  ed.kind = kind;
+
+  /* A doc opens in the rich editor unless this device was switched to Markdown
+     view — the escape hatch if the rich editor misbehaves somewhere — or the
+     parser failed to load, when the textarea is always there to fall back on. */
+  ed.surface = isDoc && window.SlateDocMd && prefGet("docView", "rich") !== "markdown" ? "rich" : "text";
+  ed.base = n.body || ""; ed.baseTitle = n.title || "";
+  ed.edited = false; ed.known = {}; ed.known[n.updatedAt || ""] = true;
+  ed.conflict = ed.held = ed.mine = ed.range = ed.after = null;
+  dirty = false;
+  clearTimeout(saveT);
 
   edTitle.value = n.title || "";
-  edTitle.placeholder = kind === "doc" ? "Name this doc"
-                      : kind === "board" ? "Name this page" : "Name this note";
-  edBody.value = n.body || "";
+  edTitle.placeholder = isDoc ? "Name this doc"
+                      : isBoard ? "Name this page" : "Name this note";
   edTitle.disabled = edBody.disabled = edProj.disabled = !writable();
+  freshRich();
+  if(ed.surface === "rich"){ loadRich(ed.base); edBody.value = ""; }
+  else edBody.value = n.body || "";
 
   /* which parts show for this kind */
-  var isBoard = kind === "board", isDoc = kind === "doc";
   $("#inkbar").style.display = isBoard ? "" : "none";
   inkWrap.style.display = isBoard ? "" : "none";
   $("#inkFoot").style.display = isBoard ? "" : "none";
   inkTextEl.style.display = "";
   if(!isBoard) inkTextEl.classList.remove("on");
   $("#edModes").style.display = isDoc ? "" : "none";
-  edBody.style.display = isBoard ? "none" : "";
   edBody.placeholder = isDoc
-    ? "Paste your prompts here. Leave a blank line between each one."
+    ? "This is the doc as it's stored: # heading, **bold**, - list, - [ ] checklist. Leave a blank line between prompts."
     : "Write it down.";
-  edRead.classList.remove("on");
   S.docMode = "write";
-  if(isDoc) applyDocMode();
+  closeLinkRow(false);
+  applyDocMode();
+  paintConflict();
 
   fillProjSelect(n.projectId);
   fillSpaceSelect(n.projectId, n.spaceId);
   drawEdImgs();
   $("#edTask").style.display = writable() ? "" : "none";
+  $("#edToDoc").style.display = writable() && kind === "note" ? "" : "none";
   $("#edDelete").style.display = writable() ? "" : "none";
   edStatus.textContent = writable() ? ("Edited " + relTime(n.updatedAt)) : "Read only";
 
@@ -5194,14 +5478,26 @@ function openNote(id, fresh){
   document.body.style.overflow = "hidden";
 
   if(isBoard){ openInk(id); edTitle.focus(); }
-  else { (fresh ? edTitle : edBody).focus(); if(fresh) edTitle.select(); }
+  else if(fresh){ edTitle.focus(); edTitle.select(); }
+  else bodySurface().focus();
 }
+function bodySurface(){ return ed.surface === "rich" && isDocOpen() ? edRich : edBody; }
 function closeNote(){
+  /* both versions are still in play: closing now would either overwrite theirs
+     or drop ours without anyone having chosen */
+  if(ed.conflict){
+    toast("Pick a version first. Yours isn't saved yet.");
+    edConflict.classList.remove("flash"); void edConflict.offsetWidth; edConflict.classList.add("flash");
+    return;
+  }
   if(dirty) flushNote();
+  closeLinkRow(false);
   closeInk();
   S.openNote = null;
+  ed.held = ed.mine = null;
   overlay.classList.remove("on");
   document.body.style.overflow = "";
+  edEditor.classList.remove("kbd", "typing");
   closeAssignee();
   render();
 }
@@ -5237,21 +5533,51 @@ function fillProjSelect(current){
   });
   edProj.value = current || "";
 }
+
+/* The body as it stands. A doc that nobody has typed in hands back the exact
+   string it was opened with — opening an old doc must never rewrite it. */
+function bodyNow(){
+  if(ed.surface === "rich" && isDocOpen()){
+    return ed.edited ? SlateDocMd.serialize(SlateDocMd.fromDom(edRich, "live")) : ed.base;
+  }
+  return edBody.value;
+}
 function markDirty(){
-  if(!S.openNote || !writable()) return;
+  if(!S.openNote) return;
+  if(!writable()){ edRich.contentEditable = "false"; return; }   // turned read-only mid-edit (a 403)
   dirty = true;
-  edStatus.textContent = "Saving…";
+  // they changed it while we sat here; now that we're typing too, it's a choice
+  if(ed.held){ ed.conflict = ed.held; ed.held = null; paintConflict(); }
   clearTimeout(saveT);
+  if(ed.conflict){ edStatus.textContent = "Not saved yet"; return; }
+  edStatus.textContent = "Saving…";
   saveT = setTimeout(flushNote, 700);
 }
 function flushNote(){
   clearTimeout(saveT);
-  if(!S.openNote || !dirty) return;
-  var id = S.openNote;
+  if(!S.openNote || !dirty || ed.conflict) return Promise.resolve();
+  var id = S.openNote, title = edTitle.value, body = bodyNow();
+  if(typeof body !== "string") return Promise.resolve();
   dirty = false;
-  patchNote(id, { title: edTitle.value, body: edBody.value }).then(function(){
-    if(S.openNote === id) edStatus.textContent = "Saved";
+  ed.base = body; ed.baseTitle = title; ed.edited = false;
+  return saveNote(id, { title: title, body: body }).then(function(ok){
+    if(S.openNote !== id) return;
+    if(ok){ if(!dirty) edStatus.textContent = "Saved"; }
+    else { dirty = true; edStatus.textContent = "Not saved"; }
   });
+}
+/* patchNote's write, except the editor learns whether it failed: queue() hands
+   an error to dbErr and resolves anyway, and a save that didn't happen must not
+   say "Saved" or leave the editor believing it has nothing left to send. */
+function saveNote(id, patch){
+  if(!writable()) return Promise.resolve(false);
+  patch.updatedAt = nowISO();
+  patch.updatedBy = S.uid || null;
+  if(id === S.openNote) ed.known[patch.updatedAt] = true;
+  var failed = false;
+  return queue("notes/"+id, function(){
+    return S.db.doc("notes/"+id).update(patch).catch(function(e){ failed = true; throw e; });
+  }).then(function(){ return !failed; });
 }
 edTitle.addEventListener("input", markDirty);
 edBody.addEventListener("input", markDirty);
@@ -5265,12 +5591,22 @@ $("#edClose").onclick = closeNote;
 $("#edTask").onclick = function(){
   var n = currentNote();
   if(!n || !writable()) return;
+  var body = bodyNow();
   flushNote();
-  noteToTask({ id: n.id, title: edTitle.value, body: edBody.value, projectId: n.projectId, spaceId: n.spaceId });
+  // a doc's first line is "## Brief", not a task name
+  noteToTask({ id: n.id, title: edTitle.value, body: noteKind(n) === "doc" ? docPlain(body) : body,
+               projectId: n.projectId, spaceId: n.spaceId });
 };
-edBody.addEventListener("paste", function(e){
-  var files = e.clipboardData && e.clipboardData.files;
-  if(!files || !files.length || !S.assets || !S.openNote) return;
+$("#edToDoc").onclick = function(){
+  var n = currentNote();
+  if(!n || !writable() || noteKind(n) !== "note") return;
+  var id = n.id;
+  flushNote();
+  // lossless: the body isn't touched, it just starts being read as markdown
+  saveNote(id, { kind: "doc" }).then(function(ok){ if(ok && S.openNote === id) openNote(id); });
+};
+function attachImages(files){
+  if(!S.assets || !S.openNote) return;
   var id = S.openNote;
   uploadImages(files, function(assetId){
     var cur = null;
@@ -5281,20 +5617,27 @@ edBody.addEventListener("paste", function(e){
       if(S.openNote === id) drawEdImgs();
     });
   });
+}
+edBody.addEventListener("paste", function(e){
+  var files = e.clipboardData && e.clipboardData.files;
+  if(!files || !files.length || !S.assets || !S.openNote) return;
+  attachImages(files);
 });
 $("#edDelete").onclick = function(){
   if(!S.openNote || !writable()) return;
   var id = S.openNote;
   var nm = edTitle.value.trim() || "this note";
   askConfirm("Delete " + nm + "?", "The note and everything in it goes for good.", "Delete note").then(function(ok){
-    if(!ok){ edBody.focus(); return; }
+    if(!ok){ bodySurface().focus(); return; }
     dirty = false;
     clearTimeout(saveT);
+    ed.conflict = ed.held = ed.mine = null;
     var chunkIds = (ink.noteId === id) ? ink.chunks.map(function(c){ return c.id; }) : [];
     closeInk();
     S.openNote = null;
     overlay.classList.remove("on");
     document.body.style.overflow = "";
+    edEditor.classList.remove("kbd", "typing");
     chunkIds.forEach(function(cid){
       queue("ink/"+id+"/"+cid, function(){
         return S.db.doc("notes/"+id).collection("strokes").doc(cid).delete();
@@ -5308,6 +5651,7 @@ overlay.addEventListener("mousedown", function(e){ if(e.target === overlay) clos
 document.addEventListener("keydown", function(e){
   if(e.key !== "Escape") return;
   if($("#confirm").classList.contains("on")) return; // the dialog handles its own Escape
+  if(edTools.classList.contains("linking")){ closeLinkRow(true); return; }
   if(umenu.classList.contains("on")){ closeUserMenu(); whoBtn.focus(); return; }
   if(nmenu.classList.contains("on")){ closeNotifMenu(); bellBtn.focus(); return; }
   if(projDlg.classList.contains("on")){ saveProjectSheet(); closeProjectSheet(); return; }
@@ -5318,45 +5662,117 @@ document.addEventListener("keydown", function(e){
   else closeAssignee();
 });
 
+/* Leaving the app is when the last 700ms of typing is most at risk: iOS pauses
+   timers the moment an installed app is swiped away and may never fire blur. */
+function saveOnLeave(){
+  if(!S.openNote || !dirty || ed.conflict) return;
+  flushNote();
+  if(S.db && S.db.flushNow) S.db.flushNow().catch(function(){});
+}
+document.addEventListener("visibilitychange", function(){ if(document.hidden) saveOnLeave(); });
+window.addEventListener("pagehide", saveOnLeave);
+// the update banner reloads the page; it waits for this first
+window.slateSaveNow = function(){ return S.openNote && !ed.conflict ? flushNote() : Promise.resolve(); };
+
+/* ---- the other person changed the open note ----
+   Called with every snapshot while a note is open. Our own saves echo back here,
+   and so does every change to its project or pictures; only a title or body
+   this device hasn't seen is news. */
+function edSync(n){
+  var stamp = n.updatedAt || "";
+  if(ed.known[stamp]) return;
+  ed.known[stamp] = true;
+  var shown = ed.conflict || ed.held;
+  var body = n.body || "", title = n.title || "";
+  if(body === ed.base && title === ed.baseTitle && !shown) return;
+  if(shown && body === (shown.body || "") && title === (shown.title || "")) return;
+  // turned into a doc on the other device: reopen as what it is now
+  if(noteKind(n) !== ed.kind && !dirty){ openNote(n.id); return; }
+  if(dirty || ed.conflict){ ed.conflict = n; ed.held = null; paintConflict(); return; }
+  /* Rebuilding the text under a live caret drops the keyboard, cancels a word
+     being dictated or written with the Pencil, and jumps the caret — so it waits
+     until the caret leaves. Typing first makes it a choice instead. */
+  if(document.activeElement === bodySurface()){ ed.held = n; paintConflict(); return; }
+  edTake(n);
+}
+function edTake(n){
+  ed.held = ed.conflict = null;
+  ed.base = n.body || ""; ed.baseTitle = n.title || ""; ed.edited = false;
+  if(document.activeElement !== edTitle) edTitle.value = ed.baseTitle;
+  loadSurface(ed.base);
+  if(S.docMode === "read" && isDocOpen()) renderDocRead();
+  edStatus.textContent = "Updated " + relTime(n.updatedAt);
+  paintConflict();
+}
+/* put a body into whichever surface is showing, with a clean undo history */
+function loadSurface(body){
+  if(ed.surface === "rich" && isDocOpen()){ freshRich(); loadRich(body); }
+  else edBody.value = body;
+}
+function whoName(uid, cb){
+  if(uid && uid === S.uid){ cb("You, on another device,"); return; }
+  cb("Someone");
+  if(!uid || !S.user) return;
+  S.user.profiles([uid]).then(function(ps){ if(ps && ps[uid] && ps[uid].name) cb(ps[uid].name); }).catch(function(){});
+}
+function paintConflict(){
+  edConflict.textContent = "";
+  edConflict.classList.remove("warn", "flash");
+  var n = ed.conflict || ed.held;
+  if(!n && !ed.mine){ edConflict.classList.remove("on"); return; }
+  edConflict.classList.add("on");
+  var msg = el("span","msg"), txt = el("span");
+  msg.appendChild(ico("alert", "sm"));
+  msg.appendChild(txt);
+  edConflict.appendChild(msg);
+  function btn(label, cls, fn){ var b = el("button", "btn" + (cls ? " " + cls : ""), label); b.type = "button"; b.onclick = fn; edConflict.appendChild(b); }
+  if(ed.conflict){
+    edConflict.classList.add("warn");
+    whoName(ed.conflict.updatedBy, function(nm){ txt.textContent = nm + " changed this while you were typing. Yours isn't saved yet."; });
+    btn("See theirs", "", seeTheirs);
+    btn("Keep mine", "primary", keepMine);
+  } else if(ed.held){
+    whoName(ed.held.updatedBy, function(nm){ txt.textContent = nm + " just changed this."; });
+    btn("Show changes", "", function(){ if(ed.held) edTake(ed.held); });
+  } else {
+    txt.textContent = "This is their version. Yours is kept until you close.";
+    btn("Put mine back", "", putMineBack);
+  }
+}
+function seeTheirs(){
+  var n = ed.conflict;
+  if(!n) return;
+  ed.mine = { title: edTitle.value, body: bodyNow() };
+  dirty = false;
+  clearTimeout(saveT);
+  edTitle.value = n.title || "";
+  edTake(n);
+}
+function keepMine(){
+  if(!ed.conflict) return;
+  ed.conflict = null;
+  paintConflict();
+  dirty = true;
+  flushNote();
+}
+function putMineBack(){
+  var m = ed.mine;
+  if(!m) return;
+  ed.mine = null;
+  edTitle.value = m.title;
+  ed.base = m.body; ed.edited = false;
+  loadSurface(m.body);
+  if(S.docMode === "read" && isDocOpen()) renderDocRead();
+  paintConflict();
+  dirty = true;
+  flushNote();
+}
+
 /* ============ doc read mode ============ */
 var edRead = $("#edRead");
 
-/* split a doc body into blocks: fenced code, headings, bullet lists, paragraphs */
-function docBlocks(text){
-  var lines = String(text || "").replace(/\r/g,"").split("\n");
-  var blocks = [], buf = [], inFence = false, fence = [];
-
-  function flush(){
-    while(buf.length && !buf[buf.length-1].trim()) buf.pop();
-    while(buf.length && !buf[0].trim()) buf.shift();
-    if(!buf.length) return;
-    var joined = buf.join("\n");
-    if(/^#{1,3}\s/.test(buf[0]) && buf.length === 1){
-      blocks.push({type: /^###\s/.test(buf[0]) ? "h3" : "h2",
-                   text: buf[0].replace(/^#{1,3}\s*/,"")});
-    } else if(buf.every(function(l){ return /^\s*[-*]\s+/.test(l); })){
-      blocks.push({type:"ul", items: buf.map(function(l){ return l.replace(/^\s*[-*]\s+/,""); }), text: joined});
-    } else {
-      blocks.push({type:"p", text: joined});
-    }
-    buf = [];
-  }
-
-  lines.forEach(function(l){
-    if(/^```/.test(l)){
-      if(inFence){ blocks.push({type:"code", text: fence.join("\n")}); fence = []; inFence = false; }
-      else { flush(); inFence = true; }
-      return;
-    }
-    if(inFence){ fence.push(l); return; }
-    if(!l.trim()){ flush(); return; }
-    if(/^#{1,3}\s/.test(l)){ flush(); buf.push(l); flush(); return; }
-    buf.push(l);
-  });
-  if(inFence && fence.length) blocks.push({type:"code", text: fence.join("\n")});
-  flush();
-  return blocks;
-}
+/* a doc's clean text, for previews, search and task names */
+function docPlain(body){ return window.SlateDocMd ? SlateDocMd.plain(body) : String(body || ""); }
 
 function copyText(text, btn){
   function ok(){
@@ -5382,62 +5798,875 @@ function copyText(text, btn){
   } else fallback();
 }
 
-function renderDocRead(){ paintDocBlocks(edRead, edBody.value); }
+/* Read mode paints what's in the editor now, not what the store has: a save is
+   queued, so the store is a beat behind the text on screen. */
+function renderDocRead(){
+  paintDocBlocks(edRead, bodyNow(), {
+    readOnly: !writable(),
+    onTask: function(line, text, checked){
+      var nb = window.SlateDocMd && SlateDocMd.toggleTask(bodyNow(), line, text, checked);
+      if(nb == null){ renderDocRead(); return; }
+      ed.base = nb; ed.edited = false;
+      loadSurface(nb);
+      dirty = true;
+      flushNote();
+      renderDocRead();
+    }
+  });
+}
 
-function paintDocBlocks(edRead, text){
-  edRead.textContent = "";
-  var blocks = docBlocks(text);
+/* One painter for the editor's Read mode and the project doc tab, so they can't
+   drift apart. Built from nodes, never HTML. Copy hands over clean text — what
+   you see, list markers kept — never the markdown underneath. */
+function paintDocBlocks(box, text, opts){
+  opts = opts || {};
+  box.textContent = "";
+  var M = window.SlateDocMd;
+  var blocks = M ? M.parse(text) : [];
+  if(!M && String(text || "").trim()){
+    var raw = el("div","blk"), rp = el("p");
+    richText(rp, text);
+    raw.appendChild(rp);
+    box.appendChild(raw);
+    return;
+  }
   if(!blocks.length){
     var e = el("div","blk");
     e.appendChild(el("p", null,
       "Nothing here yet. Switch to Write and paste your prompts in — leave a blank line between each one and every block gets its own copy button."));
-    edRead.appendChild(e);
+    box.appendChild(e);
     return;
   }
-  blocks.forEach(function(b){
-    var w = el("div","blk");
-    if(b.type === "h2") w.appendChild(el("h2", null, b.text));
-    else if(b.type === "h3") w.appendChild(el("h3", null, b.text));
-    else if(b.type === "code") w.appendChild(el("pre", null, b.text));
-    else if(b.type === "ul"){
-      var ul = document.createElement("ul");
-      b.items.forEach(function(it){
-        var li = document.createElement("li");
-        richText(li, it);
-        ul.appendChild(li);
-      });
-      w.appendChild(ul);
-    } else {
-      var p = document.createElement("p");
-      richText(p, b.text);
-      w.appendChild(p);
-    }
-    if(b.type !== "h2" && b.type !== "h3"){
-      var cp = el("button","blkcopy","Copy");
-      cp.onclick = function(){ copyText(b.text, cp); };
+  M.units(blocks).forEach(function(u){
+    var w = el("div", "blk" + (u.t === "hr" ? " blkhr" : u.t === "h" ? " heading" : ""));
+    u.blocks.forEach(function(b){ w.appendChild(readBlock(b, opts)); });
+    var copy = null;
+    if(u.t === "h"){
+      // everything under this heading, for a prompt that runs over several blocks
+      var sec = M.sectionText(blocks, u.at);
+      if(sec !== M.plainRuns(blocks[u.at].runs)) copy = { label: "Copy section", text: sec };
+    } else if(u.t !== "hr") copy = { label: "Copy", text: M.unitText(u) };
+    if(copy){
+      var cp = el("button","blkcopy", copy.label);
+      cp.onclick = function(){ copyText(copy.text, cp); };
       w.appendChild(cp);
     }
-    edRead.appendChild(w);
+    box.appendChild(w);
+  });
+}
+function readBlock(b, opts){
+  return SlateDocMd.renderBlock(b, {
+    text: function(host, x){ richText(host, x); },
+    task: function(li, it){
+      li.className = "task" + (it.ck ? " done" : "");
+      var lab = el("label"), box = document.createElement("input"), span = el("span");
+      box.type = "checkbox";
+      box.checked = !!it.ck;
+      box.disabled = !opts.onTask || !!opts.readOnly;
+      var txt = SlateDocMd.plainRuns(it.lines[0]);
+      box.onchange = function(){ opts.onTask(it.line, txt, box.checked); };
+      lab.appendChild(box);
+      lab.appendChild(span);
+      li.appendChild(lab);
+      return span;
+    }
   });
 }
 
 function applyDocMode(){
-  var modes = $("#edModes").querySelectorAll("button");
-  Array.prototype.forEach.call(modes, function(b){
+  var isDoc = isDocOpen(), isBoard = ed.kind === "board";
+  var read = isDoc && S.docMode === "read";
+  var rich = isDoc && ed.surface === "rich";
+  edEditor.classList.toggle("rich", rich);
+  edEditor.classList.toggle("md", isDoc && !rich);
+  edEditor.classList.toggle("writing", isDoc && !read && writable());
+  Array.prototype.forEach.call($("#edModes").querySelectorAll("button"), function(b){
     b.classList.toggle("on", b.dataset.mode === S.docMode);
   });
-  var read = S.docMode === "read";
   edRead.classList.toggle("on", read);
-  edBody.style.display = read ? "none" : "";
+  edBody.style.display = (isBoard || read || rich) ? "none" : "";
+  edRich.style.display = rich && !read ? "block" : "none";
+  var md = edTools.querySelector('[data-fmt="md"]');
+  md.classList.toggle("on", isDoc && !rich);
+  md.setAttribute("aria-pressed", isDoc && !rich ? "true" : "false");
+  md.textContent = rich ? "Markdown" : "Formatted";
+  md.title = rich ? "Show the markdown this doc is stored as" : "Back to the formatted editor";
   if(read){ flushNote(); renderDocRead(); }
+  paintTools();
+  dockTools();
 }
 $("#edModes").addEventListener("click", function(e){
   var b = e.target.closest("button[data-mode]");
   if(!b) return;
   S.docMode = b.dataset.mode;
+  closeLinkRow(false);
   applyDocMode();
-  if(S.docMode === "write") edBody.focus();
+  if(S.docMode === "write") bodySurface().focus();
 });
+
+/* ============ doc editor ============
+   A contenteditable driven only by the browser's own editing commands
+   (execCommand), because those are what native undo, the iOS B/I/U menu,
+   autocorrect, dictation and Apple Pencil Scribble all understand. Nothing here
+   rebuilds the DOM under a live caret. The DOM is read back into markdown only
+   when something was typed; lib/docmd.js does the reading and writing. */
+function exec(cmd, val){
+  try{ return document.execCommand(cmd, false, val == null ? null : val); }
+  catch(e){ return false; }
+}
+try{ document.execCommand("defaultParagraphSeparator", false, "p"); }catch(e){}
+try{ document.execCommand("styleWithCSS", false, false); }catch(e){}
+
+/* A new element for every doc opened: the undo history belongs to the page, and
+   on a reused element ⌘Z could replay the last doc's typing into this one. */
+function freshRich(){
+  var next = edRich.cloneNode(false);
+  next.textContent = "";
+  edRich.parentNode.replaceChild(next, edRich);
+  edRich = next;
+  wireRich(edRich);
+}
+function loadRich(md){
+  edRich.appendChild(SlateDocMd.toDom(SlateDocMd.parse(md), { editor: true }));
+  edRich.contentEditable = writable() ? "true" : "false";
+  paintPlaceholder();
+}
+function paintPlaceholder(){
+  edRich.classList.toggle("empty", !edRich.textContent.trim() && !edRich.querySelector("hr,li,pre"));
+}
+/* Anything that changes the text without an input event (a ticked box, an
+   attribute) must say so itself, or nothing saves it. */
+function richChanged(){
+  ed.edited = true;
+  markDirty();
+  paintPlaceholder();
+  toolsSoon();
+}
+
+/* Every listener belongs to one element and ignores it once it's been replaced:
+   ⌘Z can still replay the last doc's steps into its detached editor, and that
+   must not mark this doc as changed (it would be rewritten for nothing). */
+function wireRich(r){
+  function on(type, fn){ r.addEventListener(type, function(e){ if(r === edRich) fn(e); }); }
+  on("beforeinput", onRichBeforeInput);
+  on("input", onRichInput);
+  on("keydown", onRichKey);
+  on("paste", onRichPaste);
+  on("copy", function(e){ onRichCopy(e, false); });
+  on("cut", function(e){ onRichCopy(e, true); });
+  on("dragstart", function(){ ed.dragging = true; });
+  on("dragend", function(){ ed.dragging = false; });
+  on("drop", onRichDrop);
+  on("mousedown", onRichBox);
+  on("focus", function(){ edEditor.classList.add("typing"); dockTools(); toolsSoon(); });
+  on("blur", function(){
+    setTimeout(function(){
+      if(r !== edRich || document.activeElement === edRich || document.activeElement === edLinkUrl) return;
+      edEditor.classList.remove("typing");
+      dockTools();
+      flushNote();
+      if(ed.held && !dirty && !edTools.classList.contains("linking")) edTake(ed.held);
+    }, 0);
+  });
+}
+
+/* ---- where the caret is ---- */
+function selRange(){
+  var s = window.getSelection();
+  if(!s || !s.rangeCount) return null;
+  var r = s.getRangeAt(0);
+  return edRich.contains(r.commonAncestorContainer) ? r : null;
+}
+function upTo(node, test){
+  while(node && node !== edRich){
+    if(node.nodeType === 1 && test(node)) return node;
+    node = node.parentNode;
+  }
+  return null;
+}
+var BLOCK_TAG = /^(P|DIV|H[1-6]|LI|PRE|BLOCKQUOTE)$/;
+function blockAt(node){ return upTo(node, function(n){ return BLOCK_TAG.test(n.nodeName); }); }
+function topAt(node){ while(node && node.parentNode !== edRich) node = node.parentNode; return node && node.parentNode === edRich ? node : null; }
+/* a block's text on either side of the caret, <br> and "\n" both counted as newlines */
+function textOfFrag(f){
+  var out = "";
+  (function walk(n){
+    for(var c = n.firstChild; c; c = c.nextSibling){
+      if(c.nodeType === 3) out += c.nodeValue;
+      else if(c.nodeName === "BR") out += "\n";
+      else if(c.nodeType === 1) walk(c);
+    }
+  })(f);
+  return out;
+}
+function around(blk, r){
+  var a = document.createRange(), b = document.createRange();
+  a.setStart(blk, 0); a.setEnd(r.startContainer, r.startOffset);
+  b.setStart(r.endContainer, r.endOffset); b.setEnd(blk, blk.childNodes.length);
+  var before = textOfFrag(a.cloneContents()), after = textOfFrag(b.cloneContents());
+  // the one trailing <br> an engine keeps so an empty last line has height
+  after = after.replace(/\n$/, "");
+  return { before: before, after: after,
+           line: before.slice(before.lastIndexOf("\n") + 1) + after.split("\n")[0],
+           head: before.slice(before.lastIndexOf("\n") + 1) };
+}
+function moveSel(dir, n, extend){
+  var s = window.getSelection();
+  for(var i = 0; i < n; i++) s.modify(extend ? "extend" : "move", dir, "character");
+}
+function setGap(elm, g){
+  if(!elm || elm.nodeType !== 1) return;
+  if(g == null || g === "1" || g === 1) elm.removeAttribute("data-gap");
+  else elm.setAttribute("data-gap", String(g));
+}
+
+/* ---- Return ----
+   In the editor a paragraph is one element per line, the lines after the first
+   tight to it (data-gap="0"), so the browser's list, heading and quote commands
+   each act on exactly the line they're used on. Return starts the next line of
+   the same block; Return on an empty line turns it into the gap that starts a
+   new block — what a blank line did in the textarea, so every Copy block still
+   ends where the writer left a gap, and a multi-line prompt can be written on an
+   iPhone, which has no Shift+Return. Backspace at the start of a block takes
+   that gap away again. Handled on beforeinput, which fires after iOS commits an
+   autocorrection and also catches the Return from the Pencil's Scribble
+   palette; never while a word is still being composed. */
+var TEXT_BLOCK = /^(P|DIV|BLOCKQUOTE)$/, TEXTY_BLOCK = /^(P|DIV|UL|OL|BLOCKQUOTE)$/;
+function onRichBeforeInput(e){
+  if(!richLive()){ e.preventDefault(); return; }
+  var t = e.inputType, plan = null;
+  if(e.isComposing) return;
+  if(t === "insertParagraph" || t === "insertLineBreak") plan = planReturn(t === "insertLineBreak");
+  else if(t === "deleteContentBackward") plan = planBackspace();
+  if(!plan) return;
+  e.preventDefault();
+  /* run once the event is over: an editing command started from inside the
+     event that is about to edit is refused by some engines */
+  Promise.resolve().then(plan);
+}
+function planReturn(soft){
+  var r = selRange();
+  if(!r) return null;
+  var blk = blockAt(r.startContainer);
+  if(!blk) return null;
+  var tag = blk.nodeName;
+  if(tag === "LI"){
+    if(soft) return null;                         // Shift+Return: another line in the item
+    ed.after = { task: blk.hasAttribute("data-task"), top: topAt(blk) };
+    return null;                                  // the browser makes the next item, or ends the list
+  }
+  if(/^H\d$/.test(tag)) return null;              // after a heading comes a paragraph
+  var at = around(blk, r);
+  if(tag === "PRE"){
+    if(!soft && r.collapsed && at.head === "" && at.after === "" && /\n$/.test(at.before)){
+      // Return on an empty last line leaves the code block
+      return function(){ moveSel("backward", 1, true); exec("insertParagraph"); exec("formatBlock", "<p>"); caretGap(null); };
+    }
+    return function(){ exec("insertLineBreak"); };
+  }
+  if(!TEXT_BLOCK.test(tag) || blk !== topAt(blk)) return function(){ exec("insertParagraph"); };
+  var quote = tag === "BLOCKQUOTE";
+  if(r.collapsed && !quote){
+    // typed shortcuts that iOS makes hard to reach any other way
+    var line = at.line.trim();
+    var alone = at.after.split("\n")[0].trim() === "";
+    if(alone && /^(-{3,}|—-?|\*{3,}|_{3,})$/.test(line)){
+      return function(){ moveSel("backward", at.head.length, true); exec("delete"); if(exec("insertHorizontalRule")) afterRule(); };
+    }
+    if(alone && /^```\w*$/.test(line)){
+      return function(){ moveSel("backward", at.head.length, true); exec("delete"); exec("formatBlock", "<pre>"); };
+    }
+  }
+  if(r.collapsed && !(at.before + at.after).trim()){
+    // an empty line
+    if(quote) return function(){ exec("formatBlock", "<p>"); caretGap(null); };     // leaves the quote
+    if(blk.getAttribute("data-gap") === "0" && blk.previousElementSibling){
+      return function(){ setGap(blk, null); richChanged(); };                        // becomes the gap
+    }
+  }
+  return function(){ exec("insertParagraph"); caretGap(0); };                      // the next line of this block
+}
+function planBackspace(){
+  var r = selRange();
+  if(!r || !r.collapsed) return null;
+  var blk = blockAt(r.startContainer), prev = blk && blk.previousElementSibling;
+  if(!blk || !TEXT_BLOCK.test(blk.nodeName) || blk !== topAt(blk) || !prev || !TEXTY_BLOCK.test(prev.nodeName)) return null;
+  var g = blk.getAttribute("data-gap");
+  if(g === "0" || around(blk, r).before !== "") return null;
+  // at the start of a block: the first Backspace takes away the blank line above it
+  return function(){ setGap(blk, g == null ? 0 : Math.max(0, +g - 1)); richChanged(); };
+}
+/* the line the caret landed in after a split: tight (0) or starting a block (null) */
+function caretGap(g){
+  var r = selRange();
+  var cur = r && topAt(r.startContainer);
+  if(cur) setGap(cur, g);
+}
+function afterRule(){
+  // a rule at the very end needs a line after it to type on
+  var r = selRange();
+  if(!edRich.lastChild || edRich.lastChild.nodeName === "HR"){
+    var p = document.createElement("p");
+    p.appendChild(document.createElement("br"));
+    edRich.appendChild(p);
+    var s = window.getSelection(), rr = document.createRange();
+    rr.setStart(p, 0); rr.collapse(true);
+    s.removeAllRanges(); s.addRange(rr);
+  }
+  return true;
+}
+function onRichInput(e){
+  if(ed.after && e.inputType === "insertParagraph"){
+    var r = selRange(), li = r && upTo(r.startContainer, function(n){ return n.nodeName === "LI"; });
+    if(li){
+      if(ed.after.task){ if(!li.hasAttribute("data-task") || li.textContent === "") li.setAttribute("data-task", "0"); }
+      else li.removeAttribute("data-task");
+    } else if(r){
+      // Return on an empty item ended the list; the line under it is still that block
+      var top = topAt(r.startContainer);
+      if(top && top !== ed.after.top && /^(P|DIV)$/.test(top.nodeName)) setGap(top, 0);
+    }
+  }
+  ed.after = null;
+  ed.edited = true;
+  markDirty();
+  paintPlaceholder();
+  if(e.inputType === "insertText" && / $/.test(e.data || "")) autoFormat();
+  toolsSoon();
+  nudgeSoon();
+}
+/* "# ", "- ", "1. ", "[] " and "> " typed at the start of a line do what they
+   did in the textarea. One undo takes the formatting off, a second puts back
+   exactly what was typed. */
+var AUTO = [[/^#$/, "h1"], [/^##$/, "h2"], [/^###$/, "h3"], [/^[-*]$/, "ul"], [/^1[.)]$/, "ol"],
+            [/^\[ ?\]$/, "task"], [/^>$/, "quote"]];
+function autoFormat(){
+  var r = selRange();
+  if(!r || !r.collapsed) return;
+  var blk = blockAt(r.startContainer);
+  if(!blk || !/^(P|DIV)$/.test(blk.nodeName)) return;
+  var head = around(blk, r).head;
+  if(!/ $/.test(head)) return;
+  var mk = head.slice(0, -1);
+  for(var i = 0; i < AUTO.length; i++){
+    if(!AUTO[i][0].test(mk)) continue;
+    moveSel("backward", head.length, true);
+    exec("delete");
+    runFmt(AUTO[i][1]);
+    return;
+  }
+}
+
+/* ---- the formatting commands ---- */
+function listKind(li){
+  if(!li) return null;
+  if(li.parentNode && li.parentNode.nodeName === "OL") return "ol";
+  return li.hasAttribute("data-task") ? "task" : "ul";
+}
+function richState(){
+  var r = selRange();
+  if(!r) return null;
+  var n = r.startContainer;
+  var blk = blockAt(n);
+  var li = upTo(n, function(x){ return x.nodeName === "LI"; });
+  var q = function(c){ try{ return document.queryCommandState(c); }catch(e){ return false; } };
+  return {
+    block: blk ? blk.nodeName.toLowerCase() : "p",
+    list: listKind(li),
+    quote: !!upTo(n, function(x){ return x.nodeName === "BLOCKQUOTE"; }),
+    pre: !!upTo(n, function(x){ return x.nodeName === "PRE"; }),
+    b: q("bold"), i: q("italic"), u: q("underline"), s: q("strikeThrough"),
+    hl: !!upTo(n, function(x){ return x.nodeName === "MARK" || (x.style && SlateDocMd.isHL(x.style.backgroundColor)); }),
+    code: !!upTo(n, isCode),
+    link: !!upTo(n, function(x){ return x.nodeName === "A"; })
+  };
+}
+var toolsRaf = 0;
+function toolsSoon(){
+  if(toolsRaf) return;
+  toolsRaf = (window.requestAnimationFrame || setTimeout)(function(){ toolsRaf = 0; paintTools(); });
+}
+function paintTools(){
+  var st = richLive() ? richState() : null;
+  var heading = st && /^h\d$/.test(st.block);
+  Array.prototype.forEach.call(edTools.querySelectorAll(".fmt"), function(b){
+    var f = b.dataset.fmt, on = false, off = false;
+    if(f === "md" || f === "done") return;
+    if(st){
+      if(/^h[123]$/.test(f)) on = st.block === f;
+      else if(f === "b"){ on = st.b && !heading; off = heading || st.pre; }
+      else if(f === "i") { on = st.i; off = st.pre; }
+      else if(f === "u") { on = st.u; off = st.pre; }
+      else if(f === "s") { on = st.s; off = st.pre; }
+      else if(f === "hl"){ on = st.hl; off = st.pre; }
+      else if(f === "code"){ on = st.code; off = st.pre; }
+      else if(f === "link"){ on = st.link; off = st.pre; }
+      else if(f === "ul" || f === "ol" || f === "task") on = st.list === f;
+      else if(f === "indent" || f === "outdent") off = !st.list;
+      else if(f === "quote") on = st.quote;
+      else if(f === "fence") on = st.pre;
+    }
+    b.classList.toggle("on", on);
+    if(b.hasAttribute("aria-pressed") || /^(h[123]|b|i|u|s|hl|code|link|ul|ol|task|quote|fence)$/.test(f)) b.setAttribute("aria-pressed", on ? "true" : "false");
+    b.disabled = off;
+  });
+}
+document.addEventListener("selectionchange", function(){
+  var r = selRange();
+  if(!r) return;
+  ed.range = r.cloneRange();
+  toolsSoon();
+  nudgeSoon();
+});
+/* back into the text, where it was, if a tap managed to take focus away */
+function keepFocus(){
+  if(document.activeElement === edRich) return;
+  edRich.focus({ preventScroll: true });
+  if(ed.range && edRich.contains(ed.range.commonAncestorContainer)){
+    var s = window.getSelection();
+    s.removeAllRanges();
+    s.addRange(ed.range);
+  }
+}
+/* A block command splits a paragraph at its lines. The pieces are still the
+   lines of one block — making a line a list item doesn't make it a separate
+   prompt — so they stay tight, except around a heading, which is always its own. */
+function gapsBefore(){
+  var r = selRange();
+  var a = r && topAt(r.startContainer), b = r && topAt(r.endContainer);
+  if(!a || !b) return null;
+  return { prev: a.previousSibling, next: b.nextSibling, gap: a.getAttribute("data-gap") };
+}
+function gapsAfter(c){
+  if(!c) return;
+  var n = c.prev ? c.prev.nextSibling : edRich.firstChild, first = true, last = null;
+  while(n && n !== c.next){
+    if(n.nodeType === 1){
+      var texty = /^(P|DIV|UL|OL|BLOCKQUOTE)$/.test(n.nodeName);
+      if(first) setGap(n, c.gap);
+      else setGap(n, texty && last && /^(P|DIV|UL|OL|BLOCKQUOTE)$/.test(last.nodeName) ? 0 : null);
+      first = false;
+      last = n;
+    }
+    n = n.nextSibling;
+  }
+}
+function blockCmd(fn){
+  var c = gapsBefore();
+  var ok = fn();
+  gapsAfter(c);
+  return ok;
+}
+function selectedItems(){
+  var r = selRange();
+  if(!r) return [];
+  var own = upTo(r.startContainer, function(x){ return x.nodeName === "LI"; });
+  if(r.collapsed) return own ? [own] : [];
+  return Array.prototype.filter.call(edRich.querySelectorAll("li"), function(li){
+    if(!r.intersectsNode(li)) return false;
+    // an item that only contains the selection (its child is what's selected) isn't picked
+    return li === own || !(li.contains(r.startContainer) && li.contains(r.endContainer));
+  });
+}
+/* Taking a list off leaves its text loose in the editor with no paragraph
+   around it; formatBlock puts one back. */
+function unlist(kind){
+  var ok = exec(kind === "ol" ? "insertOrderedList" : "insertUnorderedList");
+  var r = selRange();
+  if(r && !blockAt(r.startContainer)) exec("formatBlock", "<p>");
+  return ok;
+}
+function setBlock(tag){
+  var st = richState() || {};
+  var want = st.block === tag || (tag === "blockquote" && st.quote) ? "p" : tag;
+  if(st.list) blockCmd(function(){ return unlist(st.list); });
+  if(st.quote && want !== "p" && tag !== "blockquote") blockCmd(function(){ return exec("formatBlock", "<p>"); });
+  blockCmd(function(){ return exec("formatBlock", "<" + want + ">"); });
+}
+/* the editor's top-level elements the selection touches, loose text wrapped first */
+function topSpan(){
+  var r = selRange();
+  if(!r) return null;
+  var a = topAt(r.startContainer), b = topAt(r.endContainer);
+  if(a && b && (a.nodeType !== 1 || b.nodeType !== 1)){
+    exec("formatBlock", "<p>");
+    r = selRange();
+    a = r && topAt(r.startContainer); b = r && topAt(r.endContainer);
+  }
+  if(!a || !b || a.nodeType !== 1 || b.nodeType !== 1) return null;
+  var out = [];
+  for(var n = a; n; n = n.nextSibling){ if(n.nodeType === 1) out.push(n); if(n === b) break; }
+  return out;
+}
+/* Lines become a list by replacing them, in one insertHTML, with the list
+   itself. The browser's own list command wraps the new list inside the line's
+   paragraph, and unwrapping it afterwards is exactly what corrupts native undo
+   (tried: ⌘Z then emptied the list and lost the text). */
+function linesToList(kind, els){
+  var list = document.createElement(kind === "ol" ? "ol" : "ul");
+  var g = els[0].getAttribute("data-gap");
+  if(g != null) list.setAttribute("data-gap", g);
+  els.forEach(function(el){
+    var li = document.createElement("li");
+    if(kind === "task") li.setAttribute("data-task", "0");
+    for(var c = el.firstChild; c; c = c.nextSibling) li.appendChild(c.cloneNode(true));
+    if(!li.textContent) { li.textContent = ""; li.appendChild(document.createElement("br")); }
+    list.appendChild(li);
+  });
+  var last = els[els.length - 1], r = document.createRange();
+  r.setStart(els[0], 0);
+  r.setEnd(last, last.childNodes.length);
+  var s = window.getSelection();
+  s.removeAllRanges(); s.addRange(r);
+  return exec("insertHTML", list.outerHTML);
+}
+function setList(kind){
+  var st = richState() || {};
+  var span = topSpan();
+  if(!span) return;
+  if(span.every(function(el){ return /^(P|DIV|H[1-6]|BLOCKQUOTE|PRE)$/.test(el.nodeName); })){
+    linesToList(kind, span);
+    return;
+  }
+  if(st.list === kind){
+    blockCmd(function(){ return unlist(kind); });
+    return;
+  }
+  if((st.list === "ul" && kind === "task") || (st.list === "task" && kind === "ul")){
+    selectedItems().forEach(function(li){
+      if(kind === "task") li.setAttribute("data-task", "0"); else li.removeAttribute("data-task");
+    });
+    richChanged();
+    return;
+  }
+  // a list becoming the other kind: the browser's command is clean on a list
+  blockCmd(function(){ return exec(kind === "ol" ? "insertOrderedList" : "insertUnorderedList"); });
+  selectedItems().forEach(function(li){
+    if(kind === "task"){ if(!li.hasAttribute("data-task")) li.setAttribute("data-task", "0"); }
+    else li.removeAttribute("data-task");
+  });
+  richChanged();
+}
+function toggleHighlight(){
+  var st = richState() || {};
+  if(st.hl) exec("hiliteColor", "transparent");
+  else if(!exec("hiliteColor", SlateDocMd.HL)) exec("backColor", SlateDocMd.HL);
+}
+/* Inline code is applied with fontName("monospace") — a <font face> — not by
+   inserting a <code>: at the start of a paragraph Chrome rewrites an inserted
+   <code> into a span of computed styles, and then drops those styles as
+   redundant against the editor's own CSS, so the code silently vanished. The
+   reader counts all three spellings as code. */
+function isCode(x){
+  return x.nodeName === "CODE" || (x.nodeName === "FONT" && /mono/i.test(x.getAttribute("face") || "")) ||
+         (x.nodeName === "SPAN" && /monospace/i.test(x.style.fontFamily || ""));
+}
+function toggleCode(){
+  var r = selRange();
+  if(!r) return;
+  var code = upTo(r.commonAncestorContainer, isCode);
+  var s = window.getSelection();
+  if(code){
+    /* removeFormat, not retyping the text: typing over it would carry the code
+       style straight back onto the new text */
+    var all = document.createRange();
+    all.selectNodeContents(code);
+    s.removeAllRanges(); s.addRange(all);
+    exec("removeFormat");
+    return;
+  }
+  if(r.collapsed){
+    // the word under the caret
+    s.modify("move", "backward", "word");
+    s.modify("extend", "forward", "word");
+    r = selRange();
+    if(!r) return;
+  }
+  if(!r.toString().trim()) return;
+  if(/\n/.test(r.toString()) || topAt(r.startContainer) !== topAt(r.endContainer)){ setBlock("pre"); return; }
+  exec("fontName", "monospace");
+}
+function toggleTaskAtCaret(){
+  var li = selectedItems()[0];
+  if(!li || !li.hasAttribute("data-task")) return;
+  li.setAttribute("data-task", li.getAttribute("data-task") === "1" ? "0" : "1");
+  richChanged();
+}
+function runFmt(f){
+  if(f === "md"){ toggleMarkdown(); return; }
+  if(!richLive()) return;
+  if(f === "done"){ edRich.blur(); return; }
+  if(f === "link"){ openLinkRow(); return; }
+  keepFocus();
+  if(f === "undo" || f === "redo"){ exec(f); toolsSoon(); return; }
+  var st = richState() || {};
+  if(st.pre && /^(b|i|u|s|hl|code|link)$/.test(f)) return;       // code is verbatim
+  if(f === "b"){ if(!/^h\d$/.test(st.block)) exec("bold"); }
+  else if(f === "i") exec("italic");
+  else if(f === "u") exec("underline");
+  else if(f === "s") exec("strikeThrough");
+  else if(f === "hl") toggleHighlight();
+  else if(f === "code") toggleCode();
+  else if(f === "h1" || f === "h2" || f === "h3" || f === "p") setBlock(f);
+  else if(f === "quote") setBlock("blockquote");
+  else if(f === "fence") setBlock("pre");
+  else if(f === "ul" || f === "ol" || f === "task") setList(f);
+  else if(f === "indent" || f === "outdent"){ if(st.list) exec(f); }
+  else if(f === "hr"){ if(exec("insertHorizontalRule")) afterRule(); }
+  toolsSoon();
+}
+/* mousedown, not touchstart: cancelling it keeps the caret and the keyboard,
+   and the strip still scrolls sideways under a finger */
+edTools.addEventListener("mousedown", function(e){
+  if(e.target.closest(".fmt")) e.preventDefault();
+});
+edTools.addEventListener("click", function(e){
+  var b = e.target.closest(".fmt");
+  if(!b || b.disabled) return;
+  runFmt(b.dataset.fmt);
+});
+function onRichKey(e){
+  if(!richLive()) return;
+  var mod = e.metaKey || e.ctrlKey, code = e.code || "";
+  if(e.key === "Tab" && !mod && !e.altKey){
+    var st = richState();
+    if(st && st.list){ e.preventDefault(); exec(e.shiftKey ? "outdent" : "indent"); }
+    return;
+  }
+  if(!mod) return;
+  var k = String(e.key || "").toLowerCase(), f = null;
+  if(e.altKey && /^Digit[0-3]$/.test(code)) f = ["p", "h1", "h2", "h3"][+code.charAt(5)];
+  else if(e.shiftKey && !e.altKey){
+    f = { Digit7: "ol", Digit8: "ul", Digit9: "task", KeyX: "s", KeyH: "hl" }[code] || null;
+  } else if(!e.altKey){
+    if(k === "k") f = "link";
+    else if(k === "e") f = "code";
+    else if(k === "s"){ e.preventDefault(); flushNote(); return; }
+    else if(e.key === "Enter"){ e.preventDefault(); toggleTaskAtCaret(); return; }
+    else if(k === "b"){ var s2 = richState(); if(s2 && /^h\d$/.test(s2.block)) e.preventDefault(); return; }
+  }
+  if(!f) return;
+  e.preventDefault();
+  runFmt(f);
+}
+/* a tap on a checklist box (drawn to the left of the item) ticks it */
+function onRichBox(e){
+  var li = e.target.closest && e.target.closest("li[data-task]");
+  if(!li || e.target !== li || !richLive()) return;
+  if(e.clientX > li.getBoundingClientRect().left + 1) return;
+  e.preventDefault();
+  li.setAttribute("data-task", li.getAttribute("data-task") === "1" ? "0" : "1");
+  richChanged();
+}
+
+/* ---- links: typed into the bar itself, so on a phone it stays on the keyboard ---- */
+function openLinkRow(){
+  var r = selRange() || ed.range;
+  if(!r) return;
+  ed.linkRange = r.cloneRange();
+  ed.linkEl = upTo(r.commonAncestorContainer, function(x){ return x.nodeName === "A"; });
+  var picked = r.toString().trim();
+  edLinkUrl.value = ed.linkEl ? (ed.linkEl.getAttribute("href") || "")
+                  : /^(https?:\/\/|mailto:|www\.)\S+$/i.test(picked) ? picked : "";
+  $("#edLinkOff").style.display = ed.linkEl ? "" : "none";
+  edTools.classList.add("linking");
+  edLinkUrl.focus();
+  edLinkUrl.select();
+  dockTools();
+}
+function closeLinkRow(back){
+  if(!edTools.classList.contains("linking")) return;
+  edTools.classList.remove("linking");
+  if(back && ed.linkRange){
+    edRich.focus({ preventScroll: true });
+    var s = window.getSelection();
+    s.removeAllRanges(); s.addRange(ed.linkRange);
+  }
+  dockTools();
+}
+function linkHref(v){
+  v = String(v || "").trim();
+  if(!v) return "";
+  if(/^[^\s@\/]+@[^\s@\/]+\.[^\s@\/]+$/.test(v)) v = "mailto:" + v;
+  else if(!/^[a-z][a-z0-9+.\-]*:/i.test(v)) v = "https://" + v;
+  return SlateDocMd.cleanHref(v);
+}
+function applyLink(remove){
+  var href = remove ? "" : linkHref(edLinkUrl.value);
+  if(!remove && !href){ toast("That isn't a web or email address."); edLinkUrl.focus(); return; }
+  var a = ed.linkEl, r = ed.linkRange;
+  closeLinkRow(true);
+  var s = window.getSelection();
+  if(a && edRich.contains(a)){
+    var all = document.createRange();
+    all.selectNodeContents(a);
+    s.removeAllRanges(); s.addRange(all);
+    exec(remove ? "unlink" : "createLink", href || null);
+  } else if(!remove && r){
+    if(r.collapsed){
+      var na = document.createElement("a");
+      na.href = href;
+      na.textContent = href.replace(/^mailto:/i, "");
+      exec("insertHTML", na.outerHTML);
+    } else exec("createLink", href);
+  }
+  toolsSoon();
+}
+$("#edLinkOk").onclick = function(){ applyLink(false); };
+$("#edLinkOff").onclick = function(){ applyLink(true); };
+$("#edLinkCancel").onclick = function(){ closeLinkRow(true); };
+[$("#edLinkOk"), $("#edLinkOff"), $("#edLinkCancel")].forEach(function(b){
+  b.addEventListener("mousedown", function(e){ e.preventDefault(); });
+});
+edLinkUrl.addEventListener("keydown", function(e){
+  if(e.key === "Enter"){ e.preventDefault(); applyLink(false); }
+  else if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); closeLinkRow(true); }
+});
+
+/* ---- paste, drop, copy ----
+   Foreign HTML becomes the doc's own blocks and runs, built fresh — never the
+   page's markup, colours or fonts, which would break the other theme. A picture
+   becomes an attachment, as in a note: inline it would ride in the text. One
+   undo takes a whole paste back out. */
+function blocksFrom(html, text){
+  try{
+    if(html && html.length < 300000){
+      var b = SlateDocMd.fromHtml(html);
+      if(b.length) return b;
+    }
+    if(text && /\n/.test(text.replace(/\s+$/, ""))) return SlateDocMd.parse(text);
+  }catch(err){}
+  return null;
+}
+function insertBlocks(blocks){
+  var box = document.createElement("div");
+  if(blocks.length === 1 && blocks[0].t === "p" && blocks[0].lines.length === 1){
+    SlateDocMd.inlineInto(box, blocks[0].lines[0], { editor: true });   // stays inside the current line
+  } else box.appendChild(SlateDocMd.toDom(blocks, { editor: true }));
+  return exec("insertHTML", box.innerHTML);
+}
+function pasteInto(e, html, text){
+  var r = selRange();
+  if(r && upTo(r.startContainer, function(x){ return x.nodeName === "PRE"; })){
+    if(text){ e.preventDefault(); exec("insertText", text.replace(/\r/g, "")); }
+    return;
+  }
+  var one = String(text || "").trim();
+  if(one && !/\n/.test(one) && /^(https?:\/\/|mailto:)\S+$/i.test(one) && r && !r.collapsed){
+    e.preventDefault();
+    exec("createLink", SlateDocMd.cleanHref(one));    // a link pasted over words links them
+    return;
+  }
+  var blocks = blocksFrom(html, text);
+  if(blocks){
+    e.preventDefault();
+    if(insertBlocks(blocks)) return;
+  }
+  if(text){ e.preventDefault(); exec("insertText", text.replace(/\r/g, "")); }
+}
+function onRichPaste(e){
+  if(!richLive()){ e.preventDefault(); return; }
+  var cd = e.clipboardData;
+  if(!cd) return;
+  if(cd.files && cd.files.length){ e.preventDefault(); attachImages(cd.files); return; }
+  pasteInto(e, cd.getData("text/html"), cd.getData("text/plain"));
+}
+function onRichDrop(e){
+  var dt = e.dataTransfer;
+  if(!dt || !richLive()) return;
+  if(dt.files && dt.files.length){ e.preventDefault(); attachImages(dt.files); return; }
+  if(ed.dragging) return;           // moving text within the doc: the browser's own, undoable move
+  var html = dt.getData("text/html"), text = dt.getData("text/plain");
+  if(!html && !text) return;
+  var at = document.caretRangeFromPoint ? document.caretRangeFromPoint(e.clientX, e.clientY) : null;
+  if(!at && document.caretPositionFromPoint){
+    var cp = document.caretPositionFromPoint(e.clientX, e.clientY);
+    if(cp){ at = document.createRange(); at.setStart(cp.offsetNode, cp.offset); }
+  }
+  if(!at || !edRich.contains(at.startContainer)) return;
+  var s = window.getSelection();
+  s.removeAllRanges(); s.addRange(at);
+  pasteInto(e, html, text);
+  e.preventDefault();
+}
+/* Copying out of the editor hands over the same clean text a Copy button would —
+   list markers and all — plus formatting for apps that take it. */
+function onRichCopy(e, cut){
+  var r = selRange();
+  if(!r || r.collapsed || !e.clipboardData) return;
+  var box = document.createElement("div");
+  box.appendChild(r.cloneContents());
+  var blocks = SlateDocMd.fromDom(box, "live");
+  if(!blocks.length) return;
+  var html = document.createElement("div");
+  html.setAttribute("data-slate-doc", "1");
+  html.appendChild(SlateDocMd.toDom(blocks, { editor: true }));
+  e.clipboardData.setData("text/plain", SlateDocMd.units(blocks).map(SlateDocMd.unitText).join("\n\n"));
+  e.clipboardData.setData("text/html", html.outerHTML);
+  e.preventDefault();
+  if(cut && richLive()) exec("delete");
+}
+
+/* ---- Markdown view: the stored text itself, in the plain textarea ----
+   The way out if the rich editor ever misbehaves on some device, and it sticks
+   per device. Switching over and back without typing writes nothing. */
+function toggleMarkdown(){
+  if(!isDocOpen() || !window.SlateDocMd) return;
+  if(ed.conflict){ toast("Pick a version first."); return; }
+  closeLinkRow(false);
+  if(ed.surface === "rich"){
+    edBody.value = bodyNow();
+    ed.surface = "text";
+    prefSet("docView", "markdown");
+  } else {
+    ed.base = edBody.value;
+    ed.edited = false;
+    ed.surface = "rich";
+    freshRich();
+    loadRich(ed.base);
+    edBody.value = "";
+    prefSet("docView", "rich");
+  }
+  applyDocMode();
+  bodySurface().focus();
+}
+
+/* ---- the bar on a software keyboard ---- */
+var vv = window.visualViewport;
+var dockRaf = 0;
+function dockSoon(){
+  if(dockRaf) return;
+  dockRaf = (window.requestAnimationFrame || setTimeout)(function(){ dockRaf = 0; dockTools(); nudgeCaret(); });
+}
+function dockTools(){
+  var active = document.activeElement === edRich || document.activeElement === edLinkUrl;
+  var on = !!vv && active && overlay.classList.contains("on") && isDocOpen() && S.docMode === "write" &&
+           window.innerHeight - vv.height > 120;
+  if(on && !edEditor.classList.contains("kbd")) edToolsWrap.style.height = edToolsWrap.offsetHeight + "px";
+  edEditor.classList.toggle("kbd", on);
+  if(!on){ edTools.style.transform = ""; edToolsWrap.style.height = ""; return; }
+  var top = vv.offsetTop + vv.height - edTools.offsetHeight;
+  edTools.style.transform = "translate3d(0," + Math.round(top) + "px,0)";
+}
+if(vv){ vv.addEventListener("resize", dockSoon); vv.addEventListener("scroll", dockSoon); }
+/* keep the caret out from under the docked bar */
+var nudgeRaf = 0;
+function nudgeSoon(){
+  if(nudgeRaf) return;
+  nudgeRaf = (window.requestAnimationFrame || setTimeout)(function(){ nudgeRaf = 0; nudgeCaret(); });
+}
+function nudgeCaret(){
+  if(!edEditor.classList.contains("kbd") || !vv) return;
+  var r = selRange();
+  if(!r) return;
+  var c = r.cloneRange();
+  c.collapse(false);
+  var rect = c.getClientRects()[0];
+  if(!rect){ var host = c.startContainer.nodeType === 1 ? c.startContainer : c.startContainer.parentNode; rect = host.getBoundingClientRect(); }
+  var limit = vv.offsetTop + vv.height - edTools.offsetHeight - 12;
+  if(rect.bottom > limit) overlay.scrollTop += Math.ceil(rect.bottom - limit);
+  else if(rect.top < vv.offsetTop + 8) overlay.scrollTop -= Math.ceil(vv.offsetTop + 8 - rect.top);
+}
 
 /* ============ whiteboard ============ */
 var inkWrap = $("#inkWrap"), inkCanvas = $("#inkCanvas"), inkTextEl = $("#inkText");
@@ -6053,13 +7282,21 @@ function docsToArray(snap){
   db.collection("notes").onSnapshot(function(snap){
     S.notes = docsToArray(snap);
     if(S.openNote){
-      // keep the open editor's text; only refresh its footer
       var n = null;
       for(var i=0;i<S.notes.length;i++) if(S.notes[i].id === S.openNote) n = S.notes[i];
-      if(!n){ S.openNote = null; overlay.classList.remove("on"); document.body.style.overflow = ""; }
-      else {
-        if(!dirty) edStatus.textContent = "Edited " + relTime(n.updatedAt);
+      if(!n){
+        S.openNote = null; dirty = false; ed.conflict = ed.held = ed.mine = null;
+        overlay.classList.remove("on"); document.body.style.overflow = "";
+        edEditor.classList.remove("kbd", "typing");
+      } else {
+        if(!dirty && !ed.conflict && !ed.held) edStatus.textContent = "Edited " + relTime(n.updatedAt);
         drawEdImgs();
+        // the other person's edit reloads the text, or asks, but never overwrites silently
+        edSync(n);
+        /* Every autosave comes back through here. The page behind the editor
+           can't be seen, and rebuilding it — tag bar, cards, the doc tab's blocks —
+           on each pause in typing is the lag; closeNote() renders on the way out. */
+        if(S.ready){ got.notes = true; return; }
       }
     }
     mark("notes");
@@ -6082,8 +7319,12 @@ if("serviceWorker" in navigator){
          that didn't work. Say so instead, and let a tap take it. Never reload on
          its own: that would throw away whatever is half-typed. */
       function offerUpdate(){
-        setBanner("update", "A new version of Slate is ready — tap to reload.",
-                  function(){ location.reload(); });
+        setBanner("update", "A new version of Slate is ready — tap to reload.", function(){
+          // the open note's last few keystrokes go first; a stuck save can't hold the reload hostage
+          var save = window.slateSaveNow ? window.slateSaveNow() : null;
+          Promise.race([Promise.resolve(save), new Promise(function(r){ setTimeout(r, 1500); })])
+            .catch(function(){}).then(function(){ location.reload(); });
+        });
       }
       reg.addEventListener("updatefound", function(){
         var fresh = reg.installing;

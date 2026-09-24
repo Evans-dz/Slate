@@ -26,6 +26,7 @@ index.html              markup, CSS, and every render function
 store.js                the platform layer: db, user, assets, push, all Supabase-backed
 config.js               your Supabase URL, anon key and the push public key
 lib/brief.js            brief logic: grouping, wording, Denver dates (page + server)
+lib/docmd.js            docs: markdown <-> blocks, and blocks <-> the rich editor (page + node tests)
 api/                    Vercel functions: push subscribe/unsubscribe/test, two cron briefs
 vendor/supabase.js      the Supabase client, vendored so the shell works offline
 sw.js                   service worker: caches the app shell, shows the push briefs
@@ -49,7 +50,9 @@ because the bytes really are saved and rejecting would fire "that change didn't 
 change that did. A fatal error still rejects, exactly as before. **One record per path is
 correct only because every write here upserts the whole document**, so a newer record always
 supersedes an older one; a partial PATCH, an RPC or a counter would be silently coalesced
-away by it. See *Deliberate decisions*.
+away by it. See *Deliberate decisions*. And because a newer save can be `put()` under
+the same key while an older one is in flight, `drain()` deletes a sent record only if its
+`seq` is still the one it sent — deleting by key alone threw the newer save away.
 
 **Pending writes are re-applied over everything the server sends.** `overlay()` runs in all
 three places server state reaches the cache — `resync()`, `hydrate()` and the realtime
@@ -284,6 +287,51 @@ Both of these have shipped a bug in this file.
 Neither is visible reading the CSS. Both were found by rendering at real device widths.
 
 ---
+
+## Docs
+
+A doc (`kind: "doc"`) is written in a rich editor and stored as **markdown in `body`** —
+the same plain string it always was, so there is no new field, no flag and no migration,
+and an old build still shows every doc (with the markers raw). Plain notes stay a plain
+textarea; *Turn into doc* changes only `kind`.
+
+`lib/docmd.js` is the whole grammar, loaded by the page and by the round-trip tests, so what
+the tests prove is what runs. Three rules hold everything else up:
+
+- **The Copy unit is the blank-line block.** Blocks split at a blank line, a fence or a
+  heading line, exactly as the old splitter did, so every existing Copy button still starts
+  and stops where it did. Each block records its *gap* (blank lines above it); a gap of 0 is
+  "the line right under", which is how "Rules:" and the list under it copy as one prompt.
+  Copy hands over clean text — what you see, list markers kept — never the markdown.
+- **A doc is only rewritten after a real edit.** Opening, reading, switching to Markdown view
+  and closing write nothing; the body is re-serialised only once something was typed, and a
+  change that isn't typed (a ticked box, a gap) calls `richChanged()` or it never saves.
+- **The editor is driven only by the browser's own commands** (`execCommand`), because native
+  undo, the iOS B/I/U menu, autocorrect, dictation and Pencil Scribble understand nothing else.
+  Nothing rebuilds the DOM under a live caret, and each open gets a fresh element (a reused one
+  let ⌘Z replay the last doc's typing into the next). Chrome's own quirks set the shape: a
+  paragraph is one element per line (its list and heading commands otherwise nest inside the
+  paragraph); lines become a list by one `insertHTML` of the list (unwrapping a nested list
+  afterwards corrupts undo); inline code is a `<font face="monospace">` (an inserted `<code>` at
+  a paragraph's start comes back as a style span Chrome then strips).
+
+Syntax: `#`/`##`/`###`, `**b**`, `*i*`, `<u>u</u>` (markdown has no underline; `<u>` is the
+one tag honoured — `<instructions>` and every other tag stay text), `~~s~~`, `==h==`, `` `c` ``,
+`[text](url)` (http, https, mailto, tel only), `- `, `1. `, `- [ ] `, `> `, `---`, fences.
+Delimiters follow CommonMark's flanking rules, and `_`, `~~` and `==` never open inside a word,
+so `2*3*4`, `x == y`, `snake_case` and `__init__` in an old prompt stay literal. A backslash is
+an escape only in front of something that would otherwise be syntax, so `\d` and `C:\Users` keep
+theirs. No markdown library: CommonMark would merge single line breaks and move block splits.
+
+The other person's edit never silently overwrites yours, or the reverse: the editor tracks the
+`updatedAt` stamps it has seen or written; a new one with a different title or body reloads the
+text if you haven't typed, waits for the caret to leave if you're in it, and if you have typed
+it pauses saving and asks — *See theirs* / *Keep mine* — and won't close until you choose.
+A save also goes out on `pagehide` and when the app is backgrounded, and before the update
+banner reloads.
+
+**Markdown view** (per device, remembered) shows the stored text in the old textarea: the way
+out if the rich editor ever misbehaves somewhere, and what the doc is if `lib/docmd.js` fails to load.
 
 ## Whiteboard
 
