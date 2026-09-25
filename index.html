@@ -12,8 +12,8 @@
 <meta name="format-detection" content="telephone=no">
 <title>Slate</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" href="icons/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-v2.png">
+<link rel="icon" href="icons/icon-192-v2.png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&display=swap" rel="stylesheet">
@@ -443,7 +443,18 @@ body.dragging-now{user-select:none;-webkit-user-select:none}
   background:var(--scrim);padding:9vh 16px 16px;overflow-y:auto;
 }
 #taskDlg.on{display:block}
-.card .ttl{font-size:13.5px;line-height:1.35;word-break:break-word}
+.card .ctop{display:flex;align-items:flex-start;gap:8px}
+.card .ttl{font-size:13.5px;line-height:1.35;word-break:break-word;flex:1;min-width:0}
+.ctick{
+  position:relative;flex:0 0 auto;width:18px;height:18px;border-radius:50%;
+  border:1.5px solid var(--line-strong);color:transparent;
+  display:flex;align-items:center;justify-content:center;
+}
+.ctick .ico{width:11px;height:11px;stroke-width:2.8}
+.ctick:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink)}
+.ctick.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+/* a finger gets about 38px around the 18px ring */
+@media (hover:none){ .ctick::after{content:"";position:absolute;inset:-10px} }
 .card.done .ttl{color:var(--muted);text-decoration:line-through}
 .card .foot{display:flex;align-items:center;gap:7px;margin-top:7px;flex-wrap:wrap}
 .chip{
@@ -1846,6 +1857,8 @@ body.dragging-now .board{scroll-snap-type:none}
      bare `padding` here would silently drop its padding-left */
   .card{padding:11px 12px 11px 30px}
   .card .ttl{font-size:15px}
+  .ctick{width:20px;height:20px}
+  .ctick .ico{width:12px;height:12px}
 
   /* list: tick + title only; tap a row for status, due and owner */
   .list th{display:none}
@@ -4023,7 +4036,18 @@ function taskCard(t){
     c.appendChild(grip);
     attachDrag(c, grip, t);
   }
-  c.appendChild(el("div","ttl", t.title || "Untitled"));
+  var top = el("div","ctop");
+  if(writable()){
+    var done = taskDone(t);
+    var tk = el("button","ctick" + (done ? " on" : ""));
+    tk.type = "button";
+    tk.appendChild(ico("check","sm"));
+    tk.setAttribute("aria-label", (done ? "Not done after all: " : "Mark done: ") + (t.title || "Untitled"));
+    tk.onclick = function(e){ e.stopPropagation(); tickCard(t.id); };
+    top.appendChild(tk);
+  }
+  top.appendChild(el("div","ttl", t.title || "Untitled"));
+  c.appendChild(top);
 
   var foot = el("div","foot");
   if(S.sel === "all" && t.projectId){
@@ -4057,6 +4081,23 @@ function taskCard(t){
   return c;
 }
 
+/* The tick on a card: done in one tap, without opening the sheet or dragging
+   across a board that, on a phone, shows one column at a time. Done means the
+   last column (patchTask stamps completedAt/completedBy). Undo puts the card
+   back in the column it came from; ticking a finished card reopens it in the
+   first column, as the dashboard's tick does. */
+function tickCard(id){
+  var t = findTask(id);
+  if(!t || !writable()) return;
+  if(taskDone(t)){ patchTask(id, { status: firstColumnId(t.projectId, t.spaceId) }); return; }
+  var from = columnOf(t);
+  patchTask(id, { status: doneColumnId(t.projectId, t.spaceId) });
+  toast("Done: \u201c" + (t.title || "Untitled").slice(0, 40) + "\u201d", { label: "Undo", fn: function(){
+    var now = findTask(id);
+    if(now && taskDone(now)) patchTask(id, { status: from });
+  }});
+}
+
 /* Pointer-based dragging. HTML5 drag-and-drop does nothing on touch, so
    cards move by pointer events instead: drag the grip on any device, or
    drag the card body with a mouse. */
@@ -4066,7 +4107,7 @@ function attachDrag(card, grip, t){
   grip.addEventListener("pointerdown", function(e){ startDrag(e, card, t, true); });
   card.addEventListener("pointerdown", function(e){
     if(e.pointerType !== "mouse") return;          // touch drags via the grip only
-    if(e.target.closest(".grip")) return;
+    if(e.target.closest(".grip") || e.target.closest(".ctick")) return;
     startDrag(e, card, t, false);
   });
 }

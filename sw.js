@@ -3,7 +3,7 @@
    connection, because Supabase requests carry auth and are never cached.
    Also receives the push briefs — see the handlers at the bottom. */
 
-var VERSION = "slate-v6";
+var VERSION = "slate-v7";
 /* "/index.html" is deliberately absent: cleanUrls redirects it to "/", so caching
    it stores a redirected response, and returning one of those for a navigation is
    a network error rather than a page. "/" precaches the same bytes. */
@@ -15,10 +15,10 @@ var SHELL = [
   "/lib/docmd.js",
   "/vendor/supabase.js",
   "/manifest.webmanifest",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-  "/icons/icon-maskable-512.png",
-  "/icons/apple-touch-icon.png"
+  "/icons/icon-192-v2.png",
+  "/icons/icon-512-v2.png",
+  "/icons/icon-maskable-512-v2.png",
+  "/icons/apple-touch-icon-v2.png"
 ];
 
 self.addEventListener("install", function (e) {
@@ -122,9 +122,10 @@ self.addEventListener("fetch", function (e) {
     return;
   }
 
-  /* Icons and fonts: cache first. They rarely change, but they are not
-     fingerprinted either — when an icon is redrawn under the same URL, bump
-     VERSION so activate drops the old cache and the new image is fetched. */
+  /* Icons and fonts: cache first. vercel.json serves /icons/ as immutable, so a
+     redrawn icon must get a NEW FILE NAME (icons/*-v2.png), not just a new
+     VERSION here: iOS takes the home-screen icon when the app is added, and
+     under the old name it can reuse the cached old image even on a re-add. */
   if (url.origin === location.origin ||
       url.hostname === "fonts.googleapis.com" ||
       url.hostname === "fonts.gstatic.com") {
@@ -143,7 +144,7 @@ self.addEventListener("push", function (e) {
   e.waitUntil(
     self.registration.showNotification(data.title || "Slate", {
       body: data.body || "",
-      icon: "/icons/icon-192.png",
+      icon: "/icons/icon-192-v2.png",
       data: { url: data.url || "/?view=today" },
       tag: data.tag || "slate"
     })
