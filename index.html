@@ -1084,6 +1084,7 @@ tr:hover .rowx{opacity:1}
   color:var(--ink-2);font-family:var(--ui);font-size:13.5px;font-weight:600;
 }
 .fmt.txt{font-family:var(--serif);font-size:15.5px}
+.fmt.ptxt{font-size:14px;padding:0 8px}
 .fmt:hover{background:var(--panel-2);color:var(--ink)}
 .fmt.on{background:var(--accent-soft);color:var(--accent-ink)}
 .fmt:disabled{opacity:.35;cursor:default;background:none}
@@ -2040,12 +2041,13 @@ body.dragging-now .board{scroll-snap-type:none}
      earlier block added is silently dropped. */
   #editor.doc.writing #edToolsWrap{margin-left:-15px;margin-right:-15px}
   #edTools{
-    display:grid;grid-template-columns:repeat(11,minmax(0,1fr));
+    display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
     padding-left:6px;padding-right:6px;gap:2px 0;
   }
   .fmtsep{display:none}
   .fmt{min-width:0;width:100%;height:38px;padding:0}
   .fmt.md,.fmt.done{font-size:13px;margin-left:0}
+  .fmt.ptxt{font-size:13px;padding:0}
   .fmt.md .mdl{display:none}
   .fmt.md .mds{display:inline}
   #editor.conflict .fmt.unsaved{grid-column:span 3;margin-left:0}
@@ -2273,6 +2275,7 @@ body.dragging-now .board{scroll-snap-type:none}
          out of the text or drops the keyboard. -->
     <div id="edToolsWrap">
       <div id="edTools" role="toolbar" aria-label="Formatting">
+        <button type="button" class="fmt txt ptxt" data-fmt="p" aria-label="Normal text" title="Normal text (⌘⌥0)">Text</button>
         <button type="button" class="fmt txt" data-fmt="h1" aria-label="Title" title="Title (⌘⌥1)">H1</button>
         <button type="button" class="fmt txt" data-fmt="h2" aria-label="Heading" title="Heading (⌘⌥2)">H2</button>
         <button type="button" class="fmt txt" data-fmt="h3" aria-label="Subheading" title="Subheading (⌘⌥3)">H3</button>
@@ -8705,6 +8708,8 @@ function paintTools(){
     if(f === "md" || f === "done" || f === "unsaved") return;
     if(st){
       if(/^h[123]$/.test(f)) on = st.block === f;
+      // plain paragraph text: the way back from a heading (or out of a list or quote)
+      else if(f === "p") on = !heading && !st.list && !st.quote && !st.pre;
       else if(f === "b"){ on = st.b && !heading; off = heading || st.pre; }
       else if(f === "i") { on = st.i; off = st.pre; }
       else if(f === "u") { on = st.u; off = st.pre; }
