@@ -1035,21 +1035,31 @@ tr:hover .rowx{opacity:1}
   border:1px solid transparent;
 }
 .modeswitch button.on{border-color:var(--line);color:var(--ink);background:var(--paper)}
+/* reading size for docs, per device: A− / A+ */
+.docsize{display:inline-flex;gap:2px}
+.docsize button{
+  min-width:30px;height:28px;padding:0 6px;border-radius:var(--radius);
+  font-family:var(--serif);font-size:14px;font-weight:600;color:var(--ink-2);
+  border:1px solid var(--line);background:var(--panel);
+}
+.docsize button.up{font-size:17px}
+.docsize button:hover{border-color:var(--accent);color:var(--accent-ink)}
+.docsize button:disabled{opacity:.4;cursor:default;border-color:var(--line);color:var(--ink-2)}
 #edRead{display:none;flex-direction:column;gap:10px;min-height:300px}
 #edRead.on{display:flex}
 .blk{position:relative;padding-right:40px}
-.blk p{margin:0;font-family:var(--serif);font-size:15.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word}
+.blk p{margin:0;font-family:var(--serif);font-size:calc(15.5px * var(--ds,1));line-height:1.62;white-space:pre-wrap;word-break:break-word}
 /* three heading sizes you can tell apart at a glance — the smallest used to be
    bold body text with a different name */
 .blk h1,.blk h2,.blk h3{font-family:var(--serif);color:var(--ink);line-height:1.25}
-.blk h2{margin:18px 0 0;font-size:21px;font-weight:600;letter-spacing:-.012em}
+.blk h2{margin:18px 0 0;font-size:calc(21px * var(--ds,1));font-weight:600;letter-spacing:-.012em}
 /* the smallest heading switches to the UI face, so it never reads as bold text */
-.blk h3{margin:14px 0 0;font-family:var(--ui);font-size:15.5px;font-weight:600;letter-spacing:.005em}
-.blk ul{margin:0;padding-left:20px;font-family:var(--serif);font-size:15.5px;line-height:1.6}
+.blk h3{margin:14px 0 0;font-family:var(--ui);font-size:calc(15.5px * var(--ds,1));font-weight:600;letter-spacing:.005em}
+.blk ul{margin:0;padding-left:20px;font-family:var(--serif);font-size:calc(15.5px * var(--ds,1));line-height:1.6}
 .blk pre{
   margin:0;background:var(--paper);border:1px solid var(--line);
   border-radius:4px;padding:10px 12px;overflow-x:auto;
-  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.5;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:calc(13px * var(--ds,1));line-height:1.5;
 }
 .blkcopy{
   position:absolute;top:0;right:0;width:30px;height:30px;
@@ -1125,7 +1135,7 @@ tr:hover .rowx{opacity:1}
 /* the editor: what's on screen is what gets saved, so anything the markdown
    can't hold (a pasted font size, a colour, a picture) isn't shown either */
 #editor.doc #edRich{
-  font-family:var(--serif);font-size:16px;line-height:1.62;color:var(--ink);
+  font-family:var(--serif);font-size:calc(16px * var(--ds,1));line-height:1.62;color:var(--ink);
   min-height:440px;outline:none;position:relative;
   white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;
   touch-action:manipulation;padding-bottom:18px;
@@ -1134,9 +1144,9 @@ tr:hover .rowx{opacity:1}
 #edRich > :first-child,#edRich > [data-gap="0"]{margin-top:0}
 #edRich > [data-gap="2"],#edRich > [data-gap="3"]{margin-top:1.6em}
 #edRich p,#edRich div{margin-bottom:0}
-#edRich h1{font-size:26px;font-weight:700;line-height:1.25;letter-spacing:-.018em;margin-top:1.1em}
-#edRich h2{font-size:21px;font-weight:600;line-height:1.3;letter-spacing:-.012em;margin-top:1em}
-#edRich h3{font-family:var(--ui);font-size:15.5px;font-weight:600;line-height:1.4;letter-spacing:.005em;margin-top:.9em}
+#edRich h1{font-size:calc(26px * var(--ds,1));font-weight:700;line-height:1.25;letter-spacing:-.018em;margin-top:1.1em}
+#edRich h2{font-size:calc(21px * var(--ds,1));font-weight:600;line-height:1.3;letter-spacing:-.012em;margin-top:1em}
+#edRich h3{font-family:var(--ui);font-size:calc(15.5px * var(--ds,1));font-weight:600;line-height:1.4;letter-spacing:.005em;margin-top:.9em}
 /* a heading always has room above it, even typed straight under a list or a line */
 #edRich > h1[data-gap="0"]{margin-top:1.1em}
 #edRich > h2[data-gap="0"]{margin-top:1em}
@@ -1160,7 +1170,7 @@ tr:hover .rowx{opacity:1}
 #edRich blockquote{margin-left:0;margin-right:0;padding-left:14px;border-left:3px solid var(--quote-bar);color:var(--ink-2)}
 #edRich pre{
   background:var(--code-bg);border-radius:var(--radius);padding:10px 12px;
-  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;line-height:1.5;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:calc(14px * var(--ds,1));line-height:1.5;
   white-space:pre-wrap;
 }
 #edRich code{
@@ -1204,9 +1214,9 @@ tr:hover .rowx{opacity:1}
 }
 
 /* Read mode and the project doc tab: the same blocks, with Copy buttons */
-.blk h1{margin:22px 0 0;font-size:26px;font-weight:700;letter-spacing:-.018em}
+.blk h1{margin:22px 0 0;font-size:calc(26px * var(--ds,1));font-weight:700;letter-spacing:-.018em}
 .blk:first-child h1,.blk:first-child h2,.blk:first-child h3{margin-top:0}
-.blk ol{margin:0;padding-left:22px;font-family:var(--serif);font-size:15.5px;line-height:1.6}
+.blk ol{margin:0;padding-left:22px;font-family:var(--serif);font-size:calc(15.5px * var(--ds,1));line-height:1.6}
 .blk li > ul,.blk li > ol{margin-top:2px}
 .blk li.task{list-style:none}
 .blk li.task > label{display:flex;align-items:flex-start;gap:8px;margin-left:-20px;cursor:pointer}
@@ -1215,7 +1225,7 @@ tr:hover .rowx{opacity:1}
 .blk li.task.done > label > span{color:var(--muted);text-decoration:line-through}
 .blk blockquote{
   margin:0;padding-left:14px;border-left:3px solid var(--quote-bar);color:var(--ink-2);
-  font-family:var(--serif);font-size:15.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word;
+  font-family:var(--serif);font-size:calc(15.5px * var(--ds,1));line-height:1.62;white-space:pre-wrap;word-break:break-word;
 }
 .blkhr{padding-right:0}
 .blk hr{border:0;border-top:1px solid var(--line);margin:10px 0}
@@ -2031,6 +2041,7 @@ body.dragging-now .board{scroll-snap-type:none}
   #edStatus{width:100%;order:9}
   .modeswitch{width:100%;order:-1}
   .modeswitch button{flex:1;padding:8px;font-size:13.5px}
+  .docsize button{min-width:44px;height:38px}
   .blk{padding-right:36px}
   .blk pre{white-space:pre-wrap;word-break:break-word}
 
@@ -2063,7 +2074,7 @@ body.dragging-now .board{scroll-snap-type:none}
   #edRich li[data-task="1"]::before{border-color:transparent;box-shadow:inset 0 0 0 1.5px var(--accent)}
   #edLinkUrl{font-size:16px;min-height:38px}
   #edLinkRow .btn{min-height:38px}
-  #editor.doc #edRich{min-height:44vh;font-size:16px}
+  #editor.doc #edRich{min-height:44vh;font-size:calc(16px * var(--ds,1))}
   /* the footer's selects and buttons would sit on the keyboard next to the bar */
   #editor.typing #edFoot{display:none}
   #edConflict .btn{min-height:38px}
@@ -2326,6 +2337,7 @@ body.dragging-now .board{scroll-snap-type:none}
         <button data-mode="write">Write</button>
         <button data-mode="read">Read</button>
       </span>
+      <span class="docsize" id="edSize"></span>
       <label for="edProj">Filed under</label>
       <select id="edProj" aria-label="Project this note belongs to"></select>
       <select id="edSpace" aria-label="Space this note belongs to"></select>
@@ -4852,6 +4864,38 @@ function fileNote(n, projectId, spaceId){
         (spaceId ? " \u203a " + (spaceName(spaceId) || "") : ""));
 }
 
+/* Reading size for docs, chosen per device (the doc's own text is shared, so
+   size inside a doc is Text / H1 / H2 / H3; this only scales how it's shown).
+   One custom property, --ds, scales every doc font size in the editor, Read
+   mode and the project's doc tabs. */
+var DOC_SIZES = [0.9, 1, 1.15, 1.3, 1.5];
+function docSizeIndex(){
+  var i = parseInt(prefGet("docSize", "1"), 10);
+  return i >= 0 && i < DOC_SIZES.length ? i : 1;
+}
+function applyDocSize(){
+  document.documentElement.style.setProperty("--ds", String(DOC_SIZES[docSizeIndex()]));
+}
+function sizeButtons(box){
+  box.textContent = "";
+  var i = docSizeIndex();
+  [[-1, "A\u2212", "Smaller text"], [1, "A+", "Larger text"]].forEach(function(o){
+    var b = el("button", o[0] > 0 ? "up" : "dn", o[1]);
+    b.type = "button";
+    b.setAttribute("aria-label", o[2]); b.title = o[2];
+    b.disabled = o[0] < 0 ? i === 0 : i === DOC_SIZES.length - 1;
+    b.onmousedown = function(e){ e.preventDefault(); };   // keep the caret where it was
+    b.onclick = function(){
+      prefSet("docSize", String(Math.max(0, Math.min(DOC_SIZES.length - 1, docSizeIndex() + o[0]))));
+      applyDocSize();
+      Array.prototype.forEach.call(document.querySelectorAll(".docsize"), sizeButtons);
+    };
+    box.appendChild(b);
+  });
+  return box;
+}
+applyDocSize();
+
 function renderDocPage(){
   var n = findNote(S.doc);
   if(!n){ S.doc = null; renderBoard(); return; }
@@ -4865,6 +4909,7 @@ function renderDocPage(){
   head.appendChild(meta);
   /* one group, so on a phone the pair wraps together and stays at the right */
   var acts = el("div","docpage-acts");
+  acts.appendChild(sizeButtons(el("span","docsize")));
   if(n.body && n.body.trim()){
     var all = el("button","btn quiet","Copy all");
     all.onclick = function(){ copyText(docPlain(n.body), all); };
@@ -7874,6 +7919,9 @@ function openNote(id, fresh){
   inkTextEl.style.display = "";
   if(!isBoard) inkTextEl.classList.remove("on");
   $("#edModes").style.display = isDoc ? "" : "none";
+  var edSize = $("#edSize");
+  edSize.style.display = isDoc ? "" : "none";
+  if(isDoc) sizeButtons(edSize);
   edBody.placeholder = isDoc
     ? "This is the doc as it's stored: # heading, **bold**, - list, - [ ] checklist. Leave a blank line between prompts."
     : "Write it down.";
