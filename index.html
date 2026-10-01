@@ -1037,10 +1037,14 @@ tr:hover .rowx{opacity:1}
 .modeswitch button.on{border-color:var(--line);color:var(--ink);background:var(--paper)}
 #edRead{display:none;flex-direction:column;gap:10px;min-height:300px}
 #edRead.on{display:flex}
-.blk{position:relative;padding-right:60px}
+.blk{position:relative;padding-right:40px}
 .blk p{margin:0;font-family:var(--serif);font-size:15.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word}
-.blk h2{margin:10px 0 0;font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.01em}
-.blk h3{margin:8px 0 0;font-family:var(--serif);font-size:16.5px;font-weight:600}
+/* three heading sizes you can tell apart at a glance — the smallest used to be
+   bold body text with a different name */
+.blk h1,.blk h2,.blk h3{font-family:var(--serif);color:var(--ink);line-height:1.25}
+.blk h2{margin:18px 0 0;font-size:21px;font-weight:600;letter-spacing:-.012em}
+/* the smallest heading switches to the UI face, so it never reads as bold text */
+.blk h3{margin:14px 0 0;font-family:var(--ui);font-size:15.5px;font-weight:600;letter-spacing:.005em}
 .blk ul{margin:0;padding-left:20px;font-family:var(--serif);font-size:15.5px;line-height:1.6}
 .blk pre{
   margin:0;background:var(--paper);border:1px solid var(--line);
@@ -1048,13 +1052,19 @@ tr:hover .rowx{opacity:1}
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.5;
 }
 .blkcopy{
-  position:absolute;top:2px;right:0;font-size:11.5px;color:var(--muted);
-  border:1px solid var(--line);border-radius:3px;padding:2px 7px;
-  background:var(--panel);opacity:0;
+  position:absolute;top:0;right:0;width:30px;height:30px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);border-radius:var(--radius);opacity:0;
 }
-.blk:hover .blkcopy,.blkcopy:focus{opacity:1}
-.blkcopy:hover{border-color:var(--accent);color:var(--accent-ink)}
-.blkcopy.ok{color:var(--accent-ink);border-color:var(--accent);opacity:1}
+.blkcopy .ico{width:16px;height:16px}
+.blk:hover .blkcopy,.blkcopy:focus-visible{opacity:1}
+.blkcopy:hover{color:var(--accent-ink);background:var(--accent-soft)}
+.blkcopy.ok{color:var(--accent-ink);opacity:1}
+/* touch has no hover: the icons stay, quietly, with a finger-sized target */
+@media (hover:none){
+  .blkcopy{opacity:1;color:var(--faint)}
+  .blkcopy::after{content:"";position:absolute;inset:-4px}
+}
 
 /* ---------- rich docs: toolbar, editor, Read mode ----------
    Every base display:none here sits above the phone block on purpose (CSS trap 1). */
@@ -1078,6 +1088,7 @@ tr:hover .rowx{opacity:1}
 .fmt.on{background:var(--accent-soft);color:var(--accent-ink)}
 .fmt:disabled{opacity:.35;cursor:default;background:none}
 .fmt.md{margin-left:auto;font-family:var(--ui);font-size:12.5px;font-weight:500;color:var(--muted)}
+.fmt.md .mds{display:none}
 .fmt.md.on{color:var(--accent-ink)}
 .fmt.done{display:none}
 /* a conflict pauses saving; the bar is the one thing still in view while typing
@@ -1122,9 +1133,13 @@ tr:hover .rowx{opacity:1}
 #edRich > :first-child,#edRich > [data-gap="0"]{margin-top:0}
 #edRich > [data-gap="2"],#edRich > [data-gap="3"]{margin-top:1.6em}
 #edRich p,#edRich div{margin-bottom:0}
-#edRich h1{font-size:25px;font-weight:600;line-height:1.25;letter-spacing:-.015em;margin-top:1em}
-#edRich h2{font-size:20px;font-weight:600;line-height:1.3;letter-spacing:-.01em;margin-top:.95em}
-#edRich h3{font-size:17px;font-weight:600;line-height:1.35;margin-top:.9em}
+#edRich h1{font-size:26px;font-weight:700;line-height:1.25;letter-spacing:-.018em;margin-top:1.1em}
+#edRich h2{font-size:21px;font-weight:600;line-height:1.3;letter-spacing:-.012em;margin-top:1em}
+#edRich h3{font-family:var(--ui);font-size:15.5px;font-weight:600;line-height:1.4;letter-spacing:.005em;margin-top:.9em}
+/* a heading always has room above it, even typed straight under a list or a line */
+#edRich > h1[data-gap="0"]{margin-top:1.1em}
+#edRich > h2[data-gap="0"]{margin-top:1em}
+#edRich > h3[data-gap="0"]{margin-top:.9em}
 #edRich > h1:first-child,#edRich > h2:first-child,#edRich > h3:first-child{margin-top:0}
 #edRich ul,#edRich ol{padding-left:1.6em;margin-bottom:0}
 #edRich li{margin:.12em 0}
@@ -1188,7 +1203,8 @@ tr:hover .rowx{opacity:1}
 }
 
 /* Read mode and the project doc tab: the same blocks, with Copy buttons */
-.blk h1{margin:12px 0 0;font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.015em;line-height:1.25}
+.blk h1{margin:22px 0 0;font-size:26px;font-weight:700;letter-spacing:-.018em}
+.blk:first-child h1,.blk:first-child h2,.blk:first-child h3{margin-top:0}
 .blk ol{margin:0;padding-left:22px;font-family:var(--serif);font-size:15.5px;line-height:1.6}
 .blk li > ul,.blk li > ol{margin-top:2px}
 .blk li.task{list-style:none}
@@ -1213,7 +1229,8 @@ tr:hover .rowx{opacity:1}
 /* every link in a doc, including bare URLs made live by richText, not only
    [text](url) ones — those were the browser's own blue and purple */
 .blk a{color:var(--accent-ink);text-underline-offset:2px}
-.blk.heading .blkcopy{top:12px}
+/* beside the heading text, not floating above it */
+.blk.heading .blkcopy{top:auto;bottom:-3px}
 
 
 /* ---------- whiteboard ---------- */
@@ -1842,8 +1859,7 @@ body.dragging-now .board{scroll-snap-type:none}
   .pmeta-line{gap:6px 12px;font-size:13px}
   .docpage-head h2{font-size:20px}
   .docpage-head .btn{min-height:38px;padding:7px 14px}
-  .docpage .blk{padding-right:0}
-  .docpage .blkcopy{position:static;display:block;margin-top:7px;padding:7px 12px;font-size:13px}
+  .docpage .blk{padding-right:36px}
 
   /* board: one column per screen, snapped */
   .board{
@@ -2014,25 +2030,26 @@ body.dragging-now .board{scroll-snap-type:none}
   #edStatus{width:100%;order:9}
   .modeswitch{width:100%;order:-1}
   .modeswitch button{flex:1;padding:8px;font-size:13.5px}
-  .blk{padding-right:0}
+  .blk{padding-right:36px}
   .blk pre{white-space:pre-wrap;word-break:break-word}
-  .blkcopy{position:static;display:block;margin-top:7px;padding:7px 12px;font-size:13px}
 
   /* ---- rich docs, phone ----
-     one sideways-scrolling strip, bled to the sheet edges; margins and padding
-     written out longhand so nothing an earlier block added is silently dropped */
+     Every tool in view, on two rows bled to the sheet edges. It was one strip
+     that scrolled sideways, and lists, quotes and code sat off-screen where
+     nobody found them. Margins and padding written out longhand so nothing an
+     earlier block added is silently dropped. */
   #editor.doc.writing #edToolsWrap{margin-left:-15px;margin-right:-15px}
   #edTools{
-    flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
-    padding-left:8px;padding-right:8px;gap:1px;
+    display:grid;grid-template-columns:repeat(11,minmax(0,1fr));
+    padding-left:6px;padding-right:6px;gap:2px 0;
   }
-  #edTools::-webkit-scrollbar{display:none}
-  #editor.doc.writing #edToolsWrap::after{
-    content:"";position:absolute;top:1px;right:0;bottom:1px;width:24px;pointer-events:none;
-    background:linear-gradient(to right,transparent,var(--panel));
-  }
-  #editor.kbd #edToolsWrap::after{display:none}
-  .fmt{min-width:40px;height:40px}
+  .fmtsep{display:none}
+  .fmt{min-width:0;width:100%;height:38px;padding:0}
+  .fmt.md,.fmt.done{font-size:13px;margin-left:0}
+  .fmt.md .mdl{display:none}
+  .fmt.md .mds{display:inline}
+  #editor.conflict .fmt.unsaved{grid-column:span 3;margin-left:0}
+  #edTools.linking #edLinkRow{grid-column:1 / -1}
   .fmt.done{display:inline-flex;color:var(--accent-ink)}
   /* the checklist box stays 16px to look at but takes a 38px finger: the extra is
      a transparent border, the visible edge an inset ring */
@@ -2042,7 +2059,6 @@ body.dragging-now .board{scroll-snap-type:none}
     box-shadow:inset 0 0 0 1.5px var(--muted);
   }
   #edRich li[data-task="1"]::before{border-color:transparent;box-shadow:inset 0 0 0 1.5px var(--accent)}
-  .fmt.md{margin-left:6px}
   #edLinkUrl{font-size:16px;min-height:38px}
   #edLinkRow .btn{min-height:38px}
   #editor.doc #edRich{min-height:44vh;font-size:16px}
@@ -2164,6 +2180,7 @@ body.dragging-now .board{scroll-snap-type:none}
   <symbol id="i-mark" viewBox="0 0 24 24"><path d="M15.2 4.3a2 2 0 0 1 2.8 0l1.7 1.7a2 2 0 0 1 0 2.8l-7.6 7.6-4.5-4.5Z"/><path d="m7.6 11.9-2.3 2.3.2 2.1-2 2 3.1.6 1.1-1.1 2.1.2 2.3-2.3"/><path d="M13.5 20.5h7"/></symbol>
   <symbol id="i-undo" viewBox="0 0 24 24"><path d="M8.5 14 4 9.5 8.5 5"/><path d="M4 9.5h10a5.5 5.5 0 0 1 0 11h-3.5"/></symbol>
   <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15.5 14 20 9.5 15.5 5"/><path d="M20 9.5H10a5.5 5.5 0 0 0 0 11h3.5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="2.2"/><path d="M15.5 5.5V5A1.5 1.5 0 0 0 14 3.5H5A1.5 1.5 0 0 0 3.5 5v9A1.5 1.5 0 0 0 5 15.5h.5"/></symbol>
 </svg>
 
 <div id="shell">
@@ -2281,7 +2298,7 @@ body.dragging-now .board{scroll-snap-type:none}
         <button type="button" class="fmt" data-fmt="undo" aria-label="Undo" title="Undo (⌘Z)"><svg class="ico" aria-hidden="true"><use href="#i-undo"/></svg></button>
         <button type="button" class="fmt" data-fmt="redo" aria-label="Redo" title="Redo (⌘⇧Z)"><svg class="ico" aria-hidden="true"><use href="#i-redo"/></svg></button>
         <button type="button" class="fmt unsaved" data-fmt="unsaved" title="Someone else changed this doc: pick a version"><svg class="ico sm" aria-hidden="true"><use href="#i-alert"/></svg><span>Not saved</span></button>
-        <button type="button" class="fmt md" data-fmt="md" aria-pressed="false" title="Show the markdown this doc is stored as">Markdown</button>
+        <button type="button" class="fmt md" data-fmt="md" aria-pressed="false" title="Show the markdown this doc is stored as"><span class="mdl">Markdown</span><span class="mds">MD</span></button>
         <button type="button" class="fmt done" data-fmt="done">Done</button>
         <div id="edLinkRow">
           <input id="edLinkUrl" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false"
@@ -8238,6 +8255,13 @@ function docPlain(body){ return window.SlateDocMd ? SlateDocMd.plain(body) : Str
 
 function copyText(text, btn){
   function ok(){
+    if(btn.dataset.icon){
+      // an icon button shows a tick for a moment instead of swapping in a word
+      btn.textContent = ""; btn.appendChild(ico("check"));
+      btn.classList.add("ok");
+      setTimeout(function(){ btn.textContent = ""; btn.appendChild(ico(btn.dataset.icon)); btn.classList.remove("ok"); }, 1300);
+      return;
+    }
     var old = btn.dataset.label || btn.textContent;
     btn.dataset.label = old;
     btn.textContent = "Copied";
@@ -8308,8 +8332,11 @@ function paintDocBlocks(box, text, opts){
       var sec = M.sectionText(blocks, u.at);
       if(sec !== M.plainRuns(blocks[u.at].runs)) copy = { label: "Copy section", text: sec };
     } else if(u.t !== "hr") copy = { label: "Copy", text: M.unitText(u) };
+    /* a small icon in the block's corner, not a full-width button under every
+       paragraph: on a phone those made a doc read like a form */
     if(copy){
-      var cp = el("button","blkcopy", copy.label);
+      var cp = icoBtn("blkcopy", "copy", copy.label);
+      cp.dataset.icon = "copy";
       cp.onclick = function(){ copyText(copy.text, cp); };
       w.appendChild(cp);
     }
@@ -8351,7 +8378,9 @@ function applyDocMode(){
   var md = edTools.querySelector('[data-fmt="md"]');
   md.classList.toggle("on", isDoc && !rich);
   md.setAttribute("aria-pressed", isDoc && !rich ? "true" : "false");
-  md.textContent = rich ? "Markdown" : "Formatted";
+  md.textContent = "";
+  md.appendChild(el("span","mdl", rich ? "Markdown" : "Formatted"));
+  md.appendChild(el("span","mds", rich ? "MD" : "Aa"));   // the phone's two-row bar has room for a short label
   md.title = rich ? "Show the markdown this doc is stored as" : "Back to the formatted editor";
   if(read){ flushNote(); renderDocRead(); }
   paintTools();
@@ -8602,9 +8631,11 @@ function onRichInput(e){
       if(ed.after.task){ if(!li.hasAttribute("data-task") || li.textContent === "") li.setAttribute("data-task", "0"); }
       else li.removeAttribute("data-task");
     } else if(r){
-      // Return on an empty item ended the list; the line under it is still that block
+      /* Return on an empty item ended the list: what comes next is a new
+         paragraph with the usual space above it. Glued tight under the list it
+         looked like a stray line, and a heading typed there had no room. */
       var top = topAt(r.startContainer);
-      if(top && top !== ed.after.top && /^(P|DIV)$/.test(top.nodeName)) setGap(top, 0);
+      if(top && top !== ed.after.top && /^(P|DIV)$/.test(top.nodeName)) setGap(top, null);
     }
   }
   ed.after = null;
