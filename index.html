@@ -76,6 +76,8 @@
   --shadow-md:0 10px 26px rgba(17,20,26,.14);
   --shadow-lg:0 18px 44px rgba(17,20,26,.22);
   --radius:5px;
+  --radius-lg:14px;   /* cards, columns, sheets and the sidebar panel */
+  --radius-md:9px;    /* task cards, notes, chips of content */
   --ui:"Archivo",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --serif:"Newsreader",Georgia,"Times New Roman",serif;
 }
@@ -221,11 +223,13 @@ button{cursor:pointer;background:none;border:0;padding:0}
 #railScrim{display:none}
 
 /* ---------- rail ---------- */
+/* a floating panel on the page, as in the reference: it stays put while the
+   page scrolls under the top bar */
 #rail{
-  border-right:1px solid var(--line);
-  background:var(--panel);
-  padding:14px 0 28px;
-  overflow-y:auto;
+  margin:12px 0 12px 12px;border:1px solid var(--line-soft);border-radius:var(--radius-lg);
+  background:var(--panel);box-shadow:var(--shadow);
+  padding:16px 0 20px;overflow-y:auto;
+  align-self:start;position:sticky;top:64px;max-height:calc(100vh - 76px);max-height:calc(100dvh - 76px);
 }
 .rail-sec{margin-bottom:22px}
 .rail-head{
@@ -376,7 +380,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
      big monitor, but never gets too narrow to read a card */
   flex:1 1 0;min-width:216px;max-width:300px;
   background:var(--sunken);
-  border:1px solid var(--line);border-radius:var(--radius);
+  border:1px solid var(--line);border-radius:var(--radius-lg);
   display:flex;flex-direction:column;max-height:calc(100dvh - 230px);
 }
 .col.over{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
@@ -384,7 +388,9 @@ button{cursor:pointer;background:none;border:0;padding:0}
   display:flex;align-items:center;gap:8px;padding:9px 11px;
   border-bottom:1px solid var(--line-soft);
 }
-.col-head .bar{width:18px;height:3px;border-radius:2px;background:var(--accent)}
+.col-head .cdot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;background:var(--faint)}
+.col-head .cdot.s-doing{background:var(--warn)}
+.col-head .cdot.s-done{background:var(--good)}
 .col-head .nm{font-size:13px;font-weight:500}
 .col-head .n{margin-left:auto;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 .col-body{padding:8px;display:flex;flex-direction:column;gap:7px;overflow-y:auto;min-height:44px}
@@ -398,7 +404,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
 .card{
   position:relative;
   background:var(--raised);border:1px solid var(--line);
-  border-radius:var(--radius);padding:8px 10px 8px 22px;cursor:pointer;
+  border-radius:var(--radius-md);padding:8px 10px 8px 22px;cursor:pointer;
   box-shadow:var(--shadow);
 }
 .card .grip{
@@ -406,7 +412,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
   display:flex;align-items:center;justify-content:center;
   color:var(--faint);
   cursor:grab;touch-action:none;
-  border-radius:var(--radius) 0 0 var(--radius);
+  border-radius:var(--radius-md) 0 0 var(--radius-md);
 }
 .card .grip:hover{opacity:1;background:var(--line-soft)}
 .card .grip:active{cursor:grabbing}
@@ -465,6 +471,14 @@ body.dragging-now{user-select:none;-webkit-user-select:none}
 .chip.due{border:1px solid var(--line);background:transparent}
 .chip.due.late{color:var(--danger);border-color:var(--danger)}
 .card .who{width:19px;height:19px;border-radius:50%;margin-left:auto;display:block}
+.due2{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.due2 .ico{width:12px;height:12px}
+.due2.soon{color:var(--accent-ink)}
+.due2.late{color:var(--danger);font-weight:500}
+.cprog{display:flex;align-items:center;gap:8px;margin-top:8px}
+.cprog-bar{flex:1;height:5px;border-radius:3px;background:var(--line-soft);overflow:hidden}
+.cprog-bar span{display:block;height:100%;border-radius:3px;background:var(--good)}
+.cprog-n{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
 .drop-line{height:2px;background:var(--accent);border-radius:2px;margin:-4px 0}
 
 /* ---------- list ---------- */
@@ -501,7 +515,7 @@ tr:hover .rowx{opacity:1}
 }
 .note{
   background:var(--note);border:1px solid var(--note-edge);
-  border-radius:3px 12px 3px 3px;padding:12px 13px 11px;
+  border-radius:var(--radius-md) 16px var(--radius-md) var(--radius-md);padding:12px 13px 11px;
   text-align:left;width:100%;min-height:104px;cursor:pointer;
   display:flex;flex-direction:column;gap:6px;
   box-shadow:var(--shadow);
@@ -770,7 +784,7 @@ tr:hover .rowx{opacity:1}
 .fitem{
   display:block;width:100%;text-align:left;cursor:pointer;
   background:var(--note);border:1px solid var(--note-edge);
-  border-radius:3px 12px 3px 3px;padding:11px 13px 9px;margin-bottom:8px;
+  border-radius:var(--radius-md) 16px var(--radius-md) var(--radius-md);padding:11px 13px 9px;margin-bottom:8px;
   box-shadow:var(--shadow);
 }
 .fitem:hover{border-color:var(--accent)}
@@ -847,7 +861,7 @@ tr:hover .rowx{opacity:1}
 .calwrap{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
 .calgrid{
   display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
-  border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+  border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;
   background:var(--line);gap:1px;
 }
 .caldow{
@@ -908,7 +922,7 @@ tr:hover .rowx{opacity:1}
 @media (min-width:1100px){ .calwrap{grid-template-columns:minmax(0,1fr) 288px} }
 
 .calpanel{
-  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-lg);
   padding:13px 12px 10px;min-width:0;
 }
 .cphead{padding:0 2px 8px}
@@ -999,7 +1013,7 @@ tr:hover .rowx{opacity:1}
 #schedDlg.on{display:block}
 .sbox{
   max-width:470px;margin:0 auto;background:var(--panel);
-  border:1px solid var(--line);border-radius:var(--radius);
+  border:1px solid var(--line);border-radius:var(--radius-lg);
   box-shadow:var(--shadow-lg);padding:20px 22px 18px;
 }
 .sbox h3{margin:0 0 14px;font-size:16px;font-weight:600;letter-spacing:-.01em}
@@ -1500,7 +1514,7 @@ tr:hover .rowx{opacity:1}
 /* stat tiles: proportional figures at this size — tabular digits look loose */
 .dtile{
   display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;text-align:left;
-  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-lg);
   padding:12px 14px 13px;
 }
 .dtile:hover{border-color:var(--accent)}
@@ -1515,7 +1529,7 @@ tr:hover .rowx{opacity:1}
 /* cards */
 .wcard{
   margin:0;min-width:0;background:var(--panel);border:1px solid var(--line);
-  border-radius:var(--radius);padding:14px 16px 12px;scroll-margin-top:66px;
+  border-radius:var(--radius-lg);padding:14px 16px 12px;scroll-margin-top:66px;
 }
 .wcard:focus{outline:none}
 .whead{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
@@ -1780,6 +1794,60 @@ body.dragging-now .board{scroll-snap-type:none}
 #bottomnav .bn.on .ic{transform:translateY(-1px)}
 
 
+/* ---------- organisation (the Fernly-style layout) ---------- */
+/* the first dashboard stat, filled with the accent */
+.dtile.hero{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.dtile.hero .tl,.dtile.hero .tl .ico,.dtile.hero .tv,.dtile.hero .ts,.dtile.hero .ts .up,.dtile.hero .ts .down{color:var(--on-accent)}
+.dtile.hero:hover{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+/* sidebar: Menu / Projects / General, captions in small caps, rows as soft pills */
+.rail-head.rail-cap{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);padding-left:18px}
+.rail-item{
+  width:calc(100% - 16px);margin:1px 8px;padding:7px 10px;border-radius:9px;border-left:0;position:relative;
+}
+.rail-item.on{background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
+.rail-item.on::before{content:"";position:absolute;left:-8px;top:7px;bottom:7px;width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
+.rail-item .rico{width:17px;height:17px;flex:0 0 auto;color:var(--muted)}
+.rail-item.on .rico{color:var(--accent-ink)}
+.rail-item .ct{
+  min-width:20px;padding:1px 6px;border-radius:999px;text-align:center;
+  background:var(--panel-2);color:var(--ink-2);font-size:11px;font-weight:600;
+}
+.rail-item .ct.crit{background:var(--danger-soft);color:var(--danger)}
+.rail-item.on .ct{background:var(--panel);color:var(--accent-ink)}
+.rail-item.on .ct.crit{background:var(--danger-soft);color:var(--danger)}
+.rail-new{margin:2px 8px 4px}
+/* page header: filter pills, and on Tasks the Board | List switch at its end */
+.taskbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pills{display:flex;gap:4px;flex-wrap:wrap;padding:3px;border-radius:999px;background:var(--panel);border:1px solid var(--line-soft)}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 13px;border-radius:999px;
+  font-size:13px;color:var(--ink-2);
+}
+.pill:hover{color:var(--ink);background:var(--panel-2)}
+.pill.on{background:var(--accent);color:var(--on-accent);font-weight:500}
+.pill .pn{font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.pill.on .pn{color:var(--on-accent)}
+#mainhead > .pills{margin-top:14px;width:max-content;max-width:100%}
+.viewseg{margin-left:auto;width:auto}
+.viewseg button{padding:6px 12px}
+.btn.withico{display:inline-flex;align-items:center;gap:6px}
+.btn.withico .ico{width:14px;height:14px}
+/* settings */
+.setgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:980px}
+.setcard .whead{margin-bottom:12px}
+.setcard h3{margin:0;font-size:15px;font-weight:600}
+.setlbl{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin:12px 0 7px}
+.setlbl:first-of-type{margin-top:0}
+.setcard .seg{max-width:360px}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px}
+.setnotif p{margin:0 0 10px;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
+.setnotif .nrow{display:flex;gap:8px;flex-wrap:wrap}
+.setwho{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.setwho img{width:40px;height:40px;border-radius:50%}
+.setwho b{display:block;font-size:15px}
+.setwho span{font-size:12.5px;color:var(--muted)}
+.btn.danger{color:var(--danger)}
+
 /* ---------- motion ----------
    Movement only says something happened: you arrived somewhere, something
    opened, a number changed. Slate rebuilds the page on every change the other
@@ -1892,7 +1960,13 @@ html.theming *,html.theming *::before,html.theming *::after{
 /* ---------- phone ---------- */
 @media (max-width:720px){
   #body{grid-template-columns:1fr}
+  .setgrid{grid-template-columns:minmax(0,1fr)}
+  .pills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;max-width:100%;-webkit-overflow-scrolling:touch}
+  .pills::-webkit-scrollbar{display:none}
+  .pill{min-height:36px;flex:0 0 auto;white-space:nowrap}
+  .taskbar{gap:8px}
   #rail{
+    margin:0;border:0;border-radius:0;max-height:none;align-self:auto;
     position:fixed;top:0;left:0;bottom:0;width:min(84vw,300px);z-index:50;
     transform:translateX(-100%);transition:transform .2s ease;
     /* no shadow while closed: its blur spilled a grey band down the page's left edge */
@@ -2273,6 +2347,9 @@ html.theming *,html.theming *::before,html.theming *::after{
   <symbol id="i-mark" viewBox="0 0 24 24"><path d="M15.2 4.3a2 2 0 0 1 2.8 0l1.7 1.7a2 2 0 0 1 0 2.8l-7.6 7.6-4.5-4.5Z"/><path d="m7.6 11.9-2.3 2.3.2 2.1-2 2 3.1.6 1.1-1.1 2.1.2 2.3-2.3"/><path d="M13.5 20.5h7"/></symbol>
   <symbol id="i-undo" viewBox="0 0 24 24"><path d="M8.5 14 4 9.5 8.5 5"/><path d="M4 9.5h10a5.5 5.5 0 0 1 0 11h-3.5"/></symbol>
   <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15.5 14 20 9.5 15.5 5"/><path d="M20 9.5H10a5.5 5.5 0 0 0 0 11h3.5"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.6-1.5L14.2 2.5h-4l-.3 2.6A7.7 7.7 0 0 0 7.3 6.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.6 1.5l.3 2.6h4l.3-2.6a7.7 7.7 0 0 0 2.6-1.5l2.3 1 2-3.4Z"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".6"/></symbol>
+  <symbol id="i-tasks" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.2"/><path d="m8 12.2 2.8 2.8L16.2 9.4"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="2.2"/><path d="M15.5 5.5V5A1.5 1.5 0 0 0 14 3.5H5A1.5 1.5 0 0 0 3.5 5v9A1.5 1.5 0 0 0 5 15.5h.5"/></symbol>
 </svg>
 
@@ -2284,7 +2361,7 @@ html.theming *,html.theming *::before,html.theming *::after{
     <button id="bell" aria-label="Notification briefs" title="Notification briefs">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
     </button>
-    <button id="whoami" aria-haspopup="true" aria-label="Account and appearance" title="Account and appearance"></button>
+    <button id="whoami" aria-label="Settings" title="Settings"></button>
   </header>
 
   <div id="banner"></div>
@@ -2318,17 +2395,17 @@ html.theming *,html.theming *::before,html.theming *::after{
     <button class="bn" data-nav="dash">
       <span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-dash"/></svg></span><span class="bl">Dashboard</span>
     </button>
-    <button class="bn" data-nav="capture">
-      <span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-capture"/></svg></span><span class="bl">Capture</span>
-    </button>
-    <button class="bn" data-nav="board">
-      <span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-board"/></svg></span><span class="bl">Board</span>
+    <button class="bn" data-nav="tasks">
+      <span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-tasks"/></svg></span><span class="bl">Tasks</span>
     </button>
     <button class="bn" data-nav="calendar">
       <span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg></span><span class="bl">Calendar</span>
     </button>
+    <button class="bn" data-nav="notes">
+      <span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-notes"/></svg></span><span class="bl">Notes</span>
+    </button>
     <button class="bn" data-nav="projects">
-      <span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg></span><span class="bl">Projects</span>
+      <span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg></span><span class="bl">More</span>
     </button>
   </nav>
 </div>
@@ -3129,7 +3206,7 @@ function spacesOf(projectId){
     .sort(function(a,b){ return (a.order||0)-(b.order||0); });
 }
 /* views that aren't a project: anything else in S.sel is a project id */
-var VIRTUAL_VIEWS = ["dash","all","capture","unfiled","today"];
+var VIRTUAL_VIEWS = ["dash","all","capture","unfiled","today","settings"];
 function isVirtualView(sel){ return VIRTUAL_VIEWS.indexOf(sel) !== -1; }
 function currentProject(){
   return isVirtualView(S.sel) ? null : S.sel;
@@ -3159,8 +3236,40 @@ function visibleTasks(){
     if(S.space && t.spaceId !== S.space) return false;
     if(q && (String(t.title||"") + " " + String(t.notes||"")).toLowerCase().indexOf(q) === -1) return false;
     if(dr && !drillMatch(t, dr)) return false;
+    if(!taskFilterMatch(t)) return false;
     return true;
   }).sort(function(a,b){ return (a.order||0) - (b.order||0); });
+}
+/* The Tasks pills. They apply to the board and the list only — the calendar
+   and the dashboard keep their own views — and are judged on Denver's date. */
+function taskFilterMatch(t, f){
+  if(f === undefined){
+    if(S.tab !== "board" && S.tab !== "list") return true;
+    f = S.taskFilter || "all";
+  }
+  if(f === "all") return true;
+  if(f === "mine") return !!S.uid && t.assignee === S.uid;
+  var today = SlateBrief.denverToday().ymd;
+  if(f === "late") return !!t.due && t.due < today && !taskDone(t);
+  if(f === "week"){
+    if(!t.due) return false;
+    var end = parseYmd(today); end.setDate(end.getDate() + 6);
+    return t.due >= today && t.due <= ymd(end);
+  }
+  return true;
+}
+/* open work behind each pill, for the counts beside them */
+function taskFilterCounts(){
+  var keep = S.taskFilter;
+  S.taskFilter = "all";
+  var base = visibleTasks().filter(function(t){ return !taskDone(t); });
+  S.taskFilter = keep;
+  return {
+    all: base.length,
+    mine: base.filter(function(t){ return taskFilterMatch(t, "mine"); }).length,
+    week: base.filter(function(t){ return taskFilterMatch(t, "week"); }).length,
+    late: base.filter(function(t){ return taskFilterMatch(t, "late"); }).length
+  };
 }
 /* The lens rule is the morning brief's: someone's view is theirs plus nobody's. */
 function drillMatch(t, dr){
@@ -3181,6 +3290,13 @@ function visibleNotes(){
       if(S.space && n.spaceId !== S.space) return false;
     }
     if(S.tag && tagsOf(n).indexOf(S.tag) === -1) return false;
+    /* the Docs & Notes pills */
+    if(S.sel === "capture" && S.noteFilter && S.noteFilter !== "all"){
+      var k = noteKind(n);
+      if(S.noteFilter === "docs" && k !== "doc") return false;
+      if(S.noteFilter === "notes" && k === "doc") return false;
+      if(S.noteFilter === "unfiled" && n.projectId) return false;
+    }
     if(q){
       var hay = (String(n.title||"") + " " + String(n.body||"") +
                  (noteKind(n) === "doc" ? " " + docPlain(n.body) : "")).toLowerCase();
@@ -3311,7 +3427,7 @@ function deleteProject(id){
 }
 
 /* due is optional: the calendar creates a task on the day it was added from */
-function createTask(title, status, projectId, spaceId, noteId, due){
+function createTask(title, status, projectId, spaceId, noteId, due, extra){
   if(!writable() || !String(title||"").trim()) return;
   var id = uid();
   status = status || firstColumnId(projectId, spaceId);
@@ -3332,6 +3448,10 @@ function createTask(title, status, projectId, spaceId, noteId, due){
     createdBy: S.uid || null,
     updatedAt: nowISO()
   };
+  if(extra){
+    if(extra.assignee) doc.assignee = extra.assignee;
+    if(extra.notes) doc.notes = extra.notes;
+  }
   /* typed straight into the Done column's "Add a task": finished now, and without
      the stamp it would never appear in the evening wrap or the history */
   if(status === doneColumnId(projectId, spaceId)){ doc.completedAt = nowISO(); doc.completedBy = S.uid || null; }
@@ -3415,7 +3535,7 @@ function noteToTask(n){
   if(!writable()) return;
   createTask(taskTitleFor(n), null, n.projectId || null, n.spaceId || null, n.id || null);
   toast(n.projectId ? "Added to " + (projName(n.projectId) || "the board")
-                    : "Added to All projects — file it into a project from there");
+                    : "Added to Tasks — file it into a project from there");
 }
 
 /* ---- columns ---- */
@@ -3572,23 +3692,36 @@ function deleteNote(id){
 function renderRail(){
   railEl.textContent = "";
 
-  /* Counts that mean something, and ignore the dashboard's lens: every task ever
-     made (the old Dashboard number) and every note (the old Capture one) only
-     ever go up. Overdue is the number that wants you; Capture's meaningful count
-     is already on Unfiled notes, so it carries none. */
+  /* Organised by what you're doing — Menu, then the companies EZHD runs, then
+     General — rather than one long list of projects with everything else
+     tucked into tabs. Counts that mean something: overdue on the Dashboard,
+     open work on Tasks and each project, chases due on Prospects. */
   var todayS = SlateBrief.denverToday().ymd, overdue = 0, openAll = 0;
   S.tasks.forEach(function(t){
     if(taskDone(t)) return;
     openAll++;
     if(t.due && t.due < todayS) overdue++;
   });
-  var top = el("div","rail-sec");
-  top.appendChild(railItem("dash", "Dashboard", overdue || null, "dash", overdue + " overdue", true));
-  top.appendChild(railItem("capture", "Capture", null, "capture"));
-  railEl.appendChild(top);
+  var chases = openProspects().filter(function(p){ return p.next && p.next <= todayS; }).length;
+  var onAll = S.sel === "all" && !S.q;
+
+  var menu = el("div","rail-sec");
+  menu.appendChild(el("div","rail-head rail-cap", "Menu"));
+  menu.appendChild(navItem({ label:"Dashboard", icon:"dash", on: S.sel === "dash",
+    count: overdue || null, crit: true, countLabel: overdue + " overdue", go: function(){ goView("dash"); } }));
+  menu.appendChild(navItem({ label:"Tasks", icon:"tasks", on: onAll && (S.tab === "board" || S.tab === "list"),
+    count: openAll || null, countLabel: openAll + " open", go: function(){ goView("all", S.taskView || "board"); } }));
+  menu.appendChild(navItem({ label:"Calendar", icon:"calendar", on: onAll && S.tab === "calendar",
+    go: function(){ goView("all", "calendar"); } }));
+  menu.appendChild(navItem({ label:"Docs & Notes", icon:"notes", on: S.sel === "capture" || S.sel === "unfiled",
+    go: function(){ goView("capture"); } }));
+  menu.appendChild(navItem({ label:"Prospects", icon:"target", on: onAll && S.tab === "prospects",
+    count: chases || null, crit: true, countLabel: chases + " to chase",
+    go: function(){ goView("all", "prospects"); } }));
+  railEl.appendChild(menu);
 
   var ps = el("div","rail-sec");
-  var h = el("div","rail-head");
+  var h = el("div","rail-head rail-cap");
   h.appendChild(el("span",null,"Projects"));
   if(writable()){
     var add = el("button",null,"+");
@@ -3598,8 +3731,6 @@ function renderRail(){
     h.appendChild(add);
   }
   ps.appendChild(h);
-  /* first under its heading: it's the parent of every row below it */
-  ps.appendChild(railItem("all", "All projects", openAll, "all", openAll + " open"));
 
   if(S.newProject && writable()){
     var wrap = el("div","rail-new");
@@ -3645,20 +3776,24 @@ function renderRail(){
   });
   railEl.appendChild(ps);
 
-  var ns = el("div","rail-sec");
-  var nh = el("div","rail-head");
-  nh.appendChild(el("span",null,"Notes"));
-  if(writable()){
-    var na = el("button",null,"+");
-    na.title = "New unfiled note";
-    na.setAttribute("aria-label","New unfiled note");
-    na.onclick = function(){ createNote(null); };
-    nh.appendChild(na);
+  var gen = el("div","rail-sec");
+  gen.appendChild(el("div","rail-head rail-cap", "General"));
+  gen.appendChild(navItem({ label:"Settings", icon:"gear", on: S.sel === "settings", go: function(){ goView("settings"); } }));
+  gen.appendChild(navItem({ label:"Sign out", icon:"logout", on:false, go: signOutGuarded }));
+  railEl.appendChild(gen);
+}
+/* a Menu or General row: a page that isn't one project */
+function navItem(o){
+  var b = el("button","rail-item" + (o.on ? " on" : ""));
+  if(o.on) b.setAttribute("aria-current","page");
+  b.appendChild(ico(o.icon, "rico"));
+  b.appendChild(el("span","lbl", o.label));
+  if(o.count != null){
+    b.appendChild(el("span","ct" + (o.crit ? " crit" : ""), String(o.count)));
+    if(o.countLabel) b.setAttribute("aria-label", o.label + ", " + o.countLabel);
   }
-  ns.appendChild(nh);
-  var unfiled = S.notes.filter(function(n){ return !n.projectId; }).length;
-  ns.appendChild(railItem("unfiled","Unfiled notes", unfiled, "notes"));
-  railEl.appendChild(ns);
+  b.onclick = function(){ closeRail(); o.go(); };
+  return b;
 }
 /* mark: "dot" for a project's colour, else an icon from the sprite */
 function railItem(id, label, count, mark, countLabel, crit){
@@ -3677,7 +3812,9 @@ function railItem(id, label, count, mark, countLabel, crit){
     b.appendChild(el("span","ct" + (crit ? " crit" : ""), String(count)));
     if(countLabel) b.setAttribute("aria-label", label + ", " + countLabel);
   }
-  b.onclick = function(){ goView(id); };
+  /* from a page that isn't a project, a project opens on its board (or list),
+     not on whatever the Calendar or Prospects page left in S.tab */
+  b.onclick = function(){ goView(id, isVirtualView(S.sel) ? (S.taskView || "board") : null); };
   return b;
 }
 /* Every change of view goes through here — the rail, the bottom bar, every
@@ -3685,6 +3822,8 @@ function railItem(id, label, count, mark, countLabel, crit){
    space or a drill chip from the view before, or a Prospects tab somewhere that
    has none. */
 function goView(sel, tab, drill){
+  if(sel === "all" && tab === "notes"){ sel = "capture"; tab = null; }
+  if(sel === "all" && (tab === "board" || tab === "list")) S.taskView = tab;
   if(S.sel !== sel) S.space = null;
   S.sel = sel;
   S.doc = null;
@@ -3706,10 +3845,12 @@ function renderHead(){
   var row = el("div","title-row");
 
   var isProject = !isVirtualView(S.sel);
+  /* one page per job: "all" is Tasks, Calendar or Prospects by its tab */
   var label = isProject ? (projName(S.sel) || "Untitled project")
             : S.sel === "dash" ? "Dashboard"
-            : S.sel === "all" ? "All projects"
-            : S.sel === "capture" ? "Capture"
+            : S.sel === "all" ? (S.tab === "calendar" ? "Calendar" : S.tab === "prospects" ? "Prospects" : "Tasks")
+            : S.sel === "capture" ? "Docs & Notes"
+            : S.sel === "settings" ? "Settings"
             : S.sel === "today" ? "Today" : "Unfiled notes";
 
   var title;
@@ -3731,7 +3872,28 @@ function renderHead(){
   row.appendChild(title);
 
   var actions = el("div","head-actions");
-  if(writable()){
+  if(writable() && !S.q){
+    /* the page's own action, top right, as on every page of the reference */
+    if(S.sel === "dash" || (S.sel === "all" && (S.tab === "board" || S.tab === "list")) ||
+       (isProject && !S.doc && (S.tab === "board" || S.tab === "list"))){
+      var nt = el("button","btn primary withico");
+      nt.appendChild(ico("plus","sm")); nt.appendChild(document.createTextNode("New task"));
+      nt.onclick = function(){ openNewTask(isProject ? S.sel : null, isProject ? S.space : null); };
+      actions.appendChild(nt);
+    }
+    if(S.sel === "dash"){
+      var np = el("button","btn withico");
+      np.appendChild(ico("plus","sm")); np.appendChild(document.createTextNode("New project"));
+      np.onclick = function(){ S.newProject = true; S.newProjectText = ""; openRail(); render(); };
+      actions.appendChild(np);
+    }
+    if(S.sel === "capture" || S.sel === "unfiled"){
+      [["doc","New doc"],["board","New whiteboard"]].forEach(function(k, i){
+        var nb = el("button","btn" + (i === 0 ? " primary" : ""), k[1]);
+        nb.onclick = function(){ createNote(null, k[0]); };
+        actions.appendChild(nb);
+      });
+    }
     /* not "dash": it has no tabs, and a saved Notes tab would put these on it */
     if(S.sel !== "capture" && S.sel !== "today" && S.sel !== "dash" && !S.doc && (S.tab === "notes" || S.sel === "unfiled")){
       var target = isProject ? S.sel : null;
@@ -3751,13 +3913,24 @@ function renderHead(){
     if(!S.q) renderDashHead();
     return;
   }
+  if(S.sel === "settings"){
+    headEl.appendChild(el("div","meta","How Slate looks and what it sends — set on this device."));
+    return;
+  }
   if(S.sel === "all"){
     headEl.appendChild(el("div","meta",
-      "Every project's board, list, calendar, notes and prospects."));
+      S.tab === "calendar" ? "Due dates and repeating items across every project."
+      : S.tab === "prospects" ? "Who you're talking to and who to chase next. Win one and it becomes a project."
+      : "Every project's work in one place. Drag a card to another column, or tick it done."));
+    if(S.tab === "board" || S.tab === "list") headEl.appendChild(taskBar(true));
+    if(S.drill) headEl.appendChild(drillChip());
+    return;
   }
   if(S.sel === "capture"){
     headEl.appendChild(el("div","meta",
-      "Everything either of you has captured, newest first. Tag as you type; file it into a project whenever."));
+      "Everything either of you has written, newest first. Type in the box and press Enter to capture a thought."));
+    headEl.appendChild(pillRow([["all","All"],["docs","Docs"],["notes","Notes"],["unfiled","Unfiled"]],
+      S.noteFilter || "all", function(k){ S.noteFilter = k; render(); }, "Show"));
     return;
   }
   if(S.sel === "unfiled"){
@@ -3889,36 +4062,69 @@ function renderHead(){
     });
     tabs.appendChild(views);
     headEl.appendChild(tabs);
+    if(!S.doc && (S.tab === "board" || S.tab === "list")) headEl.appendChild(taskBar(false));
     return;
   }
-
-  var tabDefs = [["board","Board"],["list","List"],["calendar","Calendar"],["notes","Notes"]];
-  if(S.sel === "all") tabDefs.push(["prospects","Prospects"]);
-  /* open work only: counting finished tasks made a number that only ever grew */
-  var openN = visibleTasks().filter(function(t){ return !taskDone(t); }).length;
-  tabDefs.forEach(function(t){
-    var b = el("button","tab" + (S.tab === t[0] ? " on" : ""));
-    b.appendChild(document.createTextNode(t[1]));
-    var n = t[0] === "notes" ? visibleNotes().length
-          : t[0] === "calendar" ? visibleSchedules().length
-          : t[0] === "prospects" ? openProspects().length
-          : openN;
-    b.appendChild(el("span","n", String(n)));
-    b.onclick = function(){ S.tab = t[0]; prefSet("tab", t[0]); render(); };
-    tabs.appendChild(b);
+}
+function drillChip(){
+  var dr = el("div","drill");
+  var chip = el("span","dchip");
+  chip.appendChild(el("span", null, drillLabel(S.drill)));
+  var dx = icoBtn(null, "x", "Clear this filter");
+  dx.onclick = function(){ S.drill = null; render(); };
+  chip.appendChild(dx);
+  dr.appendChild(chip);
+  return dr;
+}
+/* A row of filter pills, one on: All / Mine / Due this week / Overdue and the
+   like. Arrow keys move along it; the key is kept so focus survives a render. */
+function pillRow(items, cur, pick, label){
+  var row = el("div","pills");
+  row.setAttribute("role","radiogroup");
+  row.setAttribute("aria-label", label || "Filter");
+  items.forEach(function(it, i){
+    var b = el("button","pill" + (cur === it[0] ? " on" : ""), it[1]);
+    b.type = "button";
+    b.setAttribute("role","radio");
+    b.setAttribute("aria-checked", cur === it[0] ? "true" : "false");
+    b.tabIndex = cur === it[0] ? 0 : -1;
+    b.dataset.fkey = "pill-" + (label || "") + "-" + it[0];
+    if(it[2] != null) b.appendChild(el("span","pn", String(it[2])));
+    b.onclick = function(){ pick(it[0]); };
+    b.onkeydown = function(e){
+      var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if(!d) return;
+      e.preventDefault();
+      var nx = items[(i + d + items.length) % items.length];
+      wantFocus = "pill-" + (label || "") + "-" + nx[0];
+      pick(nx[0]);
+    };
+    row.appendChild(b);
   });
-  headEl.appendChild(tabs);
-
-  if(S.sel === "all" && S.drill){
-    var dr = el("div","drill");
-    var chip = el("span","dchip");
-    chip.appendChild(el("span", null, drillLabel(S.drill)));
-    var dx = icoBtn(null, "x", "Clear this filter");
-    dx.onclick = function(){ S.drill = null; render(); };
-    chip.appendChild(dx);
-    dr.appendChild(chip);
-    headEl.appendChild(dr);
+  return row;
+}
+/* Tasks and a project's board/list: the filter pills, and on Tasks the
+   Board | List switch at the end of the row */
+function taskBar(withViews){
+  var bar = el("div","taskbar");
+  var counts = taskFilterCounts();
+  bar.appendChild(pillRow([["all","All",counts.all],["mine","My tasks",counts.mine],
+    ["week","Due this week",counts.week],["late","Overdue",counts.late]],
+    S.taskFilter || "all", function(k){ S.taskFilter = k; render(); }, "Tasks"));
+  if(withViews){
+    var sw = el("div","seg viewseg");
+    sw.setAttribute("role","group"); sw.setAttribute("aria-label","View");
+    [["board","board","Board"],["list","list","List"]].forEach(function(v){
+      var b = el("button", S.tab === v[0] ? "on" : "");
+      b.type = "button";
+      b.appendChild(ico(v[1],"sm")); b.appendChild(document.createTextNode(v[2]));
+      b.setAttribute("aria-pressed", S.tab === v[0] ? "true" : "false");
+      b.onclick = function(){ S.tab = v[0]; S.taskView = v[0]; prefSet("tab", v[0]); render(); };
+      sw.appendChild(b);
+    });
+    bar.appendChild(sw);
   }
+  return bar;
 }
 function drillLabel(dr){
   var parts = [];
@@ -3997,14 +4203,15 @@ function boardFor(group){
   var doneId = cols.length ? cols[cols.length-1].id : null;
   var cutoff = Date.now() - DONE_KEEP_DAYS * 86400000;
 
-  cols.forEach(function(st){
+  cols.forEach(function(st, ci){
     var col = el("div","col");
     col.dataset.status = st.id;
     col.dataset.project = group.projectId || "";
     col.dataset.space = group.spaceId || "";
 
     var ch = el("div","col-head");
-    ch.appendChild(el("span","bar"));
+    /* the column's stage as a coloured dot: waiting, underway, done */
+    ch.appendChild(el("span","cdot " + (ci === 0 ? "s-wait" : ci === cols.length - 1 ? "s-done" : "s-doing")));
     var nm = el("span","nm", st.name);
     if(editable){
       nm.title = "Rename this column";
@@ -4174,7 +4381,12 @@ function taskCard(t){
     foot.appendChild(nm);
   }
   if(t.due){
-    foot.appendChild(el("span","chip due" + (isLate(t.due, taskDone(t) ? "done" : "") ? " late" : ""), fmtDate(t.due)));
+    var dd = dueWords(t.due, taskDone(t));
+    var dc = el("span","due2" + (dd.late ? " late" : dd.soon ? " soon" : ""));
+    dc.appendChild(ico("clock","sm"));
+    dc.appendChild(document.createTextNode(dd.text));
+    dc.title = "Due " + fmtDate(t.due);
+    foot.appendChild(dc);
   }
   if(t.assignee){
     var img = document.createElement("img");
@@ -4184,6 +4396,19 @@ function taskCard(t){
     img.dataset.kind = "avatar";
     foot.appendChild(img);
   }
+  /* a checklist in the notes ("- [ ] …") shows as a progress bar on the card */
+  var cl = checklistOf(t.notes);
+  if(cl.total){
+    var pg = el("div","cprog");
+    var tr = el("span","cprog-bar");
+    var fill = el("span");
+    fill.style.width = Math.round(cl.done / cl.total * 100) + "%";
+    tr.appendChild(fill);
+    pg.appendChild(tr);
+    pg.appendChild(el("span","cprog-n", cl.done + "/" + cl.total));
+    pg.setAttribute("aria-label", cl.done + " of " + cl.total + " checklist items done");
+    c.appendChild(pg);
+  }
   if(foot.childNodes.length) c.appendChild(foot);
 
   c.onclick = function(){
@@ -4191,6 +4416,27 @@ function taskCard(t){
     openTask(t.id);
   };
   return c;
+}
+
+/* "Today", "Tomorrow", "In 3 days", "2d late" — read at a glance on a card,
+   judged on Denver's date like everything else */
+function dueWords(due, done){
+  var today = SlateBrief.denverToday().ymd;
+  var n = Math.round((parseYmd(due) - parseYmd(today)) / 86400000);
+  if(done) return { text: fmtDate(due) };
+  if(n < 0) return { text: (-n) + "d late", late: true };
+  if(n === 0) return { text: "Today", soon: true };
+  if(n === 1) return { text: "Tomorrow", soon: true };
+  if(n < 14) return { text: "In " + n + " days" };
+  return { text: fmtDate(due) };
+}
+function checklistOf(text){
+  var done = 0, total = 0;
+  String(text || "").split("\n").forEach(function(l){
+    var m = /^\s*(?:[-*]\s*)?\[( |x|X)\]/.exec(l);
+    if(m){ total++; if(m[1] !== " ") done++; }
+  });
+  return { done: done, total: total };
 }
 
 /* The tick on a card: done in one tap, without opening the sheet or dragging
@@ -4873,10 +5119,8 @@ function closeUserMenu(){
   whoBtn.setAttribute("aria-expanded","false");
   document.removeEventListener("mousedown", outsideUser);
 }
-whoBtn.onclick = function(e){
-  if(umenu.classList.contains("on")) closeUserMenu();
-  else openUserMenu(e && e.detail === 0 ? "first" : null);   // detail 0: Enter or Space, not a click
-};
+/* the avatar opens Settings, where appearance, notifications and sign-out live */
+whoBtn.onclick = function(){ closeUserMenu(); goView("settings"); };
 
 /* Signing out doesn't delete unsynced writes — the outbox keeps them on this
    device, tagged with who made them, and replays them when that person signs in
@@ -4945,6 +5189,87 @@ function fileNote(n, projectId, spaceId){
   patchNote(n.id, { projectId: projectId, spaceId: spaceId || null });
   toast("Filed into " + (projName(projectId) || "the project") +
         (spaceId ? " \u203a " + (spaceName(spaceId) || "") : ""));
+}
+
+/* ============ render: settings ============ */
+/* Everything set per device, on one page: it used to hide in the avatar menu. */
+var settingsNotif = null;     // kept across renders, so a live update doesn't re-check push
+function setCard(title, sub){
+  var c = el("section","wcard setcard");
+  var h = el("div","whead");
+  var wt = el("div","wt");
+  wt.appendChild(el("h3", null, title));
+  if(sub) wt.appendChild(el("div","wsub", sub));
+  h.appendChild(wt);
+  c.appendChild(h);
+  return c;
+}
+function renderSettings(){
+  var grid = el("div","setgrid");
+
+  var ap = setCard("Appearance", "Light or dark, and the colour of buttons and highlights.");
+  ap.appendChild(el("div","setlbl","Theme"));
+  var seg = el("div","seg");
+  seg.setAttribute("role","radiogroup"); seg.setAttribute("aria-label","Theme");
+  var cur = prefGet("theme","system"), themeItems = [];
+  [["system","monitor","System"],["light","sun","Light"],["dark","moon","Dark"]].forEach(function(o){
+    var b = el("button", cur === o[0] ? "on" : "");
+    b.setAttribute("role","radio"); b.setAttribute("aria-checked", cur === o[0] ? "true" : "false");
+    b.appendChild(ico(o[1],"sm")); b.appendChild(document.createTextNode(o[2]));
+    var pick = function(key){ themeFade(); prefSet("theme", o[0]); applyAppearance(); wantFocus = key; render(); };
+    b.onclick = function(){ pick("st-theme-" + o[0]); };
+    themeItems.push({ b: b, on: cur === o[0], key: "st-theme-" + o[0], pick: pick });
+    seg.appendChild(b);
+  });
+  umRadios(seg, themeItems);
+  ap.appendChild(seg);
+  ap.appendChild(el("div","setlbl","Accent"));
+  var sw = el("div","accsws");
+  sw.setAttribute("role","radiogroup"); sw.setAttribute("aria-label","Accent colour");
+  var curA = prefGet("accent", DEFAULT_ACCENT), dark = effectiveDark(), accItems = [];
+  ACCENTS.forEach(function(a){
+    var b = el("button","accsw" + (curA === a.id ? " on" : ""));
+    b.style.background = dark ? a.dark : a.light;
+    b.style.color = (dark ? a.onDark : a.onLight) || "var(--on-accent)";
+    b.setAttribute("role","radio"); b.setAttribute("aria-checked", curA === a.id ? "true" : "false");
+    b.setAttribute("aria-label", a.label); b.title = a.label;
+    if(curA === a.id) b.appendChild(ico("check"));
+    var pick = function(key){ themeFade(); prefSet("accent", a.id); applyAppearance(); wantFocus = key; render(); };
+    b.onclick = function(){ pick("st-acc-" + a.id); };
+    accItems.push({ b: b, on: curA === a.id, key: "st-acc-" + a.id, pick: pick });
+    sw.appendChild(b);
+  });
+  umRadios(sw, accItems);
+  ap.appendChild(sw);
+  grid.appendChild(ap);
+
+  var nf = setCard("Notifications", "The 4pm brief and the 10pm wrap, on this device.");
+  if(!settingsNotif){ settingsNotif = el("div","setnotif"); paintNotif(settingsNotif); }
+  nf.appendChild(settingsNotif);
+  grid.appendChild(nf);
+
+  var dc = setCard("Docs", "How big a doc's text is on this screen.");
+  var dsz = el("div","setrow");
+  dsz.appendChild(el("span", null, "Text size"));
+  dsz.appendChild(sizeButtons(el("span","docsize")));
+  dc.appendChild(dsz);
+  grid.appendChild(dc);
+
+  var ac = setCard("Account", null);
+  var who = el("div","setwho");
+  if(S.me){ var im = document.createElement("img"); im.src = S.me.avatarUrl; im.alt = ""; who.appendChild(im); }
+  var nm = el("div");
+  nm.appendChild(el("b", null, (S.me && S.me.name) || "You"));
+  nm.appendChild(el("span", null, "Signed in on this device"));
+  who.appendChild(nm);
+  ac.appendChild(who);
+  var so = el("button","btn danger withico");
+  so.appendChild(ico("logout","sm")); so.appendChild(document.createTextNode("Sign out"));
+  so.onclick = signOutGuarded;
+  ac.appendChild(so);
+  grid.appendChild(ac);
+
+  bodyEl.appendChild(grid);
 }
 
 /* Reading size for docs, chosen per device (the doc's own text is shared, so
@@ -5875,7 +6200,8 @@ function dashTiles(m){
   var rl = DASH_RANGES[m.rk];
 
   function tile(o){
-    var b = el("button","dtile");
+    /* the first stat wears the accent, so the eye lands there first */
+    var b = el("button","dtile" + (wrap.childNodes.length === 0 ? " hero" : ""));
     b.dataset.fkey = "tile-" + o.key;
     var l = el("span","tl");
     l.appendChild(ico(o.icon, "sm" + (o.crit ? " crit" : "")));
@@ -5907,7 +6233,7 @@ function dashTiles(m){
   var doing = m.doing.length;
   var dsub = doing ? "of " + m.open + " open" : "Nothing on the go" + (m.open ? " · " + m.open + " open" : "");
   tile({ key: "doing", icon: "bolt", label: "In progress", value: doing, sub: dsub,
-    aria: doing + " in progress, " + dsub + ". Show them in All projects.",
+    aria: doing + " in progress, " + dsub + ". Show them in Tasks.",
     run: function(){ goView("all", "list", { lens: m.who || null, status: "doing" }); } });
 
   var wsub = m.week ? "incl. " + m.weekToday + " today" : "Nothing due this week";
@@ -6320,7 +6646,8 @@ function wFinished(m){
 function wProjects(m){
   var rl = DASH_RANGES[m.rk];
   var card = wcard({ id: "wc-proj", title: "Projects",
-    sub: lensText(m.who) + " · done in " + rl.span });
+    sub: lensText(m.who) + " · done in " + rl.span,
+    action: writable() ? { label: "+ New", run: function(){ S.newProject = true; S.newProjectText = ""; openRail(); render(); } } : null });
   if(!S.projects.length){
     card.appendChild(el("div","dempty","No projects yet."));
     if(writable()){
@@ -6521,7 +6848,7 @@ function wWorkload(m){
       tasks.slice(0, 8).forEach(function(t){
         x.appendChild(dashTaskRow(t, { todayS: m.todayS, lateDays: true, assign: !r.uid }));
       });
-      var all = el("button","wmore", tasks.length > 8 ? "See all " + tasks.length + " in All projects" : "See them in All projects");
+      var all = el("button","wmore", tasks.length > 8 ? "See all " + tasks.length + " in Tasks" : "See them in Tasks");
       all.appendChild(ico("right","sm"));
       all.style.display = "inline-flex"; all.style.alignItems = "center";
       all.onclick = function(){ goView("all", "list", { owner: r.uid || "none", status: "open" }); };
@@ -7731,11 +8058,25 @@ function tkSyncSpaces(){
   $("#tkSpace").disabled = !pid;
 }
 
-function openTask(id){
-  var t = findTask(id);
+/* The same sheet makes a new task (the New task button at the top right of the
+   dashboard, Tasks and a project's board): a draft fills it instead of a task. */
+var tkNew = false;
+function openNewTask(projectId, spaceId){
+  if(!writable()) return;
+  openTask(null, { title:"", notes:"", projectId: projectId || null, spaceId: spaceId || null,
+                   status: firstColumnId(projectId || null, spaceId || null), due:"", assignee:null });
+}
+function tkSyncStatus(){
+  if(!tkNew) return;
+  var pid = $("#tkProj").value || null, sid = $("#tkSpace").value || null;
+  fillSelect($("#tkStatus"), columnsFor(pid, sid).map(function(c){ return [c.id, c.name]; }), firstColumnId(pid, sid));
+}
+function openTask(id, draft){
+  var t = draft || findTask(id);
   if(!t) return;
-  tkId = id;
-  $("#tkHead").textContent = writable() ? "Task" : "Task (read only)";
+  tkId = draft ? null : id;
+  tkNew = !!draft;
+  $("#tkHead").textContent = tkNew ? "New task" : writable() ? "Task" : "Task (read only)";
   $("#tkName").value = t.title || "";
   $("#tkNotes").value = t.notes || "";
   fillSelect($("#tkStatus"), columnsFor(t.projectId, t.spaceId).map(function(c){ return [c.id, c.name]; }), columnOf(t));
@@ -7772,11 +8113,12 @@ function openTask(id){
   var ro = !writable();
   ["tkName","tkNotes","tkStatus","tkDue","tkProj","tkSpace","tkOwner"].forEach(function(k){ $("#"+k).disabled = ro; });
   $("#tkSave").style.display = ro ? "none" : "";
-  $("#tkDelete").style.display = ro ? "none" : "";
+  $("#tkSave").textContent = tkNew ? "Add task" : "Save";
+  $("#tkDelete").style.display = ro || tkNew ? "none" : "";
 
   tkBase = tkForm();
   layerOpen(taskDlg);
-  if(!ro && isPhone()) $("#tkName").focus();
+  if(!ro && (isPhone() || tkNew)) $("#tkName").focus();
 }
 /* What the sheet shows, in the shape of a task patch. */
 function tkForm(){
@@ -7815,7 +8157,15 @@ function tkPending(){
 /* Every way out of the sheet keeps what was typed — Close, tapping outside,
    Escape. They all used to discard it silently. Only Delete passes false. */
 function closeTask(save){
-  if(save !== false && tkId){
+  if(tkNew){
+    /* a new task named and then closed is kept, like every other way out */
+    var f = tkForm();
+    if(save !== false && f.title && writable()){
+      createTask(f.title, f.status, f.projectId, f.spaceId, null, f.due,
+                 { assignee: f.assignee, notes: f.notes });
+    }
+    tkNew = false;
+  } else if(save !== false && tkId){
     var ch = tkPending();
     if(ch) patchTask(tkId, ch);
   }
@@ -7824,7 +8174,8 @@ function closeTask(save){
   tkBase = null;
 }
 
-$("#tkProj").onchange = tkSyncSpaces;
+$("#tkProj").onchange = function(){ tkSyncSpaces(); tkSyncStatus(); };
+$("#tkSpace").onchange = tkSyncStatus;
 $("#tkClose").onclick = function(){ closeTask(); };
 $("#tkNote").onclick = function(){
   var t = findTask(tkId);
@@ -7834,7 +8185,7 @@ $("#tkNote").onclick = function(){
 };
 taskDlg.onmousedown = function(e){ if(e.target === taskDlg) closeTask(); };
 $("#tkSave").onclick = function(){
-  if(!tkId || !writable()) return closeTask(false);
+  if((!tkId && !tkNew) || !writable()) return closeTask(false);
   if(!$("#tkName").value.trim()){ $("#tkName").focus(); toast("Give the task a name."); return; }
   closeTask();
 };
@@ -7861,15 +8212,19 @@ $("#railToggle").onclick = function(){
 
 function renderBottomNav(){
   var nav = $("#bottomnav");
+  var all = S.sel === "all";
   var active = S.sel === "dash" ? "dash"
-             : S.sel === "capture" ? "capture"
-             : S.sel === "unfiled" ? "notes"
-             : S.sel === "today" ? "today"   // matches no button; nothing lights up
-             : S.tab;
+             : all && (S.tab === "board" || S.tab === "list") ? "tasks"
+             : all && S.tab === "calendar" ? "calendar"
+             : S.sel === "capture" || S.sel === "unfiled" ? "notes"
+             : "projects";   // a project, Prospects or Settings: all reached through More
+  if(S.sel === "today") active = null;
   Array.prototype.forEach.call(nav.querySelectorAll(".bn"), function(b){
     b.classList.toggle("on", b.dataset.nav === active);
   });
 }
+/* The same four places as the top of the sidebar; More opens the rest of it
+   (Prospects, every project, Settings). */
 $("#bottomnav").addEventListener("click", function(e){
   var b = e.target.closest(".bn");
   if(!b) return;
@@ -7877,17 +8232,10 @@ $("#bottomnav").addEventListener("click", function(e){
   closeRail();
   if(n === "projects"){ openRail(); return; }
   if(S.q){ S.q = ""; $("#search").value = ""; }
-  if(n === "dash" || n === "capture"){ goView(n); return; }
-  /* Board / list / calendar / notes need a project context, and render() checks
-     a search, an open doc and the virtual views all before it ever looks at
-     S.tab — so any of those left set makes these buttons silently do nothing.
-     The dashboard has no tabs at all now, so from any view that isn't a project
-     they open All projects; inside one they switch that project's tab. */
-  if(isVirtualView(S.sel) && S.sel !== "all"){ goView("all", n); return; }
-  S.doc = null;
-  S.tab = n;
-  prefSet("tab", n);
-  render();
+  if(n === "dash") goView("dash");
+  else if(n === "tasks") goView("all", S.taskView || "board");
+  else if(n === "calendar") goView("all", "calendar");
+  else if(n === "notes") goView("capture");
 });
 
 /* ============ note editor ============ */
@@ -9902,6 +10250,8 @@ function render(){
     renderToday();
   } else if(S.sel === "dash"){
     renderDash();
+  } else if(S.sel === "settings"){
+    renderSettings();
   } else {
     if(S.doc && !isVirtualView(S.sel)) renderDocPage();
     else if(S.sel === "all" && S.tab === "prospects") renderProspects();

@@ -148,23 +148,30 @@ counts, so the PWA behaves the same as it does in production.
 
 ## How it's laid out
 
+The sidebar is organised by what you're doing. **Menu**: Dashboard, Tasks, Calendar,
+Docs & Notes, Prospects. **Projects**: every company EZHD runs. **General**: Settings and
+Sign out. On a phone the bottom bar has Dashboard · Tasks · Calendar · Notes · More.
+
 **Dashboard** is the landing page: what got done and what needs doing. Filter it by person
 (Everyone, you, the other one) and by range (7 days, 30 days, 12 weeks). Tiles for
 completed, in progress, due this week and overdue; today's list and the next seven days; a
 Completed chart with the Finished log beside it; a progress table for every project;
 workload per person; and the prospect pipeline. Tap any number to jump to the work behind it.
 
-**All projects** is every board at once, with Board / List / Calendar / Notes / Prospects
-tabs spanning every project.
+**Tasks** is every project's work at once, as a Board or a List, with filter pills: All,
+My tasks, Due this week, Overdue. **New task** (top right on the dashboard, Tasks and any
+project) opens a sheet to add one anywhere. Cards show the column's stage as a coloured
+dot, the due date in words ("Tomorrow", "2d late"), and a progress bar when the notes hold
+a checklist (`- [ ] …`).
 
-**Capture** is the quick-note stream — type, press Enter, saved. Pick a project and space
+**Docs & Notes** is everything written, newest first, with All / Docs / Notes / Unfiled pills. The box at the top is the quick-capture stream — type, press Enter, saved. Pick a project and space
 and the note is filed *and* dropped onto that board as a linked card.
 
 **A project** shows its contact details under the name, then tabs for its **spaces**, with
 the four views as icons at the right. Each space has its own named columns. Docs filed to
 the project get their own tabs and open in place with per-block copy buttons.
 
-**Prospects** is the outreach pipeline, under All projects. Landing one turns it into a
+**Prospects** is the outreach pipeline. Landing one turns it into a
 project and carries your notes across.
 
 **Calendar** is a real month on every screen. On a computer or iPad each day shows its
@@ -172,8 +179,8 @@ items as chips in their project's colour, beside a panel for the selected day. O
 it's a compact month of dates with coloured dots, iPhone Calendar style, with the selected
 day's list underneath. Tapping an item opens it; only the round tick completes it.
 
-**Theme and accent** live in the avatar menu at the top right: System, Light or Dark, and
-one of seven accent colours. They're per device, so your phone and laptop can differ.
+**Settings** (or tap your avatar) holds theme, accent colour, notifications, doc text size
+and sign-out. They're per device, so your phone and laptop can differ.
 
 On a phone the layout switches below 720px: drawer rail and bottom tab bar. iPads keep the
 rail.

@@ -181,8 +181,16 @@ board a filing tool as well as a board.
 
 ## Views
 
-`S.sel` is the current view: `"dash"`, `"all"`, `"capture"`, `"unfiled"`, `"today"`, or a
-project id. `isVirtualView()` distinguishes the named ones from a real project. Every change
+`S.sel` is the current view: `"dash"`, `"all"`, `"capture"`, `"unfiled"`, `"today"`,
+`"settings"`, or a project id. `isVirtualView()` distinguishes the named ones from a real
+project. The sidebar is organised by job, not by project: **Menu** (Dashboard; Tasks, which
+is `"all"` on its board or list tab; Calendar, `"all"` on its calendar tab; Docs & Notes,
+`"capture"`; Prospects, `"all"` on its prospects tab), then **Projects**, then **General**
+(Settings, Sign out). Every page opens with a title, one line saying what it is, and its own
+action top right (New task, New doc). Tasks — and a project's board or list — carry filter
+pills (All, My tasks, Due this week, Overdue: `S.taskFilter`, applied in `visibleTasks()` on
+the board and list only); Docs & Notes has All / Docs / Notes / Unfiled (`S.noteFilter`).
+The task sheet doubles as the New task form (`openNewTask`, `tkNew`). Every change
 of view goes through `goView(sel, tab, drill)`, which clears the space, open doc, tag filter
 and drill chip, keeps a Prospects tab only where one exists, closes the phone drawer and
 starts the new page at the top.
