@@ -1779,6 +1779,86 @@ body.dragging-now .board{scroll-snap-type:none}
 #bottomnav .bn.on{color:var(--accent-ink)}
 #bottomnav .bn.on .ic{transform:translateY(-1px)}
 
+
+/* ---------- motion ----------
+   Movement only says something happened: you arrived somewhere, something
+   opened, a number changed. Slate rebuilds the page on every change the other
+   person makes, so nothing here runs on a plain re-render — entrances are keyed
+   to #mainbody.enter, which render() sets only when the view itself changes.
+   Fill mode is "backwards", never "both": a transform left on a finished
+   animation would trap the editor's fixed, keyboard-docked toolbar.
+   Everything is off under prefers-reduced-motion (bottom of this section). */
+:root{
+  --ease-out:cubic-bezier(.22,1,.36,1);
+  --ease-in:cubic-bezier(.5,0,.75,0);
+  --ease-spring:cubic-bezier(.34,1.4,.64,1);
+}
+@keyframes m-rise{from{opacity:0;transform:translateY(10px)}}
+@keyframes m-fade{from{opacity:0}}
+@keyframes m-fadeout{to{opacity:0}}
+@keyframes m-grow-y{from{transform:scaleY(0)}}
+@keyframes m-grow-x{from{transform:scaleX(0)}}
+@keyframes m-sheet-in{from{opacity:0;transform:translateY(14px) scale(.97)}}
+@keyframes m-sheet-out{to{opacity:0;transform:translateY(8px) scale(.985)}}
+@keyframes m-pop{from{opacity:0;transform:translateY(-6px) scale(.96)}}
+@keyframes m-flash{0%{box-shadow:0 0 0 0 var(--accent-soft)}40%{box-shadow:0 0 0 6px var(--accent-soft)}100%{box-shadow:var(--shadow)}}
+@keyframes m-tick{0%{transform:scale(1)}40%{transform:scale(1.28)}100%{transform:scale(1)}}
+
+/* arriving in a view: the header settles, then its pieces rise in turn */
+#mainhead.enter .title-row,#mainhead.enter .meta,#mainhead.enter .tabs{animation:m-fade .3s ease-out backwards}
+#mainbody.enter :is(.dtile,.wcard,.col,.card,.list tbody tr,.calbar,.calday,.calpanel,.schedrow,
+  .note,.fitem,.blk,.dcard,.psec,.docpage-head,.empty,.tagbar){
+  animation:m-rise .42s var(--ease-out) backwards;
+  animation-delay:calc(var(--i,0) * 26ms);
+}
+/* the month arrives as a wave, a row at a time, not 42 cells one by one */
+#mainbody.enter .calday{animation-duration:.36s;animation-delay:calc(var(--row,0) * 40ms + 60ms)}
+/* charts draw themselves in */
+#mainbody.enter .vx-bar{
+  transform-box:fill-box;transform-origin:50% 100%;
+  animation:m-grow-y .7s var(--ease-out) backwards;animation-delay:.18s;
+}
+#mainbody.enter .stk{transform-origin:0 50%;animation:m-grow-x .8s var(--ease-out) backwards;animation-delay:.2s}
+
+/* sheets and the editor: the backdrop fades, the panel lifts into place */
+#overlay.on,#taskDlg.on,#schedDlg.on,#projDlg.on,#prospectDlg.on{animation:m-fade .2s ease-out backwards}
+#taskDlg.on,#schedDlg.on,#projDlg.on,#prospectDlg.on{-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+#overlay.on #editor,#taskDlg.on .sbox,#schedDlg.on .sbox,#projDlg.on .sbox,#prospectDlg.on .sbox{
+  animation:m-sheet-in .34s var(--ease-out) backwards;
+}
+.layer-out{animation:m-fadeout .17s ease-in both!important;pointer-events:none}
+.layer-out #editor,.layer-out .sbox{animation:m-sheet-out .17s var(--ease-in) both!important}
+/* menus drop from their button */
+#umenu.on,#nmenu.on,#amenu.on{animation:m-pop .2s var(--ease-out) backwards;transform-origin:top right}
+/* the toast rises in rather than blinking on */
+@keyframes m-toast{from{opacity:0;transform:translate(-50%,10px)}}
+#toast.on{animation:m-toast .26s var(--ease-out) backwards}   /* keeps its -50% centring */
+
+/* a card just ticked done lands in its column with a soft ring */
+.card.just{animation:m-flash .9s var(--ease-out)}
+.ctick.on .ico,.dtick.on .ico{animation:m-tick .32s var(--ease-spring)}
+
+/* a pointer gets a little lift on what can be opened */
+@media (hover:hover){
+  .card,.dtile,.note,.fitem{transition:transform .18s var(--ease-out),box-shadow .18s var(--ease-out),border-color .18s}
+  .card:hover,.note:hover,.fitem:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+  .dtile:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+  .card.dragging,.card.dragging:hover{transform:none}
+}
+/* buttons and tabs ease rather than snap */
+.btn,.tab,.vbtn,.rail-item,.fmt,.seg button,.dseg button,.ctick,.dtick,.cpaddbtn{
+  transition:background-color .15s,color .15s,border-color .15s,box-shadow .18s;
+}
+.btn:active,.vbtn:active,.dtile:active,.fmt:active{transform:scale(.97)}
+/* a theme or accent change cross-fades instead of flashing (class set for 400ms) */
+html.theming *,html.theming *::before,html.theming *::after{
+  transition:background-color .4s ease,color .4s ease,border-color .4s ease,fill .4s ease,stroke .4s ease!important;
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+
 /* ---------- tablet ----------
    iPads sit here, including portrait (744–834px): they keep the persistent rail
    and the month grid rather than inheriting the phone layout. */
@@ -4059,7 +4139,7 @@ function renderBoard(){
 }
 
 function taskCard(t){
-  var c = el("div","card" + (taskDone(t) ? " done" : ""));
+  var c = el("div","card" + (taskDone(t) ? " done" : "") + (S.justId === t.id && motionOK() ? " just" : ""));
   c.dataset.id = t.id;
   if(writable()){
     var grip = el("div","grip");
@@ -4123,6 +4203,9 @@ function tickCard(id){
   if(!t || !writable()) return;
   if(taskDone(t)){ patchTask(id, { status: firstColumnId(t.projectId, t.spaceId) }); return; }
   var from = columnOf(t);
+  S.justId = id;                                   // it lands in Done with a soft ring
+  clearTimeout(tickCard.t);
+  tickCard.t = setTimeout(function(){ S.justId = null; }, 1000);
   patchTask(id, { status: doneColumnId(t.projectId, t.spaceId) });
   toast("Done: \u201c" + (t.title || "Untitled").slice(0, 40) + "\u201d", { label: "Undo", fn: function(){
     var now = findTask(id);
@@ -4735,7 +4818,7 @@ function openUserMenu(focusKey){
     var b = el("button", cur === o[0] ? "on" : "");
     b.setAttribute("role","radio"); b.setAttribute("aria-checked", cur === o[0] ? "true" : "false");
     b.appendChild(ico(o[1],"sm")); b.appendChild(document.createTextNode(o[2]));
-    var pick = function(key){ prefSet("theme", o[0]); applyAppearance(); openUserMenu(key); };
+    var pick = function(key){ themeFade(); prefSet("theme", o[0]); applyAppearance(); openUserMenu(key); };
     b.onclick = function(){ pick("um-theme-" + o[0]); };
     themeItems.push({ b: b, on: cur === o[0], key: "um-theme-" + o[0], pick: pick });
     seg.appendChild(b);
@@ -4756,7 +4839,7 @@ function openUserMenu(focusKey){
     b.setAttribute("role","radio"); b.setAttribute("aria-checked", curA === a.id ? "true" : "false");
     b.setAttribute("aria-label", a.label); b.title = a.label;
     if(curA === a.id) b.appendChild(ico("check"));
-    var pick = function(key){ prefSet("accent", a.id); applyAppearance(); openUserMenu(key); };
+    var pick = function(key){ themeFade(); prefSet("accent", a.id); applyAppearance(); openUserMenu(key); };
     b.onclick = function(){ pick("um-acc-" + a.id); };
     accItems.push({ b: b, on: curA === a.id, key: "um-acc-" + a.id, pick: pick });
     sw.appendChild(b);
@@ -7191,7 +7274,7 @@ function openSchedule(s){
 
   syncFreqFields();
   $("#sDelete").style.display = s ? "" : "none";
-  schedDlg.classList.add("on");
+  layerOpen(schedDlg);
   $("#sName").focus();
 }
 function syncFreqFields(){
@@ -7199,7 +7282,7 @@ function syncFreqFields(){
   $("#sDaysField").style.display = f === "weekly" ? "" : "none";
   $("#sDomField").style.display = f === "monthly" ? "" : "none";
 }
-function closeSchedule(){ schedDlg.classList.remove("on"); S.editSched = null; sProj = null; }
+function closeSchedule(){ layerClose(schedDlg); S.editSched = null; sProj = null; }
 $("#sFreq").onchange = syncFreqFields;
 $("#sCancel").onclick = closeSchedule;
 schedDlg.onmousedown = function(e){ if(e.target === schedDlg) closeSchedule(); };
@@ -7492,7 +7575,7 @@ function openProject(id){
   var ro = !writable();
   ["pjName","pjContact","pjEmail","pjPhone","pjWebsite"].forEach(function(k){ $("#"+k).disabled = ro; });
   $("#pjDelete").style.display = ro ? "none" : "";
-  projDlg.classList.add("on");
+  layerOpen(projDlg);
   $("#pjName").focus();
 }
 /* the rail no longer lists spaces, so renaming and removing them lives here */
@@ -7525,7 +7608,7 @@ function drawProjectSpaces(id){
   });
 }
 
-function closeProjectSheet(){ projDlg.classList.remove("on"); pjId = null; }
+function closeProjectSheet(){ layerClose(projDlg); pjId = null; }
 function saveProjectSheet(){
   if(!pjId || !writable()) return;
   queue("projects/"+pjId, function(){
@@ -7578,11 +7661,11 @@ function openProspect(id){
   $("#prDelete").style.display = ro ? "none" : "";
   $("#prWon").style.display = ro ? "none" : "";
 
-  prospectDlg.classList.add("on");
+  layerOpen(prospectDlg);
   $("#prCompany").focus();
 }
 function closeProspect(){
-  prospectDlg.classList.remove("on");
+  layerClose(prospectDlg);
   prId = null;
 }
 function saveProspect(){
@@ -7692,7 +7775,7 @@ function openTask(id){
   $("#tkDelete").style.display = ro ? "none" : "";
 
   tkBase = tkForm();
-  taskDlg.classList.add("on");
+  layerOpen(taskDlg);
   if(!ro && isPhone()) $("#tkName").focus();
 }
 /* What the sheet shows, in the shape of a task patch. */
@@ -7736,7 +7819,7 @@ function closeTask(save){
     var ch = tkPending();
     if(ch) patchTask(tkId, ch);
   }
-  taskDlg.classList.remove("on");
+  layerClose(taskDlg);
   tkId = null;
   tkBase = null;
 }
@@ -7958,7 +8041,7 @@ function openNote(id, fresh){
     }
   }
 
-  overlay.classList.add("on");
+  layerOpen(overlay);
   document.body.style.overflow = "hidden";
 
   if(isBoard){ openInk(id); edTitle.focus(); }
@@ -7980,7 +8063,7 @@ function closeNote(){
   closeInk();
   S.openNote = null;
   ed.held = ed.mine = null;
-  overlay.classList.remove("on");
+  layerClose(overlay);
   document.body.style.overflow = "";
   edEditor.classList.remove("kbd", "typing");
   closeAssignee();
@@ -9722,8 +9805,79 @@ function refocus(key){
   if(n && n !== document.activeElement){ try{ n.focus({ preventScroll: true }); }catch(e){ n.focus(); } }
 }
 
+/* ============ motion (see the motion section of the CSS) ============ */
+function motionOK(){
+  return !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+}
+/* Sheets fade out instead of vanishing. A reopen inside the fade cancels it,
+   so switching straight from one note to another never loses the sheet. */
+function layerOpen(l){
+  clearTimeout(l._outT);
+  l.classList.remove("layer-out");
+  l.classList.add("on");
+}
+function layerClose(l){
+  clearTimeout(l._outT);
+  if(!l.classList.contains("on") || l.classList.contains("layer-out") || !motionOK()){
+    l.classList.remove("on", "layer-out");
+    return;
+  }
+  l.classList.add("layer-out");
+  l._outT = setTimeout(function(){ l.classList.remove("on", "layer-out"); }, 170);
+}
+/* What counts as arriving somewhere new. A live update from the other person
+   keeps the same key, so it redraws without replaying any entrance. */
+var lastViewKey = null, enterT = 0;
+function viewKey(){
+  return [S.ready ? 1 : 0, S.sel, S.tab, S.space || "", S.doc || "", S.q ? "q" : ""].join("|");
+}
+var ENTER_SEL = ".dtile,.wcard,.col,.card,.list tbody tr,.calbar,.calpanel,.schedrow,.note,.fitem,.blk,.dcard,.psec,.docpage-head,.empty,.tagbar";
+function enterAnim(){
+  var i = 0;
+  Array.prototype.forEach.call(bodyEl.querySelectorAll(ENTER_SEL), function(n){
+    n.style.setProperty("--i", String(Math.min(i++, 14)));
+  });
+  Array.prototype.forEach.call(bodyEl.querySelectorAll(".calday"), function(n, k){
+    n.style.setProperty("--row", String(Math.floor(k / 7)));
+  });
+  headEl.classList.add("enter");
+  bodyEl.classList.add("enter");
+  countUp();
+  clearTimeout(enterT);
+  enterT = setTimeout(function(){ headEl.classList.remove("enter"); bodyEl.classList.remove("enter"); }, 1100);
+}
+/* the dashboard's numbers run up to their value on arrival */
+function countUp(){
+  Array.prototype.forEach.call(bodyEl.querySelectorAll(".dtile .tv"), function(n){
+    var to = parseInt(n.textContent, 10);
+    if(!(to > 1) || String(to) !== n.textContent) return;
+    var t0 = 0, dur = Math.min(900, 420 + to * 12);
+    function step(t){
+      if(!n.isConnected) return;
+      if(!t0) t0 = t;
+      var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      n.textContent = String(Math.round(to * e));
+      if(k < 1) requestAnimationFrame(step); else n.textContent = String(to);
+    }
+    n.textContent = "0";
+    requestAnimationFrame(step);
+  });
+}
+/* a theme or accent pick cross-fades the whole page for a moment */
+function themeFade(){
+  if(!motionOK()) return;
+  var h = document.documentElement;
+  h.classList.add("theming");
+  clearTimeout(themeFade.t);
+  themeFade.t = setTimeout(function(){ h.classList.remove("theming"); }, 450);
+}
+
 var restoreCompose = null;
 function render(){
+  var key = viewKey(), entering = key !== lastViewKey && S.ready;
+  lastViewKey = key;
+  /* a re-render inside an entrance draws plainly, or every item would rise again */
+  if(!entering){ clearTimeout(enterT); headEl.classList.remove("enter"); bodyEl.classList.remove("enter"); }
   var active = document.activeElement;
   var wasCompose = active && active.classList && active.classList.contains("addtask")
     ? S.composing.col : null;
@@ -9799,6 +9953,7 @@ function render(){
 
   renderBottomNav();
   paintPeople();
+  if(entering && motionOK()) enterAnim();
 }
 
 /* ============ search ============ */

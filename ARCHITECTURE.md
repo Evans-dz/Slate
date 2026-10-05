@@ -317,6 +317,20 @@ and the dashboard's project table.
 
 ---
 
+## Motion
+
+Movement marks something happening — arriving in a view, a sheet opening, a number
+changing — and nothing else. **`render()` rebuilds the page on every change the other
+person makes**, so entrances are keyed to the view, not the render: `viewKey()` (sel, tab,
+space, doc, search) is compared with the last render's, and only a change adds `.enter` to
+`#mainhead`/`#mainbody` for about a second. Items rise in turn (`--i`, capped at 14), the
+calendar arrives a row at a time (`--row`), chart bars and progress bars grow, and the
+dashboard's numbers count up (`countUp()`). A live update inside that second drops `.enter`
+and draws plainly. Sheets open and close through `layerOpen()` / `layerClose()` (a 170ms
+fade; a reopen cancels it). Animations use fill-mode `backwards`, never `both`: a transform
+left behind on a finished animation makes that element the containing block for the
+editor's fixed, keyboard-docked toolbar. Everything is off under `prefers-reduced-motion`.
+
 ## Mobile
 
 Targets: iPhone, Pixel, iPad, macOS. Verified at 320, 375, 402, 412, 430, 744, 834, 1194 and
