@@ -1848,6 +1848,82 @@ body.dragging-now .board{scroll-snap-type:none}
 .setwho span{font-size:12.5px;color:var(--muted)}
 .btn.danger{color:var(--danger)}
 
+/* ---------- leads (the call list) ---------- */
+.leads{display:flex;flex-direction:column;gap:14px}
+.leadboard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.leadboard .lb{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-lg);padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.leadboard .lbl{font-size:12.5px;color:var(--muted)}
+.leadboard strong{font-size:22px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.lbar{height:5px;border-radius:3px;background:var(--line-soft);overflow:hidden;margin-top:4px}
+.lbar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.leadprobs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.lp{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;border-radius:var(--radius-md);background:var(--panel);border:1px solid var(--line-soft);color:var(--ink-2)}
+.lp strong{font-size:19px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.lp span{font-size:12px;line-height:1.3}
+.lp:hover{border-color:var(--accent)}
+.lp.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.lp.on strong{color:var(--on-accent)}
+.leadctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.leadctl .leadq{flex:1 1 220px;max-width:320px}
+.leadq,.leadctl select,.leadadd input{border:1px solid var(--line-strong);background:var(--panel);border-radius:var(--radius);padding:7px 10px;font-size:13.5px;min-width:0}
+.leadq:focus,.leadctl select:focus,.leadadd input:focus{border-color:var(--accent);outline:none}
+.leadcount{margin-left:auto;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.leadadd{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px;border:1px solid var(--accent);border-radius:var(--radius-lg);background:var(--accent-soft)}
+.leadadd input{flex:1 1 180px}
+.leadlist{display:flex;flex-direction:column;gap:10px}
+.lead{
+  display:grid;grid-template-columns:44px minmax(0,1fr) 200px 230px;gap:10px 18px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-lg);padding:14px 16px;
+}
+.lead.is-dead{opacity:.62}
+.lead.is-moved{border-color:var(--good)}
+.lrank{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.lpri{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:7px;font-weight:700;font-size:13.5px;border:1px solid var(--line-strong);color:var(--ink-2)}
+.lpri.pri-A{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.lpri.pri-B{border-color:var(--accent);color:var(--accent-ink)}
+.lnum{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.lmain{min-width:0}
+.lname-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
+.lname{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em}
+.lchip{background:var(--warn-soft);color:var(--warn)}
+.lmeta{margin:3px 0 0;font-size:12.5px;color:var(--muted)}
+.lstars{margin:4px 0 0;font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.lissues{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--ink-2)}
+.lissues li{position:relative;padding-left:13px}
+.lissues li::before{content:"";position:absolute;left:0;top:.55em;width:6px;height:6px;border-radius:2px;background:var(--accent)}
+.lopener{margin:9px 0 0;padding:8px 10px;border-left:3px solid var(--accent);background:var(--panel-2);border-radius:0 var(--radius) var(--radius) 0;font-size:13px;font-style:italic;color:var(--ink);max-width:70ch}
+.lpitch{margin:7px 0 0;font-size:13px;color:var(--ink-2)}
+.lopener .lbl,.lpitch .lbl{display:block;font-style:normal;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.lpitch .lbl{display:inline;margin-right:6px}
+.lcontact{min-width:0;display:flex;flex-direction:column;gap:5px}
+.lphone-row{display:flex;align-items:center;gap:6px}
+.lphone{font-size:16px;font-weight:600;color:var(--ink);text-decoration:none;font-variant-numeric:tabular-nums}
+.lphone:hover{color:var(--accent-ink)}
+.lcopy{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius);color:var(--muted)}
+.lcopy:hover,.lcopy.ok{color:var(--accent-ink);background:var(--accent-soft)}
+.lcopy .ico{width:15px;height:15px}
+.lemail{font-size:12.5px;color:var(--accent-ink);overflow-wrap:anywhere}
+.laddr{margin:0;font-size:12.5px;color:var(--muted)}
+.llinks{margin:2px 0 0;display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px}
+.llinks a{color:var(--accent-ink)}
+.ltrack{min-width:0;display:flex;flex-direction:column;gap:6px}
+.lstatus{width:100%;border:1px solid var(--line-strong);background:var(--panel);border-radius:var(--radius);padding:7px 9px;font-size:13.5px;font-weight:500}
+.lstatus.s-talking,.lstatus.s-audit_sent{border-color:var(--accent);color:var(--accent-ink)}
+.lstatus.s-won,.lstatus.s-prospect{border-color:var(--good);color:var(--good)}
+.lstatus.s-not_interested,.lstatus.s-wrong_number{color:var(--muted)}
+.leadnote{width:100%;resize:vertical;min-height:52px;border:1px solid var(--line);background:var(--paper);border-radius:var(--radius);padding:7px 9px;font-size:13px;line-height:1.4;font-family:var(--ui)}
+.leadnote:focus{border-color:var(--accent);outline:none}
+.lwho{margin:0;font-size:11.5px;color:var(--muted);min-height:1em}
+.lmove{align-self:flex-start}
+.leadnone{color:var(--muted);text-align:center;padding:30px 0}
+.leadmore{align-self:center}
+@media (max-width:1180px){
+  .lead{grid-template-columns:44px minmax(0,1fr) 210px}
+  .ltrack{grid-column:2 / -1;display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);align-items:start}
+  .ltrack .lwho,.ltrack .lmove{grid-column:1 / -1}
+  .leadprobs{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
 /* ---------- motion ----------
    Movement only says something happened: you arrived somewhere, something
    opened, a number changed. Slate rebuilds the page on every change the other
@@ -1875,7 +1951,7 @@ body.dragging-now .board{scroll-snap-type:none}
 /* arriving in a view: the header settles, then its pieces rise in turn */
 #mainhead.enter .title-row,#mainhead.enter .meta,#mainhead.enter .tabs{animation:m-fade .3s ease-out backwards}
 #mainbody.enter :is(.dtile,.wcard,.col,.card,.list tbody tr,.calbar,.calday,.calpanel,.schedrow,
-  .note,.fitem,.blk,.dcard,.psec,.docpage-head,.empty,.tagbar){
+  .note,.fitem,.blk,.dcard,.psec,.docpage-head,.empty,.tagbar,.lb,.lp,.lead,.setcard){
   animation:m-rise .42s var(--ease-out) backwards;
   animation-delay:calc(var(--i,0) * 26ms);
 }
@@ -1961,6 +2037,20 @@ html.theming *,html.theming *::before,html.theming *::after{
 @media (max-width:720px){
   #body{grid-template-columns:1fr}
   .setgrid{grid-template-columns:minmax(0,1fr)}
+  .leadboard{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .leadboard .lb:first-child{grid-column:1 / -1}
+  .leadprobs{display:flex;overflow-x:auto;scrollbar-width:none}
+  .leadprobs::-webkit-scrollbar{display:none}
+  .lp{flex:0 0 150px}
+  .lead{grid-template-columns:minmax(0,1fr);gap:10px;padding:14px}
+  .lrank{flex-direction:row;align-items:center}
+  .ltrack{grid-column:auto;display:flex}
+  .lphone{font-size:18px}
+  .lcopy{width:38px;height:38px}
+  .leadq,.leadctl select,.leadadd input,.lstatus,.leadnote{font-size:16px}
+  .leadctl .leadq{max-width:none;flex-basis:100%}
+  .leadctl select{flex:1 1 30%;min-height:38px}
+  .lmove{min-height:40px}
   .pills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;max-width:100%;-webkit-overflow-scrolling:touch}
   .pills::-webkit-scrollbar{display:none}
   .pill{min-height:36px;flex:0 0 auto;white-space:nowrap}
@@ -2347,6 +2437,7 @@ html.theming *,html.theming *::before,html.theming *::after{
   <symbol id="i-mark" viewBox="0 0 24 24"><path d="M15.2 4.3a2 2 0 0 1 2.8 0l1.7 1.7a2 2 0 0 1 0 2.8l-7.6 7.6-4.5-4.5Z"/><path d="m7.6 11.9-2.3 2.3.2 2.1-2 2 3.1.6 1.1-1.1 2.1.2 2.3-2.3"/><path d="M13.5 20.5h7"/></symbol>
   <symbol id="i-undo" viewBox="0 0 24 24"><path d="M8.5 14 4 9.5 8.5 5"/><path d="M4 9.5h10a5.5 5.5 0 0 1 0 11h-3.5"/></symbol>
   <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15.5 14 20 9.5 15.5 5"/><path d="M20 9.5H10a5.5 5.5 0 0 0 0 11h3.5"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5.2 3.5h3l1.6 4.2-2 1.3a11.5 11.5 0 0 0 7.2 7.2l1.3-2 4.2 1.6v3a2 2 0 0 1-2.2 2A16.8 16.8 0 0 1 3.2 5.7a2 2 0 0 1 2-2.2Z"/></symbol>
   <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.6-1.5L14.2 2.5h-4l-.3 2.6A7.7 7.7 0 0 0 7.3 6.6l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.6 1.5l.3 2.6h4l.3-2.6a7.7 7.7 0 0 0 2.6-1.5l2.3 1 2-3.4Z"/></symbol>
   <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".6"/></symbol>
   <symbol id="i-tasks" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.2"/><path d="m8 12.2 2.8 2.8L16.2 9.4"/></symbol>
@@ -2813,7 +2904,8 @@ var S = {
   db:null, user:null, assets:null, sample:null, canSampleImages:false,
   uid:null, me:null,
   canWrite:null,          // true / false / null (unknown)
-  projects:[], spaces:[], tasks:[], notes:[], schedules:[], prospects:[],
+  projects:[], spaces:[], tasks:[], notes:[], schedules:[], prospects:[], leads:[],
+  leadF:{ pri:"main", status:"all", trade:"all", prob:null, q:"", sort:"priority" },   // the Leads page's filters
   meta:{},                // small shared counters, currently just the colour high water mark
   sel:"dash",             // "dash" | "all" | "capture" | "unfiled" | "today" | projectId
   space:null,             // spaceId within the selected project, or null for all
@@ -3206,7 +3298,7 @@ function spacesOf(projectId){
     .sort(function(a,b){ return (a.order||0)-(b.order||0); });
 }
 /* views that aren't a project: anything else in S.sel is a project id */
-var VIRTUAL_VIEWS = ["dash","all","capture","unfiled","today","settings"];
+var VIRTUAL_VIEWS = ["dash","all","capture","unfiled","today","settings","leads"];
 function isVirtualView(sel){ return VIRTUAL_VIEWS.indexOf(sel) !== -1; }
 function currentProject(){
   return isVirtualView(S.sel) ? null : S.sel;
@@ -3715,6 +3807,10 @@ function renderRail(){
     go: function(){ goView("all", "calendar"); } }));
   menu.appendChild(navItem({ label:"Docs & Notes", icon:"notes", on: S.sel === "capture" || S.sel === "unfiled",
     go: function(){ goView("capture"); } }));
+  var toCall = S.leads.filter(function(l){ return l.priority === "A" && (l.status || "new") === "new"; }).length;
+  menu.appendChild(navItem({ label:"Leads", icon:"phone", on: S.sel === "leads",
+    count: toCall || null, countLabel: toCall + " priority A not called yet",
+    go: function(){ goView("leads"); } }));
   menu.appendChild(navItem({ label:"Prospects", icon:"target", on: onAll && S.tab === "prospects",
     count: chases || null, crit: true, countLabel: chases + " to chase",
     go: function(){ goView("all", "prospects"); } }));
@@ -3851,6 +3947,7 @@ function renderHead(){
             : S.sel === "all" ? (S.tab === "calendar" ? "Calendar" : S.tab === "prospects" ? "Prospects" : "Tasks")
             : S.sel === "capture" ? "Docs & Notes"
             : S.sel === "settings" ? "Settings"
+            : S.sel === "leads" ? "Leads"
             : S.sel === "today" ? "Today" : "Unfiled notes";
 
   var title;
@@ -3887,6 +3984,12 @@ function renderHead(){
       np.onclick = function(){ S.newProject = true; S.newProjectText = ""; openRail(); render(); };
       actions.appendChild(np);
     }
+    if(S.sel === "leads"){
+      var nl = el("button","btn primary withico");
+      nl.appendChild(ico("plus","sm")); nl.appendChild(document.createTextNode("Add lead"));
+      nl.onclick = function(){ S.leadAdd = { business:"", phone:"" }; render(); };
+      actions.appendChild(nl);
+    }
     if(S.sel === "capture" || S.sel === "unfiled"){
       [["doc","New doc"],["board","New whiteboard"]].forEach(function(k, i){
         var nb = el("button","btn" + (i === 0 ? " primary" : ""), k[1]);
@@ -3915,6 +4018,11 @@ function renderHead(){
   }
   if(S.sel === "settings"){
     headEl.appendChild(el("div","meta","How Slate looks and what it sends — set on this device."));
+    return;
+  }
+  if(S.sel === "leads"){
+    headEl.appendChild(el("div","meta",
+      "Businesses to call. Log every call here; when one is interested, move it to Prospects."));
     return;
   }
   if(S.sel === "all"){
@@ -5774,6 +5882,298 @@ function prospectRow(p){
     };
     row.appendChild(x);
   }
+  return row;
+}
+
+/* ============ render: leads (the call list) ============
+   The cold list, kept apart from Prospects: a lead is a business you haven't
+   reached yet; once one is interested, Move to Prospects carries it into the
+   pipeline and the lead remembers where it went. Every call is logged on the
+   lead itself (status, note, who and when), shared live between the two of you.
+   Filters repaint only the list, so the search box keeps its caret. */
+var LEAD_STATUSES = [["new","Not contacted"],["no_answer","No answer"],["voicemail","Left voicemail"],
+  ["audit_sent","Audit sent"],["talking","Talking"],["won","Won"],["not_interested","Not interested"],
+  ["wrong_number","Wrong number"],["prospect","Moved to Prospects"]];
+var LEAD_LABEL = {}; LEAD_STATUSES.forEach(function(x){ LEAD_LABEL[x[0]] = x[1]; });
+var LEAD_PROBS = [
+  ["none","No website on Google", function(l){ return l.wk === "NONE"; }],
+  ["broken","Broken, parked or Coming Soon site", function(l){ return l.wk === "DEAD" || l.wk === "SOON"; }],
+  ["social","Facebook, Instagram or TikTok as the website", function(l){ return l.wk === "SOCIAL"; }],
+  ["free","Free builder or outdated site", function(l){ return l.wk === "FREE" || l.wk === "OLD"; }],
+  ["unclaimed","Unclaimed Google listing", function(l){ return !!l.unclaimed; }]
+];
+function leadStatus(l){ return l.status || "new"; }
+function patchLead(id, patch){
+  if(!writable()) return Promise.resolve();
+  patch.updatedAt = nowISO();
+  patch.updatedBy = S.uid || null;
+  return queue("leads/"+id, function(){ return S.db.doc("leads/"+id).update(patch); });
+}
+function createLead(business, phone){
+  if(!writable() || !String(business||"").trim()) return;
+  var id = uid();
+  var maxN = S.leads.reduce(function(m,l){ return Math.max(m, l.n||0); }, 0);
+  queue("leads/"+id, function(){
+    return S.db.doc("leads/"+id).set({
+      n: maxN + 1, priority: "B", business: String(business).trim(), phone: String(phone||"").trim(),
+      trade: "", category: "", city: "", address: "", email: "", instagram: "", rating: "", reviews: 0,
+      website: "", websiteStatus: "", issues: [], unclaimed: false, wk: "", pitch: "", opener: "", maps: "",
+      status: "new", note: "", createdAt: nowISO(), createdBy: S.uid || null, updatedAt: nowISO(), updatedBy: S.uid || null
+    });
+  });
+}
+function leadToProspect(l){
+  if(!writable()) return;
+  var pid = uid();
+  var maxOrder = S.prospects.reduce(function(m,p){ return Math.max(m, p.order||0); }, 0);
+  var bits = [];
+  if(l.phone) bits.push(l.phone);
+  if(l.pitch) bits.push("Pitch: " + l.pitch);
+  if(l.note) bits.push(l.note);
+  queue("prospects/"+pid, function(){
+    return S.db.doc("prospects/"+pid).set({
+      company: l.business || "New prospect", contact: "", email: l.email || "", stage: "contacted",
+      note: bits.join("\n"), next: null, order: maxOrder + 1, leadId: l.id,
+      createdAt: nowISO(), createdBy: S.uid || null, updatedAt: nowISO(), updatedBy: S.uid || null
+    });
+  });
+  patchLead(l.id, { status: "prospect", prospectId: pid, statusAt: nowISO(), statusBy: S.uid || null });
+  toast("Moved " + (l.business || "it") + " to Prospects", { label: "Open", fn: function(){ goView("all", "prospects"); } });
+}
+function leadMatches(l, f, skip){
+  var st = leadStatus(l);
+  if(skip !== "pri"){
+    if(f.pri === "main" && l.backlog) return false;
+    if(f.pri === "backlog" && !l.backlog) return false;
+    if(/^[ABC]$/.test(f.pri) && (l.backlog || l.priority !== f.pri)) return false;
+  }
+  if(f.status === "open" && st !== "new") return false;
+  if(f.status === "contacted" && st === "new") return false;
+  if(f.status !== "all" && f.status !== "open" && f.status !== "contacted" && st !== f.status) return false;
+  if(f.trade !== "all" && (l.trade || "Other") !== f.trade) return false;
+  if(skip !== "prob" && f.prob){
+    var pr = LEAD_PROBS.filter(function(x){ return x[0] === f.prob; })[0];
+    if(pr && !pr[2](l)) return false;
+  }
+  var q = String(f.q || "").trim().toLowerCase();
+  if(q){
+    var hay = [l.business, l.trade, l.category, l.city, l.phone, l.email, l.note].join(" ").toLowerCase();
+    var digits = q.replace(/\D/g, "");
+    var hit = hay.indexOf(q) !== -1 ||
+      (digits.length >= 3 && String(l.phone || "").replace(/\D/g, "").indexOf(digits) !== -1);
+    if(!hit) return false;
+  }
+  return true;
+}
+function sortLeads(list, how){
+  var pri = { A:0, B:1, C:2 };
+  return list.slice().sort(function(a, b){
+    if(how === "reviews") return (b.reviews||0) - (a.reviews||0);
+    if(how === "name") return String(a.business||"").localeCompare(String(b.business||""));
+    if(how === "recent") return String(b.statusAt||b.updatedAt||"").localeCompare(String(a.statusAt||a.updatedAt||""));
+    var d = (a.backlog ? 3 : (pri[a.priority] != null ? pri[a.priority] : 3)) - (b.backlog ? 3 : (pri[b.priority] != null ? pri[b.priority] : 3));
+    return d || (a.n||0) - (b.n||0);
+  });
+}
+function renderLeads(){
+  var f = S.leadF, all = S.leads;
+  var main = all.filter(function(l){ return !l.backlog; });
+  var wrap = el("div","leads");
+
+  if(!all.length){
+    bodyEl.appendChild(emptyBlock("No leads yet", "Add a business with Add lead, top right.", null));
+  }
+
+  /* the call board: how far through the list you are */
+  var contacted = main.filter(function(l){ return leadStatus(l) !== "new"; }).length;
+  var talking = all.filter(function(l){ var s = leadStatus(l); return s === "talking" || s === "audit_sent"; }).length;
+  var won = all.filter(function(l){ var s = leadStatus(l); return s === "won" || s === "prospect"; }).length;
+  var board = el("div","leadboard");
+  [["Contacted", contacted + " of " + main.length, main.length ? contacted / main.length : 0],
+   ["Talking or audit sent", String(talking)],
+   ["Won or moved to Prospects", String(won)]].forEach(function(b){
+    var c = el("div","lb");
+    c.appendChild(el("span","lbl", b[0]));
+    c.appendChild(el("strong", null, b[1]));
+    if(b[2] != null){ var bar = el("span","lbar"); var i = el("i"); i.style.width = Math.round(b[2]*100) + "%"; bar.appendChild(i); c.appendChild(bar); }
+    board.appendChild(c);
+  });
+  wrap.appendChild(board);
+
+  if(S.leadAdd && writable()){
+    var add = el("div","leadadd");
+    var bn = document.createElement("input"); bn.type = "text"; bn.className = "leadq"; bn.placeholder = "Business name"; bn.value = S.leadAdd.business || "";
+    var ph = document.createElement("input"); ph.type = "tel"; ph.className = "leadq"; ph.placeholder = "Phone"; ph.value = S.leadAdd.phone || "";
+    bn.oninput = function(){ S.leadAdd.business = bn.value; };
+    ph.oninput = function(){ S.leadAdd.phone = ph.value; };
+    var ok = el("button","btn primary","Add");
+    var no = el("button","btn quiet","Cancel");
+    function save(){ if(!bn.value.trim()){ bn.focus(); return; } createLead(bn.value, ph.value); S.leadAdd = null; render(); }
+    ok.onclick = save;
+    no.onclick = function(){ S.leadAdd = null; render(); };
+    [bn, ph].forEach(function(x){ x.onkeydown = function(e){ if(e.key === "Enter"){ e.preventDefault(); save(); } else if(e.key === "Escape"){ S.leadAdd = null; render(); } }; });
+    add.appendChild(bn); add.appendChild(ph); add.appendChild(ok); add.appendChild(no);
+    wrap.appendChild(add);
+    setTimeout(function(){ if(document.activeElement === document.body) bn.focus(); }, 0);
+  }
+
+  /* problem tiles: what's wrong online, as filters */
+  var probs = el("div","leadprobs");
+  LEAD_PROBS.forEach(function(pr){
+    var n = all.filter(function(l){ return leadMatches(l, f, "prob") && pr[2](l); }).length;
+    var b = el("button","lp" + (f.prob === pr[0] ? " on" : ""));
+    b.type = "button";
+    b.setAttribute("aria-pressed", f.prob === pr[0] ? "true" : "false");
+    b.appendChild(el("strong", null, String(n)));
+    b.appendChild(el("span", null, pr[1]));
+    b.onclick = function(){ f.prob = f.prob === pr[0] ? null : pr[0]; render(); };
+    probs.appendChild(b);
+  });
+  wrap.appendChild(probs);
+
+  /* filters */
+  var ctl = el("div","leadctl");
+  var q = document.createElement("input");
+  q.type = "search"; q.className = "leadq"; q.placeholder = "Search name, trade, city, phone";
+  q.value = f.q || ""; q.dataset.fkey = "lead-q"; q.setAttribute("aria-label","Search leads");
+  ctl.appendChild(q);
+  var backlogN = all.filter(function(l){ return l.backlog; }).length;
+  ctl.appendChild(pillRow([["main","Call list"],["A","A"],["B","B"],["C","C"]].concat(backlogN ? [["backlog","Backlog", backlogN]] : []),
+    f.pri, function(k){ f.pri = k; render(); }, "Priority"));
+  function sel(opts, val, label, on){
+    var x = document.createElement("select");
+    x.setAttribute("aria-label", label);
+    opts.forEach(function(o){ var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; x.appendChild(op); });
+    x.value = val;
+    x.onchange = function(){ on(x.value); render(); };
+    return x;
+  }
+  ctl.appendChild(sel([["all","Any status"],["open","Not contacted yet"],["contacted","Contacted"]].concat(LEAD_STATUSES.slice(1)),
+    f.status, "Status", function(v){ f.status = v; }));
+  var trades = {}; all.forEach(function(l){ trades[l.trade || "Other"] = 1; });
+  ctl.appendChild(sel([["all","All trades"]].concat(Object.keys(trades).sort().map(function(t){ return [t, t]; })),
+    f.trade, "Trade", function(v){ f.trade = v; }));
+  ctl.appendChild(sel([["priority","Priority"],["reviews","Most reviews"],["name","Name"],["recent","Recently updated"]],
+    f.sort, "Sort", function(v){ f.sort = v; }));
+  var count = el("span","leadcount");
+  ctl.appendChild(count);
+  wrap.appendChild(ctl);
+
+  var list = el("div","leadlist");
+  wrap.appendChild(list);
+  function paint(){
+    list.textContent = "";
+    var shown = sortLeads(all.filter(function(l){ return leadMatches(l, f); }), f.sort);
+    count.textContent = shown.length + " shown";
+    if(!shown.length){ list.appendChild(el("p","leadnone","No leads match these filters.")); return; }
+    /* a long backlog draws in pages, so a phone isn't building 258 rows at once */
+    var cap = S.leadMore || 60;
+    shown.slice(0, cap).forEach(function(l){ list.appendChild(leadRow(l)); });
+    if(shown.length > cap){
+      var more = el("button","btn leadmore","Show " + Math.min(60, shown.length - cap) + " more");
+      more.onclick = function(){ S.leadMore = cap + 60; paint(); };
+      list.appendChild(more);
+    }
+  }
+  q.oninput = function(){ f.q = q.value; S.leadMore = 60; paint(); };
+  paint();
+  bodyEl.appendChild(wrap);
+}
+function leadRow(l){
+  var st = leadStatus(l);
+  var row = el("article","lead" + (st === "not_interested" || st === "wrong_number" ? " is-dead" : "") + (st === "prospect" ? " is-moved" : ""));
+
+  var rank = el("div","lrank");
+  rank.appendChild(el("span","lpri " + (l.backlog ? "pri-bk" : "pri-" + (l.priority || "C")), l.backlog ? "·" : (l.priority || "C")));
+  if(l.n && !l.backlog) rank.appendChild(el("span","lnum", "#" + l.n));
+  row.appendChild(rank);
+
+  var main = el("div","lmain");
+  var nl = el("div","lname-line");
+  nl.appendChild(el("h3","lname", l.business || "Untitled"));
+  if(l.unclaimed) nl.appendChild(el("span","chip lchip","Unclaimed"));
+  main.appendChild(nl);
+  var meta = [l.trade, l.category, l.city].filter(Boolean).join(" · ");
+  if(meta) main.appendChild(el("p","lmeta", meta));
+  if(l.rating || l.reviews) main.appendChild(el("p","lstars", "★ " + (l.rating || "–") + " · " + (l.reviews || 0) + " reviews"));
+  var issues = [];
+  if(l.websiteStatus) issues.push(l.websiteStatus);
+  (l.issues || []).forEach(function(x){ if(issues.indexOf(x) === -1) issues.push(x); });
+  if(issues.length){
+    var ul = el("ul","lissues");
+    issues.forEach(function(x){ ul.appendChild(el("li", null, x)); });
+    main.appendChild(ul);
+  }
+  if(l.opener){
+    var op = el("p","lopener");
+    op.appendChild(el("span","lbl","Opener"));
+    op.appendChild(document.createTextNode(l.opener));
+    main.appendChild(op);
+  }
+  if(l.pitch){
+    var pt = el("p","lpitch");
+    pt.appendChild(el("span","lbl","Pitch"));
+    pt.appendChild(document.createTextNode(l.pitch));
+    main.appendChild(pt);
+  }
+  row.appendChild(main);
+
+  var ct = el("div","lcontact");
+  if(l.phone){
+    var pr = el("div","lphone-row");
+    var a = document.createElement("a");
+    a.className = "lphone"; a.href = "tel:" + l.phone.replace(/[^\d+]/g, ""); a.textContent = l.phone;
+    pr.appendChild(a);
+    var cp = icoBtn("lcopy", "copy", "Copy phone number");
+    cp.dataset.icon = "copy";
+    cp.onclick = function(){ copyText(l.phone, cp); };
+    pr.appendChild(cp);
+    ct.appendChild(pr);
+  }
+  if(l.email){ var em = document.createElement("a"); em.className = "lemail"; em.href = "mailto:" + l.email; em.textContent = l.email; ct.appendChild(em); }
+  if(l.address) ct.appendChild(el("p","laddr", l.address));
+  var links = el("p","llinks");
+  function lk(href, text){ var x = document.createElement("a"); x.href = href; x.target = "_blank"; x.rel = "noopener noreferrer"; x.textContent = text; links.appendChild(x); }
+  if(l.maps) lk(l.maps, "Google Maps");
+  if(l.website && !/^https?:/.test(l.website) && l.website.indexOf(".") > 0) lk("https://" + l.website, "Their site");
+  if(l.instagram) lk("https://www.instagram.com/" + l.instagram.replace(/^@/, "") + "/", "@" + l.instagram.replace(/^@/, ""));
+  if(links.childNodes.length) ct.appendChild(links);
+  row.appendChild(ct);
+
+  var tr = el("div","ltrack");
+  var sl = document.createElement("select");
+  sl.className = "lstatus s-" + st;
+  sl.setAttribute("aria-label", "Call status for " + (l.business || "this lead"));
+  LEAD_STATUSES.forEach(function(x){
+    if(x[0] === "prospect" && st !== "prospect") return;      // reached only through the button
+    var o = document.createElement("option"); o.value = x[0]; o.textContent = x[1]; sl.appendChild(o);
+  });
+  sl.value = st;
+  sl.disabled = !writable();
+  sl.onchange = function(){ patchLead(l.id, { status: sl.value, statusAt: nowISO(), statusBy: S.uid || null }); };
+  tr.appendChild(sl);
+  var nt = document.createElement("textarea");
+  nt.className = "leadnote"; nt.rows = 2; nt.placeholder = "Notes from the call";
+  nt.value = l.note || ""; nt.disabled = !writable();
+  nt.dataset.fkey = "lead-note-" + l.id;
+  nt.onblur = function(){ if(nt.value !== (l.note || "")) patchLead(l.id, { note: nt.value, statusAt: nowISO(), statusBy: S.uid || null }); };
+  tr.appendChild(nt);
+  var who = el("p","lwho");
+  if(l.statusAt && (l.statusBy || st !== "new")){
+    var nm = l.statusBy ? personName(l.statusBy) : "Logged";
+    who.textContent = nm + " · " + relTime(l.statusAt);
+  }
+  tr.appendChild(who);
+  if(st === "prospect"){
+    var go = el("button","btn quiet lmove","In Prospects ›");
+    go.onclick = function(){ goView("all", "prospects"); };
+    tr.appendChild(go);
+  } else if(writable() && st !== "not_interested" && st !== "wrong_number"){
+    var mv = el("button","btn lmove","Move to Prospects");
+    mv.onclick = function(){ leadToProspect(l); };
+    tr.appendChild(mv);
+  }
+  row.appendChild(tr);
   return row;
 }
 
@@ -10179,7 +10579,7 @@ var lastViewKey = null, enterT = 0;
 function viewKey(){
   return [S.ready ? 1 : 0, S.sel, S.tab, S.space || "", S.doc || "", S.q ? "q" : ""].join("|");
 }
-var ENTER_SEL = ".dtile,.wcard,.col,.card,.list tbody tr,.calbar,.calpanel,.schedrow,.note,.fitem,.blk,.dcard,.psec,.docpage-head,.empty,.tagbar";
+var ENTER_SEL = ".dtile,.wcard,.col,.card,.list tbody tr,.calbar,.calpanel,.schedrow,.note,.fitem,.blk,.dcard,.psec,.docpage-head,.empty,.tagbar,.lb,.lp,.lead,.setcard";
 function enterAnim(){
   var i = 0;
   Array.prototype.forEach.call(bodyEl.querySelectorAll(ENTER_SEL), function(n){
@@ -10252,6 +10652,8 @@ function render(){
     renderDash();
   } else if(S.sel === "settings"){
     renderSettings();
+  } else if(S.sel === "leads"){
+    renderLeads();
   } else {
     if(S.doc && !isVirtualView(S.sel)) renderDocPage();
     else if(S.sel === "all" && S.tab === "prospects") renderProspects();
@@ -10430,7 +10832,7 @@ function docsToArray(snap){
   var held = false;
   function holdForTyping(){
     var a = document.activeElement;
-    if(!a || !a.classList || !a.classList.contains("cpinput")) return false;
+    if(!a || !a.classList || !(a.classList.contains("cpinput") || a.classList.contains("leadnote") || a.classList.contains("leadq"))) return false;
     if(!held){
       held = true;
       a.addEventListener("blur", function(){
@@ -10458,6 +10860,12 @@ function docsToArray(snap){
   db.collection("prospects").onSnapshot(function(snap){
     S.prospects = docsToArray(snap);
     mark("prospects");
+  }, dbErr);
+
+  /* not part of readiness: the board works without the call list */
+  db.collection("leads").onSnapshot(function(snap){
+    S.leads = docsToArray(snap);
+    if(S.ready && !holdForTyping()) render();
   }, dbErr);
 
   /* not gated on readiness: an empty meta is a perfectly good starting point */
